@@ -1,0 +1,33 @@
+# Project
+.idea/
+.vscode/
+.code-workspace
+data/*
+assets/checks/generated/*
+!assets/checks/generated/.gitkeep
+.claude/
+
+# Environment
+.venv/
+.env
+venv/
+docker-compose.yml
+uv.lock
+.tests
+
+# Cache
+__pycache__/
+*.py[cod]
+.cache/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.coverage/
+
+# Build
+build/
+_build/
+dist/
+site/
+*.egg-info/
+*.egg

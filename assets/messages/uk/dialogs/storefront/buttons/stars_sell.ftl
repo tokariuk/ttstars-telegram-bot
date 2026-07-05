@@ -1,0 +1,9 @@
+buttons-stars_sell_create_request = Нова заявка
+buttons-stars_sell_history = Історія заявок
+buttons-stars_sell_send_invoice = Надіслати інвойс
+buttons-stars_sell_change_stars = Змінити кількість
+buttons-stars_sell_change_wallet = Змінити гаманець
+buttons-stars_sell_history_back_to_list = До історії
+buttons-stars_sell_back_to_menu = До продажу зірок
+buttons-stars_sell_invoice_pay = Оплатити
+buttons-stars_sell_invoice_cancel = Скасувати заявку

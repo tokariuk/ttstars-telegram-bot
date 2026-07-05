@@ -1,0 +1,103 @@
+[project]
+name = "aiogram_bot_template"
+version = "1.0"
+description = "Aiogram 3.x bot template using PostgreSQL (asyncpg) with SQLAlchemy + alembic"
+authors = [
+    "Ivan Tokariuk <work.itokariuk@icloud.com>",
+    "wakaree <nullmatawasoradesu@gmail.com>"
+]
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "aiogram>=3.29.0,<3.30.0",
+    "aiogram-contrib>=1.1.4",
+    "aiogram-dialog>=2.4.0",
+    "aiogram-i18n>=1.4",
+    "aiohttp>=3.13.3",
+    "alembic>=1.18.1",
+    "asyncpg>=0.31.0",
+    "fastapi>=0.128.0",
+    "fluent-runtime>=0.4.0",
+    "greenlet>=3.3.0",
+    "msgspec>=0.20.0",
+    "pillow>=11.2.1",
+    "pydantic>=2.12.5",
+    "pydantic-settings[yaml]>=2.12.0",
+    "redis>=7.1.0",
+    "sqlalchemy>=2.0.45",
+    "telethon>=1.43.2",
+    "tonutils>=0.3.6",
+    "uvicorn>=0.40.0",
+]
+
+[project.urls]
+Repository = "https://github.com/wakaree/aiogram_bot_template.git"
+
+[tool.uv]
+dev-dependencies = [
+    "mypy>=1.19.1",
+    "pyright>=1.1.406",
+    "ruff>=0.14.13",
+]
+
+[tool.black]
+line-length = 99
+exclude = "\\.?venv|\\.?tests"
+
+[tool.ruff]
+target-version = "py314"
+line-length = 99
+lint.select = [
+    "C",
+    "DTZ",
+    "E",
+    "F",
+    "I",
+    "ICN",
+    "N",
+    "PLC",
+    "PLE",
+    "Q",
+    "T",
+    "W",
+    "YTT",
+]
+lint.ignore = ["N805"]
+exclude = [
+    ".venv",
+    ".idea",
+    "app/vendor",
+]
+[tool.mypy]
+python_version = "3.14"
+plugins = [
+    "sqlalchemy.ext.mypy.plugin",
+    "pydantic.mypy"
+]
+exclude = [
+    "venv",
+    ".venv",
+    ".idea",
+    ".tests",
+    "app/vendor",
+]
+warn_unused_configs = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+warn_unused_ignores = true
+warn_return_any = true
+no_implicit_reexport = true
+strict_equality = true
+extra_checks = true
+
+[[tool.mypy.overrides]]
+module = ["app.telegram.handlers.*"]
+strict_optional = false
+warn_return_any = false
+disable_error_code = ["union-attr"]

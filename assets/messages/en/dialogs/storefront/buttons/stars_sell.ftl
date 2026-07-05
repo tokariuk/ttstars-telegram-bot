@@ -1,0 +1,9 @@
+buttons-stars_sell_create_request = New Request
+buttons-stars_sell_history = Requests History
+buttons-stars_sell_send_invoice = Send Invoice
+buttons-stars_sell_change_stars = Change Stars
+buttons-stars_sell_change_wallet = Change Wallet
+buttons-stars_sell_history_back_to_list = Back To History
+buttons-stars_sell_back_to_menu = Back To Stars Sale
+buttons-stars_sell_invoice_pay = Pay
+buttons-stars_sell_invoice_cancel = Cancel Request

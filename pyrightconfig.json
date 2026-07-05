@@ -1,0 +1,22 @@
+{
+   "pythonVersion": "3.14",
+   "venvPath": ".",
+   "venv": ".venv",
+   "typeCheckingMode": "standard",
+   "reportMissingTypeStubs": "none",
+   "useLibraryCodeForTypes": true,
+   "include": [
+      "app",
+      "migrations"
+   ],
+   "exclude": [
+      ".git",
+      ".venv",
+      "venv",
+      ".tests",
+      "__pycache__",
+      "build",
+      "dist",
+      "app/vendor"
+   ]
+}

@@ -1,0 +1,23 @@
+commands:
+  uk:
+    - command: start
+      description: Головне меню
+    - command: menu
+      description: Головне меню
+    - command: help
+      description: Довідка
+  en:
+    - command: start
+      description: Main menu
+    - command: menu
+      description: Main menu
+    - command: help
+      description: Help
+
+  ru:
+    - command: start
+      description: Главное меню
+    - command: menu
+      description: Главное меню
+    - command: help
+      description: Справка

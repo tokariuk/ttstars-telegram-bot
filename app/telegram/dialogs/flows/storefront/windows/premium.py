@@ -1,0 +1,271 @@
+from aiogram.enums.button_style import ButtonStyle
+from aiogram_dialog import Window
+from aiogram_dialog.widgets.input import MessageInput
+from aiogram_dialog.widgets.kbd import Button
+from aiogram_dialog.widgets.style import Style
+from aiogram_dialog.widgets.text import Format
+
+from app.telegram.dialogs.common.premium_emoji import (
+    CRYPTOBOT_PAY_EMOJI_ID,
+    EDIT_2_EMOJI_ID,
+    HELEKET_PAY_EMOJI_ID,
+    LEFT_SQUARE_EMOJI_ID,
+    LIGHTNING_EMOJI_ID,
+    LZT_PAY_EMOJI_ID,
+    NICEPAY_EMOJI_ID,
+    SPB_PAY_EMOJI_ID,
+    TON_EMOJI_ID,
+    USER_EMOJI_ID,
+    WALLET_EMOJI_ID,
+    XROCKET_EMOJI_ID,
+)
+
+from ..getters import premium_payment_getter, premium_plans_getter, premium_recipient_getter
+from ..handlers import (
+    buy_premium_for_self,
+    handle_premium_recipient_input,
+    pay_premium_with_balance,
+    pay_premium_with_crypto,
+    pay_premium_with_heleket,
+    pay_premium_with_lzt,
+    pay_premium_with_nicepay_kz,
+    pay_premium_with_nicepay_ru,
+    pay_premium_with_platega,
+    pay_premium_with_ton,
+    pay_premium_with_xrocket,
+    select_premium_3_months,
+    select_premium_6_months,
+    select_premium_12_months,
+    show_menu,
+    show_premium_plans,
+    show_premium_recipient,
+)
+from ..ids import (
+    STOREFRONT_BACK_TO_MENU_BUTTON_ID,
+    STOREFRONT_BACK_TO_PREMIUM_PLANS_BUTTON_ID,
+    STOREFRONT_BUY_FOR_SELF_PREMIUM_BUTTON_ID,
+    STOREFRONT_CHANGE_PREMIUM_RECIPIENT_BUTTON_ID,
+    STOREFRONT_PAY_PREMIUM_BALANCE_BUTTON_ID,
+    STOREFRONT_PAY_PREMIUM_CRYPTO_BUTTON_ID,
+    STOREFRONT_PAY_PREMIUM_CRYPTO_DANGER_BUTTON_ID,
+    STOREFRONT_PAY_PREMIUM_HELEKET_BUTTON_ID,
+    STOREFRONT_PAY_PREMIUM_HELEKET_DANGER_BUTTON_ID,
+    STOREFRONT_PAY_PREMIUM_LZT_BUTTON_ID,
+    STOREFRONT_PAY_PREMIUM_LZT_DANGER_BUTTON_ID,
+    STOREFRONT_PAY_PREMIUM_NICEPAY_KZ_BUTTON_ID,
+    STOREFRONT_PAY_PREMIUM_NICEPAY_KZ_DANGER_BUTTON_ID,
+    STOREFRONT_PAY_PREMIUM_NICEPAY_RU_BUTTON_ID,
+    STOREFRONT_PAY_PREMIUM_NICEPAY_RU_DANGER_BUTTON_ID,
+    STOREFRONT_PAY_PREMIUM_PLATEGA_BUTTON_ID,
+    STOREFRONT_PAY_PREMIUM_PLATEGA_DANGER_BUTTON_ID,
+    STOREFRONT_PAY_PREMIUM_TON_BUTTON_ID,
+    STOREFRONT_PAY_PREMIUM_TON_DANGER_BUTTON_ID,
+    STOREFRONT_PAY_PREMIUM_XROCKET_BUTTON_ID,
+    STOREFRONT_PAY_PREMIUM_XROCKET_DANGER_BUTTON_ID,
+    STOREFRONT_SELECT_PREMIUM_3_BUTTON_ID,
+    STOREFRONT_SELECT_PREMIUM_6_BUTTON_ID,
+    STOREFRONT_SELECT_PREMIUM_12_BUTTON_ID,
+)
+from ..states import StorefrontSG
+from .common import banner_preview
+
+premium_plans_window: Window = Window(
+    banner_preview(),
+    Format("{text}"),
+    Button(
+        Format("{plan_3_text}"),
+        id=STOREFRONT_SELECT_PREMIUM_3_BUTTON_ID,
+        on_click=select_premium_3_months,
+        style=Style(style=ButtonStyle.PRIMARY, emoji_id=LIGHTNING_EMOJI_ID),
+    ),
+    Button(
+        Format("{plan_6_text}"),
+        id=STOREFRONT_SELECT_PREMIUM_6_BUTTON_ID,
+        on_click=select_premium_6_months,
+        style=Style(style=ButtonStyle.PRIMARY, emoji_id=LIGHTNING_EMOJI_ID),
+    ),
+    Button(
+        Format("{plan_12_text}"),
+        id=STOREFRONT_SELECT_PREMIUM_12_BUTTON_ID,
+        on_click=select_premium_12_months,
+        style=Style(style=ButtonStyle.PRIMARY, emoji_id=LIGHTNING_EMOJI_ID),
+    ),
+    Button(
+        Format("{change_recipient_text}"),
+        id=STOREFRONT_CHANGE_PREMIUM_RECIPIENT_BUTTON_ID,
+        on_click=show_premium_recipient,
+        style=Style(emoji_id=EDIT_2_EMOJI_ID),
+    ),
+    Button(
+        Format("{back_button_text}"),
+        id=STOREFRONT_BACK_TO_MENU_BUTTON_ID,
+        on_click=show_menu,
+        style=Style(emoji_id=LEFT_SQUARE_EMOJI_ID),
+    ),
+    state=StorefrontSG.premium_plans,
+    getter=premium_plans_getter,
+)
+
+premium_recipient_window: Window = Window(
+    banner_preview(),
+    Format("{text}"),
+    MessageInput(handle_premium_recipient_input),
+    Button(
+        Format("{buy_for_self_text}"),
+        id=STOREFRONT_BUY_FOR_SELF_PREMIUM_BUTTON_ID,
+        on_click=buy_premium_for_self,
+        style=Style(style=ButtonStyle.PRIMARY, emoji_id=USER_EMOJI_ID),
+    ),
+    Button(
+        Format("{back_button_text}"),
+        id=STOREFRONT_BACK_TO_MENU_BUTTON_ID,
+        on_click=show_menu,
+        style=Style(emoji_id=LEFT_SQUARE_EMOJI_ID),
+    ),
+    state=StorefrontSG.premium_recipient,
+    getter=premium_recipient_getter,
+)
+
+premium_payment_window: Window = Window(
+    banner_preview(),
+    Format("{text}"),
+    Button(
+        Format("{pay_crypto_text}"),
+        id=STOREFRONT_PAY_PREMIUM_CRYPTO_BUTTON_ID,
+        on_click=pay_premium_with_crypto,
+        when="can_pay_crypto_primary",
+        style=Style(style=ButtonStyle.PRIMARY, emoji_id=CRYPTOBOT_PAY_EMOJI_ID),
+    ),
+    Button(
+        Format("{pay_crypto_text}"),
+        id=STOREFRONT_PAY_PREMIUM_CRYPTO_DANGER_BUTTON_ID,
+        on_click=pay_premium_with_crypto,
+        when="can_pay_crypto_danger",
+        style=Style(style=ButtonStyle.DANGER, emoji_id=CRYPTOBOT_PAY_EMOJI_ID),
+    ),
+    Button(
+        Format("{pay_ton_text}"),
+        id=STOREFRONT_PAY_PREMIUM_TON_BUTTON_ID,
+        on_click=pay_premium_with_ton,
+        when="can_pay_ton_primary",
+        style=Style(style=ButtonStyle.PRIMARY, emoji_id=TON_EMOJI_ID),
+    ),
+    Button(
+        Format("{pay_ton_text}"),
+        id=STOREFRONT_PAY_PREMIUM_TON_DANGER_BUTTON_ID,
+        on_click=pay_premium_with_ton,
+        when="can_pay_ton_danger",
+        style=Style(style=ButtonStyle.DANGER, emoji_id=TON_EMOJI_ID),
+    ),
+    Button(
+        Format("{pay_platega_text}"),
+        id=STOREFRONT_PAY_PREMIUM_PLATEGA_BUTTON_ID,
+        on_click=pay_premium_with_platega,
+        when="can_pay_platega_primary",
+        style=Style(style=ButtonStyle.PRIMARY, emoji_id=SPB_PAY_EMOJI_ID),
+    ),
+    Button(
+        Format("{pay_platega_text}"),
+        id=STOREFRONT_PAY_PREMIUM_PLATEGA_DANGER_BUTTON_ID,
+        on_click=pay_premium_with_platega,
+        when="can_pay_platega_danger",
+        style=Style(style=ButtonStyle.DANGER, emoji_id=SPB_PAY_EMOJI_ID),
+    ),
+    Button(
+        Format("{pay_lzt_text}"),
+        id=STOREFRONT_PAY_PREMIUM_LZT_BUTTON_ID,
+        on_click=pay_premium_with_lzt,
+        when="can_pay_lzt_primary",
+        style=Style(style=ButtonStyle.PRIMARY, emoji_id=LZT_PAY_EMOJI_ID),
+    ),
+    Button(
+        Format("{pay_lzt_text}"),
+        id=STOREFRONT_PAY_PREMIUM_LZT_DANGER_BUTTON_ID,
+        on_click=pay_premium_with_lzt,
+        when="can_pay_lzt_danger",
+        style=Style(style=ButtonStyle.DANGER, emoji_id=LZT_PAY_EMOJI_ID),
+    ),
+    Button(
+        Format("{pay_nicepay_ru_text}"),
+        id=STOREFRONT_PAY_PREMIUM_NICEPAY_RU_BUTTON_ID,
+        on_click=pay_premium_with_nicepay_ru,
+        when="can_pay_nicepay_ru_primary",
+        style=Style(style=ButtonStyle.PRIMARY, emoji_id=NICEPAY_EMOJI_ID),
+    ),
+    Button(
+        Format("{pay_nicepay_ru_text}"),
+        id=STOREFRONT_PAY_PREMIUM_NICEPAY_RU_DANGER_BUTTON_ID,
+        on_click=pay_premium_with_nicepay_ru,
+        when="can_pay_nicepay_ru_danger",
+        style=Style(style=ButtonStyle.DANGER, emoji_id=NICEPAY_EMOJI_ID),
+    ),
+    Button(
+        Format("{pay_nicepay_kz_text}"),
+        id=STOREFRONT_PAY_PREMIUM_NICEPAY_KZ_BUTTON_ID,
+        on_click=pay_premium_with_nicepay_kz,
+        when="can_pay_nicepay_kz_primary",
+        style=Style(style=ButtonStyle.PRIMARY, emoji_id=NICEPAY_EMOJI_ID),
+    ),
+    Button(
+        Format("{pay_nicepay_kz_text}"),
+        id=STOREFRONT_PAY_PREMIUM_NICEPAY_KZ_DANGER_BUTTON_ID,
+        on_click=pay_premium_with_nicepay_kz,
+        when="can_pay_nicepay_kz_danger",
+        style=Style(style=ButtonStyle.DANGER, emoji_id=NICEPAY_EMOJI_ID),
+    ),
+    Button(
+        Format("{pay_heleket_text}"),
+        id=STOREFRONT_PAY_PREMIUM_HELEKET_BUTTON_ID,
+        on_click=pay_premium_with_heleket,
+        when="can_pay_heleket_primary",
+        style=Style(style=ButtonStyle.PRIMARY, emoji_id=HELEKET_PAY_EMOJI_ID),
+    ),
+    Button(
+        Format("{pay_heleket_text}"),
+        id=STOREFRONT_PAY_PREMIUM_HELEKET_DANGER_BUTTON_ID,
+        on_click=pay_premium_with_heleket,
+        when="can_pay_heleket_danger",
+        style=Style(style=ButtonStyle.DANGER, emoji_id=HELEKET_PAY_EMOJI_ID),
+    ),
+    Button(
+        Format("{pay_xrocket_text}"),
+        id=STOREFRONT_PAY_PREMIUM_XROCKET_BUTTON_ID,
+        on_click=pay_premium_with_xrocket,
+        when="can_pay_xrocket_primary",
+        style=Style(style=ButtonStyle.PRIMARY, emoji_id=XROCKET_EMOJI_ID),
+    ),
+    Button(
+        Format("{pay_xrocket_text}"),
+        id=STOREFRONT_PAY_PREMIUM_XROCKET_DANGER_BUTTON_ID,
+        on_click=pay_premium_with_xrocket,
+        when="can_pay_xrocket_danger",
+        style=Style(style=ButtonStyle.DANGER, emoji_id=XROCKET_EMOJI_ID),
+    ),
+    Button(
+        Format("{pay_balance_text}"),
+        id=STOREFRONT_PAY_PREMIUM_BALANCE_BUTTON_ID,
+        on_click=pay_premium_with_balance,
+        when="can_pay_balance",
+        style=Style(style=ButtonStyle.SUCCESS, emoji_id=WALLET_EMOJI_ID),
+    ),
+    Button(
+        Format("{change_recipient_text}"),
+        id=STOREFRONT_CHANGE_PREMIUM_RECIPIENT_BUTTON_ID,
+        on_click=show_premium_recipient,
+        style=Style(emoji_id=EDIT_2_EMOJI_ID),
+    ),
+    Button(
+        Format("{back_plans_text}"),
+        id=STOREFRONT_BACK_TO_PREMIUM_PLANS_BUTTON_ID,
+        on_click=show_premium_plans,
+        style=Style(emoji_id=EDIT_2_EMOJI_ID),
+    ),
+    Button(
+        Format("{back_button_text}"),
+        id=STOREFRONT_BACK_TO_MENU_BUTTON_ID,
+        on_click=show_menu,
+        style=Style(emoji_id=LEFT_SQUARE_EMOJI_ID),
+    ),
+    state=StorefrontSG.premium_payment,
+    getter=premium_payment_getter,
+)
