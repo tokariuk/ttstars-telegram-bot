@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy import select
@@ -21,6 +22,7 @@ async def poll_pending_orders(
     limit: int,
     logger: logging.Logger,
     provider: StarsPaymentProvider | None = None,
+    pending_created_after: datetime | None = None,
 ) -> list[Any]:
     if limit <= 0:
         return []
@@ -28,6 +30,7 @@ async def poll_pending_orders(
         pending_orders = await repository.stars_orders.list_pending_for_polling(
             limit=limit,
             provider=provider,
+            pending_created_after=pending_created_after,
         )
     if not pending_orders:
         return []

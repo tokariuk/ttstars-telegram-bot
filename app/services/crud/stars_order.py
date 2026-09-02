@@ -300,6 +300,9 @@ class StarsOrderService(CrudService):
             parse_money_cents=self._parse_money_cents,
         )
         self.poll_concurrency = max(1, int(config.payments.poll_concurrency))
+        self.poll_unpaid_max_age = timedelta(
+            hours=max(1, int(config.payments.poll_unpaid_max_age_hours))
+        )
         self.referral_level_percents: tuple[Decimal, Decimal, Decimal] = (
             self._parse_percent(config.payments.referral_level1_percent, default="2"),
             self._parse_percent(config.payments.referral_level2_percent, default="1"),
@@ -1981,16 +1984,21 @@ class StarsOrderService(CrudService):
         )
 
     async def poll_pending_orders(self, *, limit: int) -> list[PaymentCheckResult]:
+        pending_created_after = datetime_now() - self.poll_unpaid_max_age
         order_results = await poll_pending_orders_support(
             service=self,
             limit=limit,
             logger=logger,
+            pending_created_after=pending_created_after,
         )
         if limit <= 0:
             return order_results
 
         async with SQLSessionContext(session_pool=self.session_pool) as (repository, _uow):
-            pending_topups = await repository.balance_topups.list_pending_for_polling(limit=limit)
+            pending_topups = await repository.balance_topups.list_pending_for_polling(
+                limit=limit,
+                pending_created_after=pending_created_after,
+            )
         if not pending_topups:
             return order_results
 
@@ -2024,17 +2032,20 @@ class StarsOrderService(CrudService):
     ) -> list[PaymentCheckResult]:
         if limit <= 0:
             return []
+        pending_created_after = datetime_now() - self.poll_unpaid_max_age
         order_results = await poll_pending_orders_support(
             service=self,
             limit=limit,
             logger=logger,
             provider=provider,
+            pending_created_after=pending_created_after,
         )
 
         async with SQLSessionContext(session_pool=self.session_pool) as (repository, _uow):
             pending_topups = await repository.balance_topups.list_pending_for_polling(
                 limit=limit,
                 provider=provider,
+                pending_created_after=pending_created_after,
             )
         if not pending_topups:
             return order_results

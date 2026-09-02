@@ -219,6 +219,7 @@ class BalanceTopupsRepository(BaseRepository):
         *,
         limit: int,
         provider: StarsPaymentProvider | None = None,
+        pending_created_after: datetime | None = None,
     ) -> list[BalanceTopup]:
         if limit <= 0:
             return []
@@ -231,6 +232,18 @@ class BalanceTopupsRepository(BaseRepository):
         query: Select[tuple[BalanceTopup]] = select(BalanceTopup).where(
             BalanceTopup.status.in_(statuses)
         )
+        if pending_created_after is not None:
+            query = query.where(
+                or_(
+                    BalanceTopup.status.in_(
+                        (
+                            StarsOrderStatus.PAYMENT_CONFIRMED.value,
+                            StarsOrderStatus.FULFILLING.value,
+                        )
+                    ),
+                    BalanceTopup.created_at >= pending_created_after,
+                )
+            )
         if provider is not None:
             query = query.where(BalanceTopup.payment_provider == provider.value)
         query = query.order_by(BalanceTopup.created_at.asc()).limit(limit)

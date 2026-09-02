@@ -221,6 +221,7 @@ class StarsOrdersRepository(BaseRepository):
         *,
         limit: int,
         provider: StarsPaymentProvider | None = None,
+        pending_created_after: datetime | None = None,
     ) -> list[StarsOrder]:
         if limit <= 0:
             return []
@@ -233,6 +234,18 @@ class StarsOrdersRepository(BaseRepository):
         query: Select[tuple[StarsOrder]] = select(StarsOrder).where(
             StarsOrder.status.in_(statuses)
         )
+        if pending_created_after is not None:
+            query = query.where(
+                or_(
+                    StarsOrder.status.in_(
+                        (
+                            StarsOrderStatus.PAYMENT_CONFIRMED.value,
+                            StarsOrderStatus.FULFILLING.value,
+                        )
+                    ),
+                    StarsOrder.created_at >= pending_created_after,
+                )
+            )
         if provider is not None:
             query = query.where(StarsOrder.payment_provider == provider.value)
         query = query.order_by(StarsOrder.created_at.asc()).limit(limit)

@@ -8,6 +8,7 @@ class PaymentsConfig(EnvSettings, env_prefix="PAYMENTS_"):
     poll_interval_seconds: int = 20
     poll_batch_size: int = 200
     poll_concurrency: int = 8
+    poll_unpaid_max_age_hours: int = 24
     stars_sell_usd_per_star: str = "0.0118"
     stars_sell_hold_days: int = 21
     stars_sell_min_stars: int = 50
