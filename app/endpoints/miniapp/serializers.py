@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from app.models.dto.check import CheckDto
 from app.models.dto.miniapp import (
+    AdminPromoActivationResponse,
     AdminPromoResponse,
     AdminUserResponse,
     CheckResponse,
@@ -15,7 +16,7 @@ from app.models.dto.stars_sell_order import StarsSellOrderDto
 from app.models.dto.user import UserDto
 from app.services.crud import CheckService, StarsOrderService
 from app.services.crud.stars_order import PaymentCheckResult
-from app.services.promo_codes import PromoCodeInfo
+from app.services.promo_codes import PromoCodeActivationInfo, PromoCodeInfo
 from app.stars import price_usd_for_cents
 
 
@@ -143,7 +144,18 @@ def build_promo_response(info: PromoCodeInfo) -> AdminPromoResponse:
         amount_usd=price_usd_for_cents(info.amount_cents),
         activations=info.activations,
         max_activations=info.max_activations,
+        is_enabled=info.is_enabled,
         created_at=info.created_at,
+    )
+
+
+def build_promo_activation_response(info: PromoCodeActivationInfo) -> AdminPromoActivationResponse:
+    return AdminPromoActivationResponse(
+        user_id=info.user_id,
+        user_name=info.user_name,
+        amount_cents=info.amount_cents,
+        amount_usd=price_usd_for_cents(info.amount_cents),
+        activated_at=info.activated_at,
     )
 
 

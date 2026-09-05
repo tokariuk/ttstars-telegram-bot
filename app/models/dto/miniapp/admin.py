@@ -100,7 +100,20 @@ class AdminPromoResponse(PydanticModel):
     amount_usd: str
     activations: int
     max_activations: Optional[int] = None
+    is_enabled: bool
     created_at: datetime
+
+
+class AdminPromoActivationResponse(PydanticModel):
+    user_id: int
+    user_name: str
+    amount_cents: int
+    amount_usd: str
+    activated_at: datetime
+
+
+class AdminPromoActivationsResponse(PydanticModel):
+    items: list[AdminPromoActivationResponse]
 
 
 class AdminPromosResponse(PydanticModel):
@@ -111,6 +124,10 @@ class AdminPromoCreateRequest(PydanticModel):
     code: Optional[str] = Field(default=None, max_length=40)
     amount_usd: str = Field(min_length=1, max_length=32)
     max_activations: Optional[int] = Field(default=None, ge=1)
+
+
+class AdminPromoEnabledRequest(PydanticModel):
+    enabled: bool
 
 
 class AdminUserStatsResponse(PydanticModel):

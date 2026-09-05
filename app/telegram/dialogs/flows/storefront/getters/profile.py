@@ -54,7 +54,8 @@ async def promo_getter(dialog_manager: DialogManager, **_: Any) -> dict[str, Any
     active_codes = [
         code
         for code in promo_codes
-        if code.max_activations is None or code.activations < code.max_activations
+        if code.is_enabled
+        and (code.max_activations is None or code.activations < code.max_activations)
     ]
     available_codes = ", ".join(code.code for code in active_codes) if active_codes else "—"
     text = str(i18n.messages.promo_screen(available_codes=available_codes))

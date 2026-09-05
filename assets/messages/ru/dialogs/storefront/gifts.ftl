@@ -61,6 +61,8 @@ messages-gift_name_irish_bear = Ирландский медведь
 messages-gift_name_clown_bear = Медведь-клоун
 messages-gift_name_easter_bear = Пасхальный медведь
 messages-gift_name_worker_bear = Медведь-рабочий
+messages-gift_name_military_bear = Военный мишка
+messages-gift_name_football_bear = Футбольный мишка
 messages-gift_name_default_bear = Медведь
 
 messages-gift_recipient_invalid =

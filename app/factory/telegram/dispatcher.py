@@ -48,6 +48,9 @@ def create_dispatcher(config: AppConfig) -> Dispatcher:
     )
 
     dispatcher.include_routers(main.router, extra.router)
+    dispatcher.startup.register(
+        dispatcher.workflow_data["promo_code_service"].migrate_legacy_redis_data
+    )
     register_dialogs(dispatcher=dispatcher)
     dispatcher.update.outer_middleware(UserMiddleware())
     i18n_middleware.setup(dispatcher=dispatcher)

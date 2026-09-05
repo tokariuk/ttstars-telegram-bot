@@ -49,5 +49,7 @@ GIFT_NAME_MESSAGE_BY_KEY: Final[dict[str, str]] = {
     "clown_bear": "gift_name_clown_bear",
     "easter_bear": "gift_name_easter_bear",
     "worker_bear": "gift_name_worker_bear",
+    "military_bear": "gift_name_military_bear",
+    "football_bear": "gift_name_football_bear",
     "default_bear": "gift_name_default_bear",
 }

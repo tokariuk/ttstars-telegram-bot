@@ -51,6 +51,8 @@ messages-gift_name_irish_bear = Ірландський ведмідь
 messages-gift_name_clown_bear = Ведмідь-клоун
 messages-gift_name_easter_bear = Великодній ведмідь
 messages-gift_name_worker_bear = Робітник-ведмідь
+messages-gift_name_military_bear = Військовий ведмідь
+messages-gift_name_football_bear = Футбольний ведмідь
 messages-gift_name_default_bear = Ведмідь
 
 messages-gift_recipient_invalid =

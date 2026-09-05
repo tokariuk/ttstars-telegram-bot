@@ -39,6 +39,8 @@ _GIFT_NAME_MESSAGE_BY_KEY: dict[str, str] = {
     "clown_bear": "gift_name_clown_bear",
     "easter_bear": "gift_name_easter_bear",
     "worker_bear": "gift_name_worker_bear",
+    "military_bear": "gift_name_military_bear",
+    "football_bear": "gift_name_football_bear",
     "default_bear": "gift_name_default_bear",
 }
 
@@ -158,6 +160,8 @@ async def gifts_catalog_getter(dialog_manager: DialogManager, **_: Any) -> dict[
         "gift_clown_bear_text": _gift_button_text(i18n=i18n, gift_key="clown_bear"),
         "gift_easter_bear_text": _gift_button_text(i18n=i18n, gift_key="easter_bear"),
         "gift_worker_bear_text": _gift_button_text(i18n=i18n, gift_key="worker_bear"),
+        "gift_military_bear_text": _gift_button_text(i18n=i18n, gift_key="military_bear"),
+        "gift_football_bear_text": _gift_button_text(i18n=i18n, gift_key="football_bear"),
         "gift_default_bear_text": _gift_button_text(i18n=i18n, gift_key="default_bear"),
         "back_recipient_text": i18n.buttons.gift_back_to_recipient(),
         "back_button_text": i18n.buttons.back_to_menu(),

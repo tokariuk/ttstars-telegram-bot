@@ -1,36 +1,23 @@
 from __future__ import annotations
 
+import logging
 import secrets
 import string
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Any, Final
+from typing import Any, Final, cast
 
+from redis.asyncio import Redis
+from sqlalchemy import delete, select
+from sqlalchemy.engine import CursorResult
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+from app.models.sql import PromoCode, PromoCodeActivation, User
 from app.utils.key_builder import build_key
 
+logger: Final[logging.Logger] = logging.getLogger(__name__)
 _CODE_ALPHABET: Final[str] = string.ascii_uppercase + string.digits
-_ACTIVATE_LUA: Final[str] = """
-local code_key = KEYS[1]
-local user_key = KEYS[2]
-if redis.call('exists', code_key) == 0 then
-  return {0, 'not_found'}
-end
-if redis.call('exists', user_key) == 1 then
-  return {0, 'already_used'}
-end
-local amount = tonumber(redis.call('hget', code_key, 'amount_cents') or '0')
-if amount <= 0 then
-  return {0, 'invalid_amount'}
-end
-local max_activations = tonumber(redis.call('hget', code_key, 'max_activations') or '0')
-local activations = tonumber(redis.call('hget', code_key, 'activations') or '0')
-if max_activations > 0 and activations >= max_activations then
-  return {0, 'limit_reached'}
-end
-redis.call('set', user_key, '1')
-redis.call('hincrby', code_key, 'activations', 1)
-return {1, tostring(amount)}
-"""
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,7 +26,16 @@ class PromoCodeInfo:
     amount_cents: int
     activations: int
     max_activations: int | None
+    is_enabled: bool
     created_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class PromoCodeActivationInfo:
+    user_id: int
+    user_name: str
+    amount_cents: int
+    activated_at: datetime
 
 
 class PromoCodeService:
@@ -61,36 +57,64 @@ class PromoCodeService:
     class LimitReachedError(Error):
         pass
 
+    class DisabledError(Error):
+        pass
+
     class ActivationFailedError(Error):
         pass
 
-    def __init__(self, *, redis: Any) -> None:
-        # NOTE: redis-py async client methods are awaitable at runtime, but
-        # static typing in redis package can be inconsistent for pyright.
-        # Keep runtime behavior strict and avoid false-positive await errors.
+    def __init__(
+        self,
+        *,
+        session_pool: async_sessionmaker[AsyncSession],
+        redis: Redis | None = None,
+    ) -> None:
+        self.session_pool = session_pool
         self.redis = redis
 
     async def list_codes(self, *, limit: int = 50) -> list[PromoCodeInfo]:
         if limit <= 0:
             return []
-        raw_codes = await self.redis.zrevrange(self._index_key(), 0, max(limit - 1, 0))
-        codes = [
-            code.decode("utf-8") if isinstance(code, bytes) else str(code)
-            for code in raw_codes
-        ]
-        result: list[PromoCodeInfo] = []
-        for code in codes:
-            details = await self.get_code(code)
-            if details is not None:
-                result.append(details)
-        return result
+        async with self.session_pool() as session:
+            rows = await session.scalars(
+                select(PromoCode).order_by(PromoCode.created_at.desc()).limit(limit)
+            )
+            return [self._to_info(row) for row in rows]
 
     async def get_code(self, code: str) -> PromoCodeInfo | None:
         normalized = self.normalize_code(code)
-        data = await self.redis.hgetall(self._code_key(normalized))
-        if not data:
-            return None
-        return self._parse_code_hash(normalized, data)
+        async with self.session_pool() as session:
+            row = await session.get(PromoCode, normalized)
+            return self._to_info(row) if row is not None else None
+
+    async def list_activations(
+        self,
+        *,
+        code: str,
+        limit: int = 100,
+    ) -> list[PromoCodeActivationInfo]:
+        normalized = self.normalize_code(code)
+        if limit <= 0:
+            return []
+        async with self.session_pool() as session:
+            if await session.get(PromoCode, normalized) is None:
+                raise self.CodeNotFoundError("Promo code not found.")
+            rows = await session.execute(
+                select(PromoCodeActivation, User.name)
+                .join(User, User.id == PromoCodeActivation.user_id)
+                .where(PromoCodeActivation.promo_code == normalized)
+                .order_by(PromoCodeActivation.created_at.desc())
+                .limit(limit)
+            )
+            return [
+                PromoCodeActivationInfo(
+                    user_id=int(activation.user_id),
+                    user_name=user_name,
+                    amount_cents=activation.amount_cents,
+                    activated_at=activation.created_at,
+                )
+                for activation, user_name in rows
+            ]
 
     async def create_code(
         self,
@@ -100,13 +124,23 @@ class PromoCodeService:
         max_activations: int | None,
     ) -> PromoCodeInfo:
         normalized = self.normalize_code(code)
-        if await self.redis.exists(self._code_key(normalized)):
-            raise self.CodeAlreadyExistsError("Promo code already exists.")
-        return await self._create_code(
+        self._validate_values(amount_cents=amount_cents, max_activations=max_activations)
+        row = PromoCode(
             code=normalized,
             amount_cents=amount_cents,
             max_activations=max_activations,
+            activations=0,
+            is_enabled=True,
         )
+        async with self.session_pool() as session:
+            session.add(row)
+            try:
+                await session.commit()
+            except IntegrityError as error:
+                await session.rollback()
+                raise self.CodeAlreadyExistsError("Promo code already exists.") from error
+            await session.refresh(row)
+        return self._to_info(row)
 
     async def create_unique_one_time_codes(
         self,
@@ -128,26 +162,28 @@ class PromoCodeService:
         while len(created) < count and attempts < count * 20:
             attempts += 1
             suffix = "".join(secrets.choice(_CODE_ALPHABET) for _ in range(8))
-            code = f"{normalized_prefix}-{suffix}"
-            if await self.redis.exists(self._code_key(code)):
-                continue
-            created.append(
-                await self._create_code(
-                    code=code,
+            try:
+                info = await self.create_code(
+                    code=f"{normalized_prefix}-{suffix}",
                     amount_cents=amount_cents,
                     max_activations=1,
                 )
-            )
+            except self.CodeAlreadyExistsError:
+                continue
+            created.append(info)
         if len(created) != count:
             raise self.Error("Could not generate requested number of unique promo codes.")
         return created
 
     async def delete_code(self, code: str) -> bool:
         normalized = self.normalize_code(code)
-        key = self._code_key(normalized)
-        deleted = await self.redis.delete(key)
-        await self.redis.zrem(self._index_key(), normalized)
-        return bool(deleted)
+        async with self.session_pool() as session:
+            result = cast(
+                CursorResult[Any],
+                await session.execute(delete(PromoCode).where(PromoCode.code == normalized)),
+            )
+            await session.commit()
+            return bool(result.rowcount)
 
     async def set_max_activations(
         self,
@@ -156,51 +192,135 @@ class PromoCodeService:
         max_activations: int | None,
     ) -> PromoCodeInfo:
         normalized = self.normalize_code(code)
-        key = self._code_key(normalized)
-        if not await self.redis.exists(key):
-            raise self.CodeNotFoundError("Promo code not found.")
-        max_value = 0 if max_activations is None else max(max_activations, 0)
-        await self.redis.hset(key, mapping={"max_activations": str(max_value)})
-        data = await self.redis.hgetall(key)
-        return self._parse_code_hash(normalized, data)
+        if max_activations is not None and max_activations <= 0:
+            raise self.InvalidCodeError("Activation limit must be positive or unlimited.")
+        async with self.session_pool() as session:
+            row = await session.get(PromoCode, normalized)
+            if row is None:
+                raise self.CodeNotFoundError("Promo code not found.")
+            row.max_activations = max_activations
+            await session.commit()
+            await session.refresh(row)
+            return self._to_info(row)
+
+    async def set_enabled(self, *, code: str, enabled: bool) -> PromoCodeInfo:
+        normalized = self.normalize_code(code)
+        async with self.session_pool() as session:
+            row = await session.get(PromoCode, normalized)
+            if row is None:
+                raise self.CodeNotFoundError("Promo code not found.")
+            row.is_enabled = enabled
+            await session.commit()
+            await session.refresh(row)
+            return self._to_info(row)
 
     async def activate_code(self, *, user_id: int, code: str) -> int:
         normalized = self.normalize_code(code)
-        key = self._code_key(normalized)
-        activation_key = self._activation_key(user_id=user_id, code=normalized)
-        raw = await self.redis.eval(_ACTIVATE_LUA, 2, key, activation_key)
-        if not isinstance(raw, list) or len(raw) < 2:
-            raise self.ActivationFailedError("Unexpected promo activation response.")
-        success_raw = raw[0]
-        detail_raw = raw[1]
-        success = (
-            int(success_raw)
-            if not isinstance(success_raw, bytes)
-            else int(success_raw.decode("utf-8"))
-        )
-        detail = detail_raw.decode("utf-8") if isinstance(detail_raw, bytes) else str(detail_raw)
-        if success != 1:
-            if detail == "already_used":
-                raise self.AlreadyUsedError("Promo code already used.")
-            if detail == "limit_reached":
-                raise self.LimitReachedError("Promo activation limit reached.")
-            if detail == "not_found":
+        async with self.session_pool() as session:
+            row = await session.scalar(
+                select(PromoCode).where(PromoCode.code == normalized).with_for_update()
+            )
+            if row is None:
                 raise self.CodeNotFoundError("Promo code not found.")
-            raise self.ActivationFailedError("Promo activation failed.")
-        amount_cents = int(detail)
-        if amount_cents <= 0:
-            raise self.ActivationFailedError("Promo amount is invalid.")
-        return amount_cents
+            if not row.is_enabled:
+                raise self.DisabledError("Promo code is disabled.")
+            already_used = await session.scalar(
+                select(PromoCodeActivation.id).where(
+                    PromoCodeActivation.promo_code == normalized,
+                    PromoCodeActivation.user_id == user_id,
+                )
+            )
+            if already_used is not None:
+                raise self.AlreadyUsedError("Promo code already used.")
+            if row.max_activations is not None and row.activations >= row.max_activations:
+                raise self.LimitReachedError("Promo activation limit reached.")
+            user = await session.scalar(select(User).where(User.id == user_id).with_for_update())
+            if user is None:
+                raise self.ActivationFailedError("Promo user was not found.")
+            session.add(
+                PromoCodeActivation(
+                    promo_code=normalized,
+                    user_id=user_id,
+                    amount_cents=row.amount_cents,
+                    created_at=datetime.now(UTC),
+                )
+            )
+            row.activations += 1
+            user.balance_cents += row.amount_cents
+            try:
+                await session.commit()
+            except IntegrityError as error:
+                await session.rollback()
+                raise self.AlreadyUsedError("Promo code already used.") from error
+            return row.amount_cents
 
     async def rollback_activation(self, *, user_id: int, code: str) -> None:
-        normalized = self.normalize_code(code)
-        activation_key = self._activation_key(user_id=user_id, code=normalized)
-        deleted = await self.redis.delete(activation_key)
-        if not deleted:
-            return
-        key = self._code_key(normalized)
-        if await self.redis.exists(key):
-            await self.redis.hincrby(key, "activations", -1)
+        """Compatibility no-op: activation and balance credit share one transaction."""
+
+    async def migrate_legacy_redis_data(self) -> int:  # noqa: C901
+        """Move legacy Redis promo state into PostgreSQL once, preserving activations."""
+        if self.redis is None:
+            return 0
+        raw_codes = await self.redis.zrange(self._legacy_index_key(), 0, -1)
+        migrated = 0
+        for raw_code in raw_codes:
+            code = raw_code.decode("utf-8") if isinstance(raw_code, bytes) else str(raw_code)
+            try:
+                normalized = self.normalize_code(code)
+            except self.InvalidCodeError:
+                continue
+            legacy_key = self._legacy_code_key(normalized)
+            data = await self.redis.hgetall(legacy_key)
+            if not data:
+                continue
+            legacy = self._parse_legacy_hash(normalized, data)
+            activation_keys = [
+                key async for key in self.redis.scan_iter(
+                    match=f"promo:activation:*:{normalized}", count=200
+                )
+            ]
+            async with self.session_pool() as session:
+                existing = await session.get(PromoCode, normalized)
+                if existing is None:
+                    promo = PromoCode(
+                        code=normalized,
+                        amount_cents=legacy.amount_cents,
+                        activations=legacy.activations,
+                        max_activations=legacy.max_activations,
+                        is_enabled=True,
+                        created_at=legacy.created_at,
+                        updated_at=legacy.created_at,
+                    )
+                    session.add(promo)
+                    await session.flush()
+                    for activation_key in activation_keys:
+                        key_text = (
+                            activation_key.decode("utf-8")
+                            if isinstance(activation_key, bytes)
+                            else str(activation_key)
+                        )
+                        try:
+                            activation_user_id = int(key_text.split(":")[-2])
+                        except (ValueError, IndexError):
+                            continue
+                        if await session.get(User, activation_user_id) is not None:
+                            session.add(
+                                PromoCodeActivation(
+                                    promo_code=normalized,
+                                    user_id=activation_user_id,
+                                    amount_cents=legacy.amount_cents,
+                                    created_at=legacy.created_at,
+                                )
+                            )
+                    await session.commit()
+                    migrated += 1
+            if activation_keys:
+                await self.redis.delete(*activation_keys)
+            await self.redis.delete(legacy_key)
+            await self.redis.zrem(self._legacy_index_key(), normalized)
+        if migrated:
+            logger.info("Migrated %s legacy promo code(s) from Redis to PostgreSQL", migrated)
+        return migrated
 
     @staticmethod
     def normalize_code(value: str) -> str:
@@ -213,72 +333,51 @@ class PromoCodeService:
             )
         return normalized
 
-    async def _create_code(
-        self,
-        *,
-        code: str,
-        amount_cents: int,
-        max_activations: int | None,
-    ) -> PromoCodeInfo:
+    @staticmethod
+    def _validate_values(*, amount_cents: int, max_activations: int | None) -> None:
         if amount_cents <= 0:
-            raise self.InvalidCodeError("Promo amount must be positive.")
-        created_at = datetime.now(UTC)
-        key = self._code_key(code)
-        max_value = 0 if max_activations is None else max(max_activations, 0)
-        await self.redis.hset(
-            key,
-            mapping={
-                "amount_cents": str(amount_cents),
-                "max_activations": str(max_value),
-                "activations": "0",
-                "created_at": str(int(created_at.timestamp())),
-            },
-        )
-        await self.redis.zadd(self._index_key(), {code: created_at.timestamp()})
+            raise PromoCodeService.InvalidCodeError("Promo amount must be positive.")
+        if max_activations is not None and max_activations <= 0:
+            raise PromoCodeService.InvalidCodeError(
+                "Activation limit must be positive or unlimited."
+            )
+
+    @staticmethod
+    def _to_info(row: PromoCode) -> PromoCodeInfo:
         return PromoCodeInfo(
-            code=code,
-            amount_cents=amount_cents,
-            activations=0,
-            max_activations=max_activations,
-            created_at=created_at,
+            code=row.code,
+            amount_cents=row.amount_cents,
+            activations=row.activations,
+            max_activations=row.max_activations,
+            is_enabled=row.is_enabled,
+            created_at=row.created_at,
         )
 
     @staticmethod
-    def _parse_code_hash(code: str, data: dict[bytes, bytes] | dict[str, str]) -> PromoCodeInfo:
-        def _get_value(key: str) -> str:
-            if key in data:
-                value = data[key]  # type: ignore[index]
-            else:
-                value = data.get(key.encode("utf-8"), b"")  # type: ignore[arg-type]
-            if isinstance(value, bytes):
-                return value.decode("utf-8")
-            return str(value)
+    def _parse_legacy_hash(code: str, data: dict[Any, Any]) -> PromoCodeInfo:
+        def value(key: str) -> str:
+            raw: Any = data.get(key) or data.get(key.encode("utf-8"), b"")  # type: ignore[arg-type]
+            return raw.decode("utf-8") if isinstance(raw, bytes) else str(raw)
 
-        amount_cents = int(_get_value("amount_cents") or "0")
-        activations = int(_get_value("activations") or "0")
-        max_activations_raw = int(_get_value("max_activations") or "0")
-        created_ts = int(_get_value("created_at") or "0")
-        created_at = (
-            datetime.fromtimestamp(created_ts, tz=UTC)
-            if created_ts > 0
-            else datetime.now(UTC)
-        )
+        max_raw = int(value("max_activations") or "0")
+        created_ts = int(value("created_at") or "0")
         return PromoCodeInfo(
             code=code,
-            amount_cents=amount_cents,
-            activations=max(0, activations),
-            max_activations=(None if max_activations_raw <= 0 else max_activations_raw),
-            created_at=created_at,
+            amount_cents=int(value("amount_cents") or "0"),
+            activations=max(0, int(value("activations") or "0")),
+            max_activations=None if max_raw <= 0 else max_raw,
+            is_enabled=True,
+            created_at=(
+                datetime.fromtimestamp(created_ts, tz=UTC)
+                if created_ts > 0
+                else datetime.now(UTC)
+            ),
         )
 
     @staticmethod
-    def _index_key() -> str:
+    def _legacy_index_key() -> str:
         return build_key("promo", "codes")
 
     @staticmethod
-    def _code_key(code: str) -> str:
+    def _legacy_code_key(code: str) -> str:
         return build_key("promo", "code", code=code)
-
-    @staticmethod
-    def _activation_key(*, user_id: int, code: str) -> str:
-        return build_key("promo", "activation", user_id=user_id, code=code)

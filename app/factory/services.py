@@ -154,7 +154,7 @@ def create_services(
         wallet_mnemonic=_secret_value(config.fragment.wallet_mnemonic),
         wallet_version=config.fragment.wallet_version,
     )
-    promo_code_service = PromoCodeService(redis=redis)
+    promo_code_service = PromoCodeService(session_pool=session_pool, redis=redis)
     check_service: CheckService = CheckService(
         **crud_service_kwargs,
         fragment_stars_service=fragment_stars_service,

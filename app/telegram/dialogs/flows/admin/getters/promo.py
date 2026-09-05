@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import timezone
+from html import escape
 from typing import Any, Final
 
 from aiogram_dialog import DialogManager
@@ -26,6 +27,8 @@ PROMO_LIST_LIMIT: Final[int] = 250
 
 
 def _is_active(code: PromoCodeInfo) -> bool:
+    if not code.is_enabled:
+        return False
     if code.max_activations is None:
         return True
     return code.activations < code.max_activations
@@ -75,7 +78,7 @@ async def promo_menu_getter(dialog_manager: DialogManager, **_: Any) -> dict[str
     i18n_ctx = i18n(dialog_manager)
     all_codes = await promo_service(dialog_manager).list_codes(limit=PROMO_LIST_LIMIT)
     active_codes = [code for code in all_codes if _is_active(code)]
-    active_codes_set = {code.code for code in active_codes}
+    active_codes_set = {code.code for code in all_codes}
     is_bulk_mode = promo_bulk_mode(dialog_manager)
     selected_codes = promo_bulk_selected_codes(dialog_manager)
     selected_active_codes = [code for code in selected_codes if code in active_codes_set]
@@ -87,13 +90,13 @@ async def promo_menu_getter(dialog_manager: DialogManager, **_: Any) -> dict[str
     selected_set = set(selected_active_codes)
 
     page = promo_page(dialog_manager)
-    total_pages = max(1, (len(active_codes) + PROMO_PAGE_SIZE - 1) // PROMO_PAGE_SIZE)
+    total_pages = max(1, (len(all_codes) + PROMO_PAGE_SIZE - 1) // PROMO_PAGE_SIZE)
     if page >= total_pages:
         page = total_pages - 1
         set_promo_page(dialog_manager, page)
 
     start = page * PROMO_PAGE_SIZE
-    page_codes = active_codes[start : start + PROMO_PAGE_SIZE]
+    page_codes = all_codes[start : start + PROMO_PAGE_SIZE]
     codes_items = [
         {
             "id": code.code,
@@ -148,7 +151,7 @@ async def promo_menu_getter(dialog_manager: DialogManager, **_: Any) -> dict[str
         "next_button_text": i18n_ctx.buttons.admin_promo_next(),
         "show_prev_page": page > 0,
         "show_next_page": page + 1 < total_pages,
-        "show_page_info": bool(active_codes),
+        "show_page_info": bool(all_codes),
         "show_cleanup": bool(all_codes),
         "show_bulk_delete_selected": is_bulk_mode and bool(selected_set),
         "back_button_text": i18n_ctx.buttons.admin_back_menu(),
@@ -167,6 +170,16 @@ async def promo_details_getter(dialog_manager: DialogManager, **_: Any) -> dict[
         has_code = False
     else:
         is_active = _is_active(code)
+        activations = await promo_service(dialog_manager).list_activations(
+            code=code.code, limit=20
+        )
+        activation_list = (
+            "\n".join(
+                f"• {escape(item.user_name)} (<code>{item.user_id}</code>)"
+                for item in activations
+            )
+            or "—"
+        )
         text_body = str(
             i18n_ctx.messages.admin_promo_details(
                 code=code.code,
@@ -175,10 +188,15 @@ async def promo_details_getter(dialog_manager: DialogManager, **_: Any) -> dict[
                 max_activations=_max_activations_text(code=code, i18n_ctx=i18n_ctx),
                 created_at=_format_created_at(code),
                 status=(
-                    str(i18n_ctx.messages.admin_promo_status_active())
-                    if is_active
-                    else str(i18n_ctx.messages.admin_promo_status_exhausted())
+                    str(i18n_ctx.messages.admin_promo_status_disabled())
+                    if not code.is_enabled
+                    else (
+                        str(i18n_ctx.messages.admin_promo_status_active())
+                        if is_active
+                        else str(i18n_ctx.messages.admin_promo_status_exhausted())
+                    )
                 ),
+                activated_users=activation_list,
             )
         )
         has_code = True
@@ -194,6 +212,11 @@ async def promo_details_getter(dialog_manager: DialogManager, **_: Any) -> dict[
         "set_unlimited_button_text": i18n_ctx.buttons.admin_make_unlimited(),
         "set_custom_limit_button_text": i18n_ctx.buttons.admin_set_custom_limit(),
         "delete_button_text": i18n_ctx.buttons.admin_delete(),
+        "toggle_button_text": (
+            i18n_ctx.buttons.admin_promo_disable()
+            if code is not None and code.is_enabled
+            else i18n_ctx.buttons.admin_promo_enable()
+        ),
         "back_to_list_button_text": i18n_ctx.buttons.admin_promo_back_to_list(),
         "back_button_text": i18n_ctx.buttons.admin_back_menu(),
     }

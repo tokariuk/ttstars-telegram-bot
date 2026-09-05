@@ -16,9 +16,13 @@ messages-admin_promo_details =
     • Activations: <b>{ $activations }/{ $max_activations }</b>
     • Status: <b>{ $status }</b>
     • Created: { $created_at }
+    • Activated users:
+    { $activated_users }
 
 messages-admin_promo_status_active = active
 messages-admin_promo_status_exhausted = exhausted
+messages-admin_promo_status_disabled = disabled
+messages-admin_promo_toggle_done = <blockquote>✅ Promo code <code>{ $code }</code> is now <b>{ $status }</b>.</blockquote>
 messages-admin_limit_unlimited = ∞
 
 messages-admin_promo_create_prompt =

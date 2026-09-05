@@ -149,6 +149,42 @@ async def promo_set_selected_one_time(
     )
 
 
+async def promo_toggle_selected(
+    callback: CallbackQuery,
+    _: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    selected = promo_selected_code(dialog_manager)
+    i18n_ctx = i18n(dialog_manager)
+    if selected is None:
+        set_notice(dialog_manager, str(i18n_ctx.messages.admin_promo_not_found()))
+        await dialog_manager.switch_to(AdminSG.promo_menu, show_mode=ShowMode.EDIT)
+        await callback.answer()
+        return
+    service = promo_service(dialog_manager)
+    code = await service.get_code(selected)
+    if code is None:
+        set_notice(dialog_manager, str(i18n_ctx.messages.admin_promo_not_found()))
+        await dialog_manager.switch_to(AdminSG.promo_menu, show_mode=ShowMode.EDIT)
+    else:
+        await service.set_enabled(code=selected, enabled=not code.is_enabled)
+        set_notice(
+            dialog_manager,
+            str(
+                i18n_ctx.messages.admin_promo_toggle_done(
+                    code=selected,
+                    status=(
+                        str(i18n_ctx.messages.admin_promo_status_disabled())
+                        if code.is_enabled
+                        else str(i18n_ctx.messages.admin_promo_status_active())
+                    ),
+                )
+            ),
+        )
+        await dialog_manager.switch_to(AdminSG.promo_details, show_mode=ShowMode.EDIT)
+    await callback.answer()
+
+
 async def promo_set_selected_unlimited(
     callback: CallbackQuery,
     _: Button,

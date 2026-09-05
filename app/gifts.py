@@ -76,6 +76,18 @@ _GIFT_PACKS: Final[dict[str, TelegramGiftPack]] = {
         label="Worker Bear",
         price_cents=GIFT_PRICE_STANDARD_CENTS,
     ),
+    "military_bear": TelegramGiftPack(
+        key="military_bear",
+        gift_id="6046178578163303744",
+        label="Military Bear",
+        price_cents=GIFT_PRICE_STANDARD_CENTS,
+    ),
+    "football_bear": TelegramGiftPack(
+        key="football_bear",
+        gift_id="5974210632977745012",
+        label="Football Bear",
+        price_cents=GIFT_PRICE_STANDARD_CENTS,
+    ),
     "default_bear": TelegramGiftPack(
         key="default_bear",
         gift_id="5170233102089322756",
@@ -101,4 +113,3 @@ def get_gift_pack(*, key: str) -> TelegramGiftPack:
 
 def get_gift_pack_by_id(*, gift_id: str) -> TelegramGiftPack | None:
     return _GIFT_PACK_BY_ID.get(gift_id.strip())
-

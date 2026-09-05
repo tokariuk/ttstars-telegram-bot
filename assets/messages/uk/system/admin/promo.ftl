@@ -16,9 +16,13 @@ messages-admin_promo_details =
     • Активації: <b>{ $activations }/{ $max_activations }</b>
     • Статус: <b>{ $status }</b>
     • Створено: { $created_at }
+    • Активували:
+    { $activated_users }
 
 messages-admin_promo_status_active = активний
 messages-admin_promo_status_exhausted = вичерпано
+messages-admin_promo_status_disabled = вимкнено
+messages-admin_promo_toggle_done = <blockquote>✅ Промокод <code>{ $code }</code> тепер <b>{ $status }</b>.</blockquote>
 messages-admin_limit_unlimited = ∞
 
 messages-admin_promo_create_prompt =

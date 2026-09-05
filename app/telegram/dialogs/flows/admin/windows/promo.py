@@ -28,6 +28,7 @@ from ..handlers import (
     promo_prev_page,
     promo_set_selected_one_time,
     promo_set_selected_unlimited,
+    promo_toggle_selected,
     show_menu,
     show_promo_bulk,
     show_promo_create,
@@ -55,6 +56,7 @@ from ..ids import (
     ADMIN_PROMO_QUICK_BUTTON_ID,
     ADMIN_PROMO_SELECT_CODE_BUTTON_ID,
     ADMIN_PROMO_SET_LIMIT_BUTTON_ID,
+    ADMIN_PROMO_TOGGLE_BUTTON_ID,
     ADMIN_PROMO_UNLIMITED_BUTTON_ID,
 )
 from ..states import AdminSG
@@ -143,6 +145,12 @@ promo_menu_window: Window = Window(
 
 promo_details_window: Window = Window(
     Format("{text}"),
+    Button(
+        Format("{toggle_button_text}"),
+        id=ADMIN_PROMO_TOGGLE_BUTTON_ID,
+        on_click=promo_toggle_selected,
+        when="has_code",
+    ),
     Row(
         Button(
             Format("{set_one_time_button_text}"),

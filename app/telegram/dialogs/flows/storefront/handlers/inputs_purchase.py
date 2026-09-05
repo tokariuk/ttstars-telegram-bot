@@ -377,6 +377,22 @@ async def select_gift_worker_bear(
     await _select_gift(dialog_manager=dialog_manager, gift_key="worker_bear")
 
 
+async def select_gift_military_bear(
+    _: CallbackQuery,
+    __: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    await _select_gift(dialog_manager=dialog_manager, gift_key="military_bear")
+
+
+async def select_gift_football_bear(
+    _: CallbackQuery,
+    __: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    await _select_gift(dialog_manager=dialog_manager, gift_key="football_bear")
+
+
 async def select_gift_default_bear(
     _: CallbackQuery,
     __: Button,

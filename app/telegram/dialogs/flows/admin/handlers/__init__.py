@@ -7,6 +7,7 @@ from .actions import (
     promo_delete_selected,
     promo_set_selected_one_time,
     promo_set_selected_unlimited,
+    promo_toggle_selected,
 )
 from .inputs import (
     handle_broadcast_buttons_input,
@@ -100,6 +101,7 @@ __all__ = [
     "promo_prev_page",
     "promo_set_selected_one_time",
     "promo_set_selected_unlimited",
+    "promo_toggle_selected",
     "show_broadcast_content",
     "show_menu",
     "show_order_force",

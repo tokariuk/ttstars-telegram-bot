@@ -61,6 +61,8 @@ messages-gift_name_irish_bear = Irish Bear
 messages-gift_name_clown_bear = Clown Bear
 messages-gift_name_easter_bear = Easter Bear
 messages-gift_name_worker_bear = Worker Bear
+messages-gift_name_military_bear = Military Bear
+messages-gift_name_football_bear = Football Bear
 messages-gift_name_default_bear = Bear
 
 messages-gift_recipient_invalid =

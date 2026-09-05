@@ -64,7 +64,10 @@ class UserService(CrudService):
         promo_code_service: PromoCodeService | None = None,
     ) -> None:
         super().__init__(session_pool=session_pool, redis=redis, config=config)
-        self.promo_code_service = promo_code_service or PromoCodeService(redis=redis)
+        self.promo_code_service = promo_code_service or PromoCodeService(
+            session_pool=session_pool,
+            redis=redis,
+        )
 
     async def clear_cache(self, user_id: int) -> None:
         cache_key: str = build_key("cache", "get_user", user_id=user_id)
@@ -366,19 +369,14 @@ class UserService(CrudService):
         except (
             PromoCodeService.CodeNotFoundError,
             PromoCodeService.LimitReachedError,
+            PromoCodeService.DisabledError,
             PromoCodeService.InvalidCodeError,
         ) as error:
             raise self.PromoCodeInvalidError("Promo code is invalid.") from error
         except PromoCodeService.Error as error:
             raise self.PromoCodeError("Failed to activate promo code.") from error
 
-        added = await self.add_balance(user_id=user_id, amount_cents=amount_cents)
-        if added is None:
-            await self.promo_code_service.rollback_activation(
-                user_id=user_id,
-                code=normalized,
-            )
-            raise self.PromoCodeError("Failed to apply promo code.")
+        await self.clear_cache(user_id=user_id)
         return amount_cents
 
     async def list_promo_codes(self, *, limit: int = 12) -> list[PromoCodeInfo]:

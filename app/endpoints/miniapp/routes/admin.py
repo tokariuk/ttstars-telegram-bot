@@ -19,7 +19,9 @@ from app.models.dto.miniapp import (
     AdminOrdersPageResponse,
     AdminOrderStatsResponse,
     AdminProductStatResponse,
+    AdminPromoActivationsResponse,
     AdminPromoCreateRequest,
+    AdminPromoEnabledRequest,
     AdminPromoResponse,
     AdminPromosResponse,
     AdminSellCompleteRequest,
@@ -64,6 +66,7 @@ from ..serializers import (
     build_check_response,
     build_order_response,
     build_payment_check_response,
+    build_promo_activation_response,
     build_promo_response,
     build_sell_order_response,
 )
@@ -505,3 +508,37 @@ async def admin_delete_promo(
     if not deleted:
         not_found("Promo code was not found.")
     return OkResponse(ok=True)
+
+
+@router.get("/promo/{code}/activations", summary="List promo code activations")
+async def admin_list_promo_activations(
+    code: str,
+    _admin: CurrentAdmin,
+    promo_code_service: PromoCodeServiceDep,
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+) -> AdminPromoActivationsResponse:
+    try:
+        activations = await promo_code_service.list_activations(code=code, limit=limit)
+    except PromoCodeService.InvalidCodeError as error:
+        validation_error(str(error))
+    except PromoCodeService.CodeNotFoundError as error:
+        not_found(str(error))
+    return AdminPromoActivationsResponse(
+        items=[build_promo_activation_response(item) for item in activations]
+    )
+
+
+@router.patch("/promo/{code}", summary="Enable or disable a promo code")
+async def admin_set_promo_enabled(
+    code: str,
+    payload: AdminPromoEnabledRequest,
+    _admin: CurrentAdmin,
+    promo_code_service: PromoCodeServiceDep,
+) -> AdminPromoResponse:
+    try:
+        info = await promo_code_service.set_enabled(code=code, enabled=payload.enabled)
+    except PromoCodeService.InvalidCodeError as error:
+        validation_error(str(error))
+    except PromoCodeService.CodeNotFoundError as error:
+        not_found(str(error))
+    return build_promo_response(info)
