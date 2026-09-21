@@ -106,7 +106,7 @@ messages-stars_sell_invoice_label = Продаж { $stars_count } Stars
 messages-stars_sell_payment_confirmed =
     <blockquote><b><tg-emoji emoji-id="5382230286933205157">✅</tg-emoji> Оплату зірками підтверджено</b></blockquote>
 
-    <table>
+    <table bordered compact>
     <tr><td>Заявка</td><td><code>{ $order_id }</code></td></tr>
     <tr><td>Сплачено</td><td><code>{ $stars_count }</code> <tg-emoji emoji-id="5381819344462327797">⭐</tg-emoji></td></tr>
     <tr><th>До виплати</th><td><mark>{ $payout_amount } USD</mark></td></tr>

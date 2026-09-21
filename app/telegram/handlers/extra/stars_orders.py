@@ -501,7 +501,7 @@ async def handle_stars_sell_successful_payment(
                 rich_message=InputRichMessage(
                     html=(
                         "<blockquote><b>⭐ New Stars Sell Payment</b></blockquote>\n\n"
-                        "<table>"
+                        "<table bordered compact>"
                         f"<tr><td>Order</td><td><code>{order.id}</code></td></tr>"
                         f"<tr><td>User</td><td><code>{order.user_id}</code></td></tr>"
                         f"<tr><td>Stars paid</td><td><code>{order.stars_count}</code></td></tr>"

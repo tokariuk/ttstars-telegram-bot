@@ -185,7 +185,7 @@ messages-check_notice_close_button = Close
 messages-check_creator_claimed =
     <blockquote><b><tg-emoji emoji-id="5382230286933205157">✅</tg-emoji> Your check was claimed</b></blockquote>
 
-    <table>
+    <table bordered compact>
     <tr><td>Recipient</td><td><b>{ $claimer }</b></td></tr>
     <tr><th>Amount</th><td><mark>{ $stars } Stars</mark> · { $amount } USD</td></tr>
     </table>

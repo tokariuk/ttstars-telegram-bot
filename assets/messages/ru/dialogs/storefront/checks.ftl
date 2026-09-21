@@ -185,7 +185,7 @@ messages-check_notice_close_button = Закрыть
 messages-check_creator_claimed =
     <blockquote><b><tg-emoji emoji-id="5382230286933205157">✅</tg-emoji> Твой чек активирован</b></blockquote>
 
-    <table>
+    <table bordered compact>
     <tr><td>Получатель</td><td><b>{ $claimer }</b></td></tr>
     <tr><th>Сумма</th><td><mark>{ $stars } Stars</mark> · { $amount } USD</td></tr>
     </table>
