@@ -12,7 +12,9 @@ from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.enums.stars_sell_order import (
-    StarsSellOrderResolutionReason,
+    StarsSellOrderResolutionReason as _StarsSellOrderResolutionReason,
+)
+from app.enums.stars_sell_order import (
     StarsSellOrderStatus,
     StarsSellPayoutMethod,
 )
@@ -22,6 +24,8 @@ from app.models.sql.stars_sell_order import StarsSellOrder
 from app.services.crud.base import CrudService
 from app.services.postgres import SQLSessionContext
 from app.utils.time import datetime_now
+
+StarsSellOrderResolutionReason = _StarsSellOrderResolutionReason
 
 _TON_ADDRESS_RE: Pattern[str] = re_compile(r"^(?:UQ|EQ)[A-Za-z0-9_-]{46}$")
 

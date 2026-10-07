@@ -118,25 +118,28 @@ async def handle_chosen_inline_check(  # noqa: C901
     share_code = parse_inline_share_result_id(event.result_id)
     if share_code is None:
         return
-    check = await check_service.get_by_code(code=share_code)
-    if check is None or check.creator_id <= 0:
+    shared_check = await check_service.get_by_code(code=share_code)
+    if shared_check is None or shared_check.creator_id <= 0:
         return
-    if check.status == CheckStatus.ACTIVE and event.inline_message_id:
+    if shared_check.status == CheckStatus.ACTIVE and event.inline_message_id:
         me = await bot.get_me()
         bot_username = me.username or "unknown_bot"
         image_url = card_preview_url(
-            stars_count=check.stars_count,
-            amount_usd=price_usd_for_cents(check.amount_cents),
-            seed=check.code,
+            stars_count=shared_check.stars_count,
+            amount_usd=price_usd_for_cents(shared_check.amount_cents),
+            seed=shared_check.code,
             base_url=check_service.config.server.url,
         )
-        activate_link = CheckService.build_start_link(bot_username=bot_username, code=check.code)
+        activate_link = CheckService.build_start_link(
+            bot_username=bot_username,
+            code=shared_check.code,
+        )
         with contextlib.suppress(Exception):
             await bot.edit_message_text(
                 text=inline_check_message_text(
                     i18n=i18n,
                     image_url=image_url,
-                    check=check,
+                    check=shared_check,
                 ),
                 inline_message_id=event.inline_message_id,
                 reply_markup=activate_markup(
@@ -146,7 +149,7 @@ async def handle_chosen_inline_check(  # noqa: C901
                 parse_mode="HTML",
             )
     await check_service.attach_inline_message_id(
-        creator_id=check.creator_id,
-        check_id=check.id,
+        creator_id=shared_check.creator_id,
+        check_id=shared_check.id,
         inline_message_id=event.inline_message_id,
     )

@@ -5,11 +5,11 @@ import inspect
 from typing import Any
 
 from aiohttp import ClientResponse, ClientSession, ClientTimeout
-from telethon import TelegramClient
-from telethon.errors import RPCError
-from telethon.sessions import StringSession
-from telethon.tl import functions, types
-from telethon.tl.types import payments as payment_types
+from telethon import TelegramClient  # type: ignore[import-untyped]
+from telethon.errors import RPCError  # type: ignore[import-untyped]
+from telethon.sessions import StringSession  # type: ignore[import-untyped]
+from telethon.tl import functions, types  # type: ignore[import-untyped]
+from telethon.tl.types import payments as payment_types  # type: ignore[import-untyped]
 
 from app.stars import normalize_recipient_username
 

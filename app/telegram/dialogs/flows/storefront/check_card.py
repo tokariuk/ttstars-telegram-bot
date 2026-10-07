@@ -39,7 +39,8 @@ def build_check_card_preview_url(
         text = quote_plus(f"{stars_count} Stars\n~{_normalize_amount_value(amount_usd)}$")
         return f"https://placehold.co/1600x1000/14120b/f8d85a.jpg?font=poppins&text={text}"
 
-    resolved_base_url = (base_url or os.getenv("SERVER_URL", "")).strip().rstrip("/")
+    configured_base_url = base_url if base_url is not None else os.getenv("SERVER_URL", "")
+    resolved_base_url = (configured_base_url or "").strip().rstrip("/")
     if not resolved_base_url:
         text = quote_plus(f"{stars_count} Stars\n~{_normalize_amount_value(amount_usd)}$")
         return f"https://placehold.co/1600x1000/14120b/f8d85a.jpg?font=poppins&text={text}"

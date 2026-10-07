@@ -8,15 +8,15 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from telethon import TelegramClient
-from telethon.errors import (
+from telethon import TelegramClient  # type: ignore[import-untyped]
+from telethon.errors import (  # type: ignore[import-untyped]
     ApiIdInvalidError,
     PasswordHashInvalidError,
     PhoneCodeExpiredError,
     PhoneCodeInvalidError,
     SessionPasswordNeededError,
 )
-from telethon.sessions import StringSession
+from telethon.sessions import StringSession  # type: ignore[import-untyped]
 
 
 @dataclass(slots=True)

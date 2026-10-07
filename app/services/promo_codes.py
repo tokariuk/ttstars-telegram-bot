@@ -357,7 +357,7 @@ class PromoCodeService:
     @staticmethod
     def _parse_legacy_hash(code: str, data: dict[Any, Any]) -> PromoCodeInfo:
         def value(key: str) -> str:
-            raw: Any = data.get(key) or data.get(key.encode("utf-8"), b"")  # type: ignore[arg-type]
+            raw: Any = data.get(key) or data.get(key.encode("utf-8"), b"")
             return raw.decode("utf-8") if isinstance(raw, bytes) else str(raw)
 
         max_raw = int(value("max_activations") or "0")

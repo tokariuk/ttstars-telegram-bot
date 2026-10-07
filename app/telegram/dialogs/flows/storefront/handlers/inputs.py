@@ -29,9 +29,9 @@ from .inputs_purchase import (
     select_gift_clown_bear,
     select_gift_default_bear,
     select_gift_easter_bear,
-    select_gift_football_bear,  # noqa: F401
+    select_gift_football_bear,
     select_gift_irish_bear,
-    select_gift_military_bear,  # noqa: F401
+    select_gift_military_bear,
     select_gift_new_year_bear,
     select_gift_new_year_tree,
     select_gift_sender_private,
@@ -77,6 +77,8 @@ __all__ = [
     "select_gift_easter_bear",
     "select_gift_worker_bear",
     "select_gift_default_bear",
+    "select_gift_football_bear",
+    "select_gift_military_bear",
     "select_gift_sender_visible",
     "select_gift_sender_private",
     "skip_gift_message",

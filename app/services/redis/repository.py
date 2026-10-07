@@ -70,7 +70,7 @@ class RedisRepository:
 
     async def clear_webhooks(self, bot_id: int) -> None:
         key: WebhookLockKey = WebhookLockKey(bot_id=bot_id, webhook_hash="*")
-        keys: list[bytes] = await self.client.keys(key.pack())
+        keys: list[bytes | str] = await self.client.keys(key.pack())
         if not keys:
             return
         await self.client.delete(*keys)
