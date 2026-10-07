@@ -44,6 +44,27 @@ class Services(TypedDict):
     xrocket_pay_service: XRocketPayService
 
 
+class PaymentServices(TypedDict):
+    crypto_pay_service: CryptoPayService
+    fragment_stars_service: FragmentStarsService
+    heleket_pay_service: HeleketPayService
+    lzt_pay_service: LZTPayService
+    nice_pay_service: NicePayService
+    platega_pay_service: PlategaPayService
+    telegram_gift_service: TelegramGiftService
+    ton_pay_service: TonPayService
+    xrocket_pay_service: XRocketPayService
+
+
+class ApplicationServices(TypedDict):
+    check_service: CheckService
+    promo_code_service: PromoCodeService
+    redis_repository: RedisRepository
+    stars_order_service: StarsOrderService
+    stars_sell_order_service: StarsSellOrderService
+    user_service: UserService
+
+
 def _secret_value(value: SecretStr | None) -> str | None:
     if value is None:
         return None
@@ -57,18 +78,7 @@ def _stripped_or_none(value: str | None) -> str | None:
     return cleaned or None
 
 
-def create_services(
-    session_pool: async_sessionmaker[AsyncSession],
-    redis: Redis,
-    config: AppConfig,
-) -> Services:
-    crud_service_kwargs: dict[str, Any] = {
-        "session_pool": session_pool,
-        "redis": redis,
-        "config": config,
-    }
-
-    redis_repository: RedisRepository = RedisRepository(client=redis, config=config)
+def _create_payment_services(config: AppConfig) -> PaymentServices:
     lzt_success_url = _stripped_or_none(config.lzt_pay.success_url) or config.server.url.strip()
     crypto_pay_service = CryptoPayService(
         api_token=_secret_value(config.crypto_pay.api_token),
@@ -154,18 +164,9 @@ def create_services(
         wallet_mnemonic=_secret_value(config.fragment.wallet_mnemonic),
         wallet_version=config.fragment.wallet_version,
     )
-    promo_code_service = PromoCodeService(session_pool=session_pool, redis=redis)
-    check_service: CheckService = CheckService(
-        **crud_service_kwargs,
-        fragment_stars_service=fragment_stars_service,
-    )
-    user_service: UserService = UserService(
-        **crud_service_kwargs,
-        promo_code_service=promo_code_service,
-    )
-    stars_order_service: StarsOrderService = StarsOrderService(
-        **crud_service_kwargs,
+    return PaymentServices(
         crypto_pay_service=crypto_pay_service,
+        fragment_stars_service=fragment_stars_service,
         heleket_pay_service=heleket_pay_service,
         lzt_pay_service=lzt_pay_service,
         nice_pay_service=nice_pay_service,
@@ -173,26 +174,80 @@ def create_services(
         telegram_gift_service=telegram_gift_service,
         ton_pay_service=ton_pay_service,
         xrocket_pay_service=xrocket_pay_service,
-        fragment_stars_service=fragment_stars_service,
     )
-    stars_sell_order_service: StarsSellOrderService = StarsSellOrderService(
+
+
+def _create_application_services(
+    *,
+    session_pool: async_sessionmaker[AsyncSession],
+    redis: Redis,
+    config: AppConfig,
+    payment_services: PaymentServices,
+) -> ApplicationServices:
+    crud_service_kwargs: dict[str, Any] = {
+        "session_pool": session_pool,
+        "redis": redis,
+        "config": config,
+    }
+    promo_code_service = PromoCodeService(session_pool=session_pool, redis=redis)
+    check_service = CheckService(
         **crud_service_kwargs,
+        fragment_stars_service=payment_services["fragment_stars_service"],
+    )
+    user_service = UserService(
+        **crud_service_kwargs,
+        promo_code_service=promo_code_service,
+    )
+    stars_order_service = StarsOrderService(
+        **crud_service_kwargs,
+        crypto_pay_service=payment_services["crypto_pay_service"],
+        heleket_pay_service=payment_services["heleket_pay_service"],
+        lzt_pay_service=payment_services["lzt_pay_service"],
+        nice_pay_service=payment_services["nice_pay_service"],
+        platega_pay_service=payment_services["platega_pay_service"],
+        telegram_gift_service=payment_services["telegram_gift_service"],
+        ton_pay_service=payment_services["ton_pay_service"],
+        xrocket_pay_service=payment_services["xrocket_pay_service"],
+        fragment_stars_service=payment_services["fragment_stars_service"],
+    )
+    stars_sell_order_service = StarsSellOrderService(**crud_service_kwargs)
+    return ApplicationServices(
+        check_service=check_service,
+        promo_code_service=promo_code_service,
+        redis_repository=RedisRepository(client=redis, config=config),
+        stars_order_service=stars_order_service,
+        stars_sell_order_service=stars_sell_order_service,
+        user_service=user_service,
+    )
+
+
+def create_services(
+    session_pool: async_sessionmaker[AsyncSession],
+    redis: Redis,
+    config: AppConfig,
+) -> Services:
+    payment_services = _create_payment_services(config)
+    application_services = _create_application_services(
+        session_pool=session_pool,
+        redis=redis,
+        config=config,
+        payment_services=payment_services,
     )
 
     return Services(
-        check_service=check_service,
-        crypto_pay_service=crypto_pay_service,
-        fragment_stars_service=fragment_stars_service,
-        heleket_pay_service=heleket_pay_service,
-        lzt_pay_service=lzt_pay_service,
-        nice_pay_service=nice_pay_service,
-        platega_pay_service=platega_pay_service,
-        promo_code_service=promo_code_service,
-        redis_repository=redis_repository,
-        stars_order_service=stars_order_service,
-        stars_sell_order_service=stars_sell_order_service,
-        telegram_gift_service=telegram_gift_service,
-        ton_pay_service=ton_pay_service,
-        user_service=user_service,
-        xrocket_pay_service=xrocket_pay_service,
+        check_service=application_services["check_service"],
+        crypto_pay_service=payment_services["crypto_pay_service"],
+        fragment_stars_service=payment_services["fragment_stars_service"],
+        heleket_pay_service=payment_services["heleket_pay_service"],
+        lzt_pay_service=payment_services["lzt_pay_service"],
+        nice_pay_service=payment_services["nice_pay_service"],
+        platega_pay_service=payment_services["platega_pay_service"],
+        promo_code_service=application_services["promo_code_service"],
+        redis_repository=application_services["redis_repository"],
+        stars_order_service=application_services["stars_order_service"],
+        stars_sell_order_service=application_services["stars_sell_order_service"],
+        telegram_gift_service=payment_services["telegram_gift_service"],
+        ton_pay_service=payment_services["ton_pay_service"],
+        user_service=application_services["user_service"],
+        xrocket_pay_service=payment_services["xrocket_pay_service"],
     )

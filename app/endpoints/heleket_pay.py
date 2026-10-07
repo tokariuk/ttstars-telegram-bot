@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException, Request, status
 from app.services.crud.stars_order import StarsOrderService
 from app.services.heleket_pay import HeleketPayService, HeleketWebhookEvent
 from app.utils import mjson
+from app.utils.routes import normalize_route_path
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ def create_router(
     trusted_ips: str | None = None,
     trust_forwarded_ip: bool = False,
 ) -> APIRouter:
-    normalized_path = path if path.startswith("/") else f"/{path}"
+    normalized_path = normalize_route_path(path)
     router = APIRouter(include_in_schema=False)
     trusted_sources = _parse_trusted_sources(trusted_ips)
 

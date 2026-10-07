@@ -15,47 +15,18 @@ from app.endpoints.platega_pay import create_router as create_platega_pay_router
 from app.endpoints.ton_pay import create_router as create_ton_pay_router
 from app.endpoints.xrocket_pay import create_router as create_xrocket_pay_router
 from app.models.config.env import AppConfig
+from app.utils.routes import normalize_route_path
 
 
 def setup_fastapi(app: FastAPI, dispatcher: Dispatcher, bot: Bot) -> FastAPI:
     config: AppConfig = dispatcher.workflow_data["config"]
     app.mount("/assets", StaticFiles(directory="assets"), name="assets")
-    crypto_pay_webhook_path = config.crypto_pay.webhook_path
-    normalized_crypto_path = (
-        crypto_pay_webhook_path
-        if crypto_pay_webhook_path.startswith("/")
-        else f"/{crypto_pay_webhook_path}"
-    )
-    lzt_pay_webhook_path = config.lzt_pay.webhook_path
-    normalized_lzt_path = (
-        lzt_pay_webhook_path
-        if lzt_pay_webhook_path.startswith("/")
-        else f"/{lzt_pay_webhook_path}"
-    )
-    nice_pay_webhook_path = config.nice_pay.webhook_path
-    normalized_nice_path = (
-        nice_pay_webhook_path
-        if nice_pay_webhook_path.startswith("/")
-        else f"/{nice_pay_webhook_path}"
-    )
-    platega_pay_webhook_path = config.platega_pay.webhook_path
-    normalized_platega_path = (
-        platega_pay_webhook_path
-        if platega_pay_webhook_path.startswith("/")
-        else f"/{platega_pay_webhook_path}"
-    )
-    xrocket_pay_webhook_path = config.xrocket_pay.webhook_path
-    normalized_xrocket_path = (
-        xrocket_pay_webhook_path
-        if xrocket_pay_webhook_path.startswith("/")
-        else f"/{xrocket_pay_webhook_path}"
-    )
-    heleket_pay_webhook_path = config.heleket_pay.webhook_path
-    normalized_heleket_path = (
-        heleket_pay_webhook_path
-        if heleket_pay_webhook_path.startswith("/")
-        else f"/{heleket_pay_webhook_path}"
-    )
+    normalized_crypto_path = normalize_route_path(config.crypto_pay.webhook_path)
+    normalized_lzt_path = normalize_route_path(config.lzt_pay.webhook_path)
+    normalized_nice_path = normalize_route_path(config.nice_pay.webhook_path)
+    normalized_platega_path = normalize_route_path(config.platega_pay.webhook_path)
+    normalized_xrocket_path = normalize_route_path(config.xrocket_pay.webhook_path)
+    normalized_heleket_path = normalize_route_path(config.heleket_pay.webhook_path)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=list(config.telegram.miniapp_cors_origins),

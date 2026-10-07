@@ -20,6 +20,7 @@ from app.models.dto.stars_order import StarsOrderDto
 from app.services.crud import StarsOrderService, UserService
 from app.stars import price_usd_for_cents
 from app.utils.localization import normalize_i18n_locale
+from app.utils.routes import normalize_route_path
 
 logger = logging.getLogger(__name__)
 _CLOSE_RESULT_NOTICE_CALLBACK = "storefront_close_result_notice"
@@ -96,8 +97,7 @@ def _normalize_route_path(path: str, *, default: str) -> str:
     raw = path.strip()
     if not raw:
         return default
-    normalized = raw if raw.startswith("/") else f"/{raw}"
-    return normalized.rstrip("/")
+    return normalize_route_path(raw).rstrip("/")
 
 
 def _extract_invoice_webhook_payload(payload: Any) -> dict[str, Any]:

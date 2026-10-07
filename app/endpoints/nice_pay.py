@@ -6,12 +6,13 @@ from fastapi import APIRouter, HTTPException, Request, status
 
 from app.services.crud.stars_order import StarsOrderService
 from app.services.nice_pay import NicePayService
+from app.utils.routes import normalize_route_path
 
 logger = logging.getLogger(__name__)
 
 
 def create_router(path: str) -> APIRouter:
-    normalized_path = path if path.startswith("/") else f"/{path}"
+    normalized_path = normalize_route_path(path)
     router = APIRouter(include_in_schema=False)
 
     async def nice_pay_webhook(request: Request) -> dict[str, bool]:

@@ -4,6 +4,7 @@ from typing import Any
 from uuid import uuid4
 
 from app.enums.stars_order import StarsPaymentProvider
+from app.utils.routes import normalize_route_path
 
 from .constants import (
     HELEKET_ORDER_ID_PREFIX,
@@ -109,9 +110,5 @@ def _provider_callback_url(*, base_url: str, webhook_path: str) -> str | None:
     normalized_path_raw = webhook_path.strip()
     if not normalized_path_raw:
         return None
-    normalized_path = (
-        normalized_path_raw
-        if normalized_path_raw.startswith("/")
-        else f"/{normalized_path_raw}"
-    )
+    normalized_path = normalize_route_path(normalized_path_raw)
     return f"{normalized_base}{normalized_path}"

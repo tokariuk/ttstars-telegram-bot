@@ -12,6 +12,16 @@ from app.stars import (
     parse_stars_count,
     premium_months_options,
 )
+from app.telegram.dialogs.common.state import (
+    clear_state_keys,
+    read_non_negative_int,
+    read_optional_int,
+    read_positive_int,
+    read_stripped_string,
+    set_optional_int,
+    set_positive_int,
+    set_stripped_string,
+)
 
 from .shared_constants import (
     CHECKS_CREATE_CLAIM_PASSWORD_KEY,
@@ -44,12 +54,7 @@ from .shared_constants import (
 
 
 def history_page(dialog_manager: DialogManager) -> int:
-    raw = dialog_manager.dialog_data.get(HISTORY_PAGE_KEY)
-    if isinstance(raw, int):
-        return max(raw, 0)
-    if isinstance(raw, str) and raw.isdigit():
-        return int(raw)
-    return 0
+    return read_non_negative_int(dialog_manager.dialog_data, HISTORY_PAGE_KEY)
 
 
 def set_history_page(dialog_manager: DialogManager, page: int) -> None:
@@ -57,28 +62,15 @@ def set_history_page(dialog_manager: DialogManager, page: int) -> None:
 
 
 def history_selected_order_id(dialog_manager: DialogManager) -> int | None:
-    raw = dialog_manager.dialog_data.get(HISTORY_SELECTED_ORDER_ID_KEY)
-    if isinstance(raw, int):
-        return raw
-    if isinstance(raw, str) and raw.isdigit():
-        return int(raw)
-    return None
+    return read_optional_int(dialog_manager.dialog_data, HISTORY_SELECTED_ORDER_ID_KEY)
 
 
 def set_history_selected_order_id(dialog_manager: DialogManager, order_id: int | None) -> None:
-    if order_id is None:
-        dialog_manager.dialog_data.pop(HISTORY_SELECTED_ORDER_ID_KEY, None)
-        return
-    dialog_manager.dialog_data[HISTORY_SELECTED_ORDER_ID_KEY] = order_id
+    set_optional_int(dialog_manager.dialog_data, HISTORY_SELECTED_ORDER_ID_KEY, order_id)
 
 
 def referrals_page(dialog_manager: DialogManager) -> int:
-    raw = dialog_manager.dialog_data.get(REFERRALS_PAGE_KEY)
-    if isinstance(raw, int):
-        return max(raw, 0)
-    if isinstance(raw, str) and raw.isdigit():
-        return int(raw)
-    return 0
+    return read_non_negative_int(dialog_manager.dialog_data, REFERRALS_PAGE_KEY)
 
 
 def set_referrals_page(dialog_manager: DialogManager, page: int) -> None:
@@ -86,28 +78,15 @@ def set_referrals_page(dialog_manager: DialogManager, page: int) -> None:
 
 
 def referrals_selected_user_id(dialog_manager: DialogManager) -> int | None:
-    raw = dialog_manager.dialog_data.get(REFERRALS_SELECTED_USER_ID_KEY)
-    if isinstance(raw, int):
-        return raw
-    if isinstance(raw, str) and raw.isdigit():
-        return int(raw)
-    return None
+    return read_optional_int(dialog_manager.dialog_data, REFERRALS_SELECTED_USER_ID_KEY)
 
 
 def set_referrals_selected_user_id(dialog_manager: DialogManager, user_id: int | None) -> None:
-    if user_id is None:
-        dialog_manager.dialog_data.pop(REFERRALS_SELECTED_USER_ID_KEY, None)
-        return
-    dialog_manager.dialog_data[REFERRALS_SELECTED_USER_ID_KEY] = user_id
+    set_optional_int(dialog_manager.dialog_data, REFERRALS_SELECTED_USER_ID_KEY, user_id)
 
 
 def checks_page(dialog_manager: DialogManager) -> int:
-    raw = dialog_manager.dialog_data.get(CHECKS_PAGE_KEY)
-    if isinstance(raw, int):
-        return max(raw, 0)
-    if isinstance(raw, str) and raw.isdigit():
-        return int(raw)
-    return 0
+    return read_non_negative_int(dialog_manager.dialog_data, CHECKS_PAGE_KEY)
 
 
 def set_checks_page(dialog_manager: DialogManager, page: int) -> None:
@@ -134,19 +113,11 @@ def selected_check_id(dialog_manager: DialogManager) -> int | None:
 
 
 def set_selected_check_id(dialog_manager: DialogManager, check_id: int | None) -> None:
-    if check_id is None:
-        dialog_manager.dialog_data.pop(CHECKS_SELECTED_CHECK_ID_KEY, None)
-        return
-    dialog_manager.dialog_data[CHECKS_SELECTED_CHECK_ID_KEY] = check_id
+    set_optional_int(dialog_manager.dialog_data, CHECKS_SELECTED_CHECK_ID_KEY, check_id)
 
 
 def checks_history_page(dialog_manager: DialogManager) -> int:
-    raw = dialog_manager.dialog_data.get(CHECKS_HISTORY_PAGE_KEY)
-    if isinstance(raw, int):
-        return max(raw, 0)
-    if isinstance(raw, str) and raw.isdigit():
-        return int(raw)
-    return 0
+    return read_non_negative_int(dialog_manager.dialog_data, CHECKS_HISTORY_PAGE_KEY)
 
 
 def set_checks_history_page(dialog_manager: DialogManager, page: int) -> None:
@@ -154,38 +125,29 @@ def set_checks_history_page(dialog_manager: DialogManager, page: int) -> None:
 
 
 def checks_history_selected_check_id(dialog_manager: DialogManager) -> int | None:
-    raw = dialog_manager.dialog_data.get(CHECKS_HISTORY_SELECTED_CHECK_ID_KEY)
-    if isinstance(raw, int):
-        return raw
-    if isinstance(raw, str) and raw.isdigit():
-        return int(raw)
-    return None
+    return read_optional_int(
+        dialog_manager.dialog_data,
+        CHECKS_HISTORY_SELECTED_CHECK_ID_KEY,
+    )
 
 
 def set_checks_history_selected_check_id(
     dialog_manager: DialogManager,
     check_id: int | None,
 ) -> None:
-    if check_id is None:
-        dialog_manager.dialog_data.pop(CHECKS_HISTORY_SELECTED_CHECK_ID_KEY, None)
-        return
-    dialog_manager.dialog_data[CHECKS_HISTORY_SELECTED_CHECK_ID_KEY] = check_id
+    set_optional_int(
+        dialog_manager.dialog_data,
+        CHECKS_HISTORY_SELECTED_CHECK_ID_KEY,
+        check_id,
+    )
 
 
 def checks_create_stars_count(dialog_manager: DialogManager) -> int | None:
-    raw = dialog_manager.dialog_data.get(CHECKS_CREATE_STARS_COUNT_KEY)
-    if isinstance(raw, int):
-        return raw
-    if isinstance(raw, str) and raw.isdigit():
-        return int(raw)
-    return None
+    return read_optional_int(dialog_manager.dialog_data, CHECKS_CREATE_STARS_COUNT_KEY)
 
 
 def set_checks_create_stars_count(dialog_manager: DialogManager, stars_count: int | None) -> None:
-    if stars_count is None:
-        dialog_manager.dialog_data.pop(CHECKS_CREATE_STARS_COUNT_KEY, None)
-        return
-    dialog_manager.dialog_data[CHECKS_CREATE_STARS_COUNT_KEY] = stars_count
+    set_optional_int(dialog_manager.dialog_data, CHECKS_CREATE_STARS_COUNT_KEY, stars_count)
 
 
 def checks_create_claim_username(dialog_manager: DialogManager) -> str | None:
@@ -204,11 +166,7 @@ def set_checks_create_claim_username(dialog_manager: DialogManager, username: st
 
 
 def checks_create_claim_password(dialog_manager: DialogManager) -> str | None:
-    raw = dialog_manager.dialog_data.get(CHECKS_CREATE_CLAIM_PASSWORD_KEY)
-    if not isinstance(raw, str):
-        return None
-    normalized = raw.strip()
-    return normalized or None
+    return read_stripped_string(dialog_manager.dialog_data, CHECKS_CREATE_CLAIM_PASSWORD_KEY)
 
 
 def set_checks_create_claim_password(dialog_manager: DialogManager, password: str | None) -> None:
@@ -219,58 +177,32 @@ def set_checks_create_claim_password(dialog_manager: DialogManager, password: st
 
 
 def clear_checks_create_draft(dialog_manager: DialogManager) -> None:
-    dialog_manager.dialog_data.pop(CHECKS_CREATE_STARS_COUNT_KEY, None)
-    dialog_manager.dialog_data.pop(CHECKS_CREATE_CLAIM_USERNAME_KEY, None)
-    dialog_manager.dialog_data.pop(CHECKS_CREATE_CLAIM_PASSWORD_KEY, None)
+    clear_state_keys(
+        dialog_manager.dialog_data,
+        CHECKS_CREATE_STARS_COUNT_KEY,
+        CHECKS_CREATE_CLAIM_USERNAME_KEY,
+        CHECKS_CREATE_CLAIM_PASSWORD_KEY,
+    )
 
 
 def stars_sell_count(dialog_manager: DialogManager) -> int | None:
-    raw = dialog_manager.dialog_data.get(STARS_SELL_COUNT_KEY)
-    if isinstance(raw, int) and raw > 0:
-        return raw
-    if isinstance(raw, str) and raw.isdigit():
-        value = int(raw)
-        return value if value > 0 else None
-    return None
+    return read_positive_int(dialog_manager.dialog_data, STARS_SELL_COUNT_KEY)
 
 
 def set_stars_sell_count(dialog_manager: DialogManager, stars_count: int | None) -> None:
-    if stars_count is None:
-        dialog_manager.dialog_data.pop(STARS_SELL_COUNT_KEY, None)
-        return
-    value = int(stars_count)
-    if value <= 0:
-        dialog_manager.dialog_data.pop(STARS_SELL_COUNT_KEY, None)
-        return
-    dialog_manager.dialog_data[STARS_SELL_COUNT_KEY] = value
+    set_positive_int(dialog_manager.dialog_data, STARS_SELL_COUNT_KEY, stars_count)
 
 
 def stars_sell_wallet(dialog_manager: DialogManager) -> str | None:
-    raw = dialog_manager.dialog_data.get(STARS_SELL_WALLET_KEY)
-    if not isinstance(raw, str):
-        return None
-    value = raw.strip()
-    return value or None
+    return read_stripped_string(dialog_manager.dialog_data, STARS_SELL_WALLET_KEY)
 
 
 def set_stars_sell_wallet(dialog_manager: DialogManager, wallet: str | None) -> None:
-    if wallet is None:
-        dialog_manager.dialog_data.pop(STARS_SELL_WALLET_KEY, None)
-        return
-    value = wallet.strip()
-    if not value:
-        dialog_manager.dialog_data.pop(STARS_SELL_WALLET_KEY, None)
-        return
-    dialog_manager.dialog_data[STARS_SELL_WALLET_KEY] = value
+    set_stripped_string(dialog_manager.dialog_data, STARS_SELL_WALLET_KEY, wallet)
 
 
 def stars_sell_history_page(dialog_manager: DialogManager) -> int:
-    raw = dialog_manager.dialog_data.get(STARS_SELL_HISTORY_PAGE_KEY)
-    if isinstance(raw, int):
-        return max(raw, 0)
-    if isinstance(raw, str) and raw.isdigit():
-        return int(raw)
-    return 0
+    return read_non_negative_int(dialog_manager.dialog_data, STARS_SELL_HISTORY_PAGE_KEY)
 
 
 def set_stars_sell_history_page(dialog_manager: DialogManager, page: int) -> None:
@@ -278,28 +210,30 @@ def set_stars_sell_history_page(dialog_manager: DialogManager, page: int) -> Non
 
 
 def stars_sell_history_selected_order_id(dialog_manager: DialogManager) -> int | None:
-    raw = dialog_manager.dialog_data.get(STARS_SELL_HISTORY_SELECTED_ORDER_ID_KEY)
-    if isinstance(raw, int):
-        return raw
-    if isinstance(raw, str) and raw.isdigit():
-        return int(raw)
-    return None
+    return read_optional_int(
+        dialog_manager.dialog_data,
+        STARS_SELL_HISTORY_SELECTED_ORDER_ID_KEY,
+    )
 
 
 def set_stars_sell_history_selected_order_id(
     dialog_manager: DialogManager,
     order_id: int | None,
 ) -> None:
-    if order_id is None:
-        dialog_manager.dialog_data.pop(STARS_SELL_HISTORY_SELECTED_ORDER_ID_KEY, None)
-        return
-    dialog_manager.dialog_data[STARS_SELL_HISTORY_SELECTED_ORDER_ID_KEY] = order_id
+    set_optional_int(
+        dialog_manager.dialog_data,
+        STARS_SELL_HISTORY_SELECTED_ORDER_ID_KEY,
+        order_id,
+    )
 
 
 def clear_stars_sell_draft(dialog_manager: DialogManager) -> None:
-    dialog_manager.dialog_data.pop(STARS_SELL_COUNT_KEY, None)
-    dialog_manager.dialog_data.pop(STARS_SELL_WALLET_KEY, None)
-    dialog_manager.dialog_data.pop(STARS_SELL_HISTORY_SELECTED_ORDER_ID_KEY, None)
+    clear_state_keys(
+        dialog_manager.dialog_data,
+        STARS_SELL_COUNT_KEY,
+        STARS_SELL_WALLET_KEY,
+        STARS_SELL_HISTORY_SELECTED_ORDER_ID_KEY,
+    )
 
 
 def selected_stars_count(dialog_manager: DialogManager) -> int:
@@ -335,13 +269,7 @@ def selected_topup_amount_cents(dialog_manager: DialogManager) -> int:
 
 
 def selected_gift_recipient_user_id(dialog_manager: DialogManager) -> int | None:
-    raw_value = dialog_manager.dialog_data.get(GIFTS_RECIPIENT_USER_ID_KEY)
-    if isinstance(raw_value, int):
-        return raw_value if raw_value > 0 else None
-    if isinstance(raw_value, str) and raw_value.isdigit():
-        parsed = int(raw_value)
-        return parsed if parsed > 0 else None
-    return None
+    return read_positive_int(dialog_manager.dialog_data, GIFTS_RECIPIENT_USER_ID_KEY)
 
 
 def set_selected_gift_recipient_user_id(
@@ -376,41 +304,19 @@ def set_selected_gift_recipient_username(
 
 
 def selected_gift_key(dialog_manager: DialogManager) -> str | None:
-    raw_value = dialog_manager.dialog_data.get(GIFTS_SELECTED_KEY)
-    if not isinstance(raw_value, str):
-        return None
-    normalized = raw_value.strip()
-    return normalized or None
+    return read_stripped_string(dialog_manager.dialog_data, GIFTS_SELECTED_KEY)
 
 
 def set_selected_gift_key(dialog_manager: DialogManager, gift_key: str | None) -> None:
-    if gift_key is None:
-        dialog_manager.dialog_data.pop(GIFTS_SELECTED_KEY, None)
-        return
-    normalized = gift_key.strip()
-    if not normalized:
-        dialog_manager.dialog_data.pop(GIFTS_SELECTED_KEY, None)
-        return
-    dialog_manager.dialog_data[GIFTS_SELECTED_KEY] = normalized
+    set_stripped_string(dialog_manager.dialog_data, GIFTS_SELECTED_KEY, gift_key)
 
 
 def selected_gift_message(dialog_manager: DialogManager) -> str | None:
-    raw_value = dialog_manager.dialog_data.get(GIFTS_MESSAGE_KEY)
-    if not isinstance(raw_value, str):
-        return None
-    normalized = raw_value.strip()
-    return normalized or None
+    return read_stripped_string(dialog_manager.dialog_data, GIFTS_MESSAGE_KEY)
 
 
 def set_selected_gift_message(dialog_manager: DialogManager, message: str | None) -> None:
-    if message is None:
-        dialog_manager.dialog_data.pop(GIFTS_MESSAGE_KEY, None)
-        return
-    normalized = message.strip()
-    if not normalized:
-        dialog_manager.dialog_data.pop(GIFTS_MESSAGE_KEY, None)
-        return
-    dialog_manager.dialog_data[GIFTS_MESSAGE_KEY] = normalized
+    set_stripped_string(dialog_manager.dialog_data, GIFTS_MESSAGE_KEY, message)
 
 
 def selected_gift_sender_private(dialog_manager: DialogManager) -> bool | None:
@@ -437,11 +343,14 @@ def set_selected_gift_sender_private(
 
 
 def clear_gift_draft(dialog_manager: DialogManager) -> None:
-    dialog_manager.dialog_data.pop(GIFTS_RECIPIENT_USER_ID_KEY, None)
-    dialog_manager.dialog_data.pop(GIFTS_RECIPIENT_USERNAME_KEY, None)
-    dialog_manager.dialog_data.pop(GIFTS_SELECTED_KEY, None)
-    dialog_manager.dialog_data.pop(GIFTS_MESSAGE_KEY, None)
-    dialog_manager.dialog_data.pop(GIFTS_SENDER_PRIVATE_KEY, None)
+    clear_state_keys(
+        dialog_manager.dialog_data,
+        GIFTS_RECIPIENT_USER_ID_KEY,
+        GIFTS_RECIPIENT_USERNAME_KEY,
+        GIFTS_SELECTED_KEY,
+        GIFTS_MESSAGE_KEY,
+        GIFTS_SENDER_PRIVATE_KEY,
+    )
 
 
 def parse_topup_amount_cents(value: str) -> int | None:

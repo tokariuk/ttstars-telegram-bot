@@ -5,7 +5,7 @@ import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import timedelta
-from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal, InvalidOperation
+from decimal import ROUND_DOWN, Decimal
 from enum import StrEnum
 from typing import Any, Awaitable, Optional, cast
 from uuid import uuid4
@@ -139,6 +139,19 @@ from app.services.crud.stars_order_support.constants import (
     FULFILL_LOCK_TTL_SECONDS,
     RETRYABLE_DELIVERY_ERROR_MARKERS,
 )
+from app.services.crud.stars_order_support.pricing import (
+    CheckoutPricing as _CheckoutPricing,
+)
+from app.services.crud.stars_order_support.pricing import (
+    build_checkout_pricing,
+    calculate_net_after_fees,
+    checkout_fixed_component_cents,
+    display_fee_percent,
+    format_amount,
+    format_percent,
+    parse_money_cents,
+    parse_percent,
+)
 from app.services.crypto_pay import CryptoPayService
 from app.services.fragment_stars import FragmentStarsService
 from app.services.heleket_pay import HeleketPayService
@@ -152,6 +165,8 @@ from app.services.xrocket_pay import XRocketPayService
 from app.stars import build_crypto_payload, get_premium_pack, price_usd_for_cents
 from app.utils.key_builder import build_key
 from app.utils.time import datetime_now
+
+CheckoutPricing = _CheckoutPricing
 
 
 class StarsOrderError(RuntimeError):
@@ -234,14 +249,6 @@ class AdminOrdersStats:
     completed_stars_count: int
     status_counts: dict[StarsOrderStatus, int]
     completed_products: dict[StarsOrderProductType, AdminProductStats]
-
-
-@dataclass(frozen=True, slots=True)
-class CheckoutPricing:
-    net_amount_cents: int
-    invoice_amount_cents: int
-    customer_total_cents: int
-    fee_percent_text: str
 
 
 logger: logging.Logger = logging.getLogger(name=__name__)
@@ -2349,74 +2356,13 @@ end
         provider: StarsPaymentProvider,
         net_amount_cents: int,
     ) -> CheckoutPricing:
-        if provider == StarsPaymentProvider.BALANCE:
-            return CheckoutPricing(
-                net_amount_cents=net_amount_cents,
-                invoice_amount_cents=net_amount_cents,
-                customer_total_cents=net_amount_cents,
-                fee_percent_text="0",
-            )
-
-        net_amount = Decimal(net_amount_cents) / Decimal("100")
-        payment_fee_percent = self.payment_fee_percents.get(provider, Decimal("0"))
-        payout_fee_percent = self.payout_fee_percents.get(provider, Decimal("0"))
-        payout_fixed_cents = self.payout_fixed_cents.get(provider, 0)
-        payout_fixed = Decimal(payout_fixed_cents) / Decimal("100")
-
-        payment_rate = payment_fee_percent / Decimal("100")
-        payout_rate = payout_fee_percent / Decimal("100")
-        payment_fee_on_top = provider in {
-            StarsPaymentProvider.PLATEGA_PAY,
-            StarsPaymentProvider.NICE_PAY_RU,
-            StarsPaymentProvider.NICE_PAY_KZ,
-        }
-
-        denominator = Decimal("1") - payout_rate
-        if not payment_fee_on_top:
-            denominator *= Decimal("1") - payment_rate
-        if denominator <= 0:
-            raise ValidationError("Invalid payment fee configuration.")
-
-        invoice_amount = ((net_amount + payout_fixed) / denominator).quantize(
-            Decimal("0.01"),
-            rounding=ROUND_HALF_UP,
-        )
-        if invoice_amount <= 0:
-            raise ValidationError("Calculated checkout amount must be positive.")
-
-        net_after_fees = self._net_after_fees(
-            invoice_amount=invoice_amount,
-            payment_rate=payment_rate,
-            payout_rate=payout_rate,
-            payout_fixed=payout_fixed,
-            payment_fee_on_top=payment_fee_on_top,
-        )
-        while net_after_fees < net_amount:
-            invoice_amount += Decimal("0.01")
-            net_after_fees = self._net_after_fees(
-                invoice_amount=invoice_amount,
-                payment_rate=payment_rate,
-                payout_rate=payout_rate,
-                payout_fixed=payout_fixed,
-                payment_fee_on_top=payment_fee_on_top,
-            )
-
-        customer_total = (
-            (invoice_amount * (Decimal("1") + payment_rate))
-            if payment_fee_on_top
-            else invoice_amount
-        ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        fee_percent = self._display_fee_percent(
+        return build_checkout_pricing(
             provider=provider,
-            payment_rate=payment_rate,
-            payout_rate=payout_rate,
-        )
-
-        return CheckoutPricing(
-            net_amount_cents=int((net_amount * Decimal("100")).quantize(Decimal("1"))),
-            invoice_amount_cents=int((invoice_amount * Decimal("100")).quantize(Decimal("1"))),
-            customer_total_cents=int((customer_total * Decimal("100")).quantize(Decimal("1"))),
-            fee_percent_text=self._format_percent(fee_percent),
+            net_amount_cents=net_amount_cents,
+            payment_fee_percents=self.payment_fee_percents,
+            payout_fee_percents=self.payout_fee_percents,
+            payout_fixed_cents=self.payout_fixed_cents,
+            error_type=ValidationError,
         )
 
     @staticmethod
@@ -2426,59 +2372,19 @@ end
         payment_rate: Decimal,
         payout_rate: Decimal,
     ) -> Decimal:
-        if provider == StarsPaymentProvider.BALANCE:
-            return Decimal("0")
-
-        payout_multiplier = Decimal("1") - payout_rate
-        if payout_multiplier <= 0:
-            return Decimal("0")
-
-        if provider in {
-            StarsPaymentProvider.PLATEGA_PAY,
-            StarsPaymentProvider.NICE_PAY_RU,
-            StarsPaymentProvider.NICE_PAY_KZ,
-        }:
-            ratio = (Decimal("1") + payment_rate) / payout_multiplier
-        else:
-            payment_multiplier = Decimal("1") - payment_rate
-            if payment_multiplier <= 0:
-                return Decimal("0")
-            ratio = Decimal("1") / (payment_multiplier * payout_multiplier)
-
-        fee = (ratio - Decimal("1")) * Decimal("100")
-        return fee if fee > 0 else Decimal("0")
+        return display_fee_percent(
+            provider=provider,
+            payment_rate=payment_rate,
+            payout_rate=payout_rate,
+        )
 
     def _checkout_fixed_component_cents(self, *, provider: StarsPaymentProvider) -> int:
-        payout_fixed_cents = max(0, int(self.payout_fixed_cents.get(provider, 0)))
-        if payout_fixed_cents <= 0:
-            return 0
-
-        payout_rate = self.payout_fee_percents.get(provider, Decimal("0")) / Decimal("100")
-        payment_rate = self.payment_fee_percents.get(provider, Decimal("0")) / Decimal("100")
-        payout_multiplier = Decimal("1") - payout_rate
-        if payout_multiplier <= 0:
-            return 0
-
-        if provider in {
-            StarsPaymentProvider.PLATEGA_PAY,
-            StarsPaymentProvider.NICE_PAY_RU,
-            StarsPaymentProvider.NICE_PAY_KZ,
-        }:
-            factor = (Decimal("1") + payment_rate) / payout_multiplier
-        else:
-            payment_multiplier = Decimal("1") - payment_rate
-            if payment_multiplier <= 0:
-                return 0
-            factor = Decimal("1") / (payment_multiplier * payout_multiplier)
-
-        fixed_component = (Decimal(payout_fixed_cents) / Decimal("100")) * factor
-        cents = int(
-            (fixed_component * Decimal("100")).quantize(
-                Decimal("1"),
-                rounding=ROUND_HALF_UP,
-            )
+        return checkout_fixed_component_cents(
+            provider=provider,
+            payment_fee_percents=self.payment_fee_percents,
+            payout_fee_percents=self.payout_fee_percents,
+            payout_fixed_cents=self.payout_fixed_cents,
         )
-        return max(0, cents)
 
     @staticmethod
     def _net_after_fees(
@@ -2489,52 +2395,29 @@ end
         payout_fixed: Decimal,
         payment_fee_on_top: bool,
     ) -> Decimal:
-        merchant_base = (
-            invoice_amount
-            if payment_fee_on_top
-            else invoice_amount * (Decimal("1") - payment_rate)
+        return calculate_net_after_fees(
+            invoice_amount=invoice_amount,
+            payment_rate=payment_rate,
+            payout_rate=payout_rate,
+            payout_fixed=payout_fixed,
+            payment_fee_on_top=payment_fee_on_top,
         )
-        return (merchant_base * (Decimal("1") - payout_rate)) - payout_fixed
 
     @staticmethod
     def _parse_percent(value: str, *, default: str) -> Decimal:
-        raw = (value or "").strip() or default
-        try:
-            parsed = Decimal(raw)
-        except (InvalidOperation, TypeError):
-            parsed = Decimal(default)
-        if parsed < 0:
-            return Decimal("0")
-        if parsed >= 100:
-            return Decimal("99.99")
-        return parsed
+        return parse_percent(value, default=default)
 
     @staticmethod
     def _parse_money_cents(value: str, *, default: str) -> int:
-        raw = (value or "").strip() or default
-        try:
-            parsed = Decimal(raw)
-        except (InvalidOperation, TypeError):
-            parsed = Decimal(default)
-        if parsed < 0:
-            parsed = Decimal("0")
-        return int((parsed * Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+        return parse_money_cents(value, default=default)
 
     @staticmethod
     def _format_percent(value: Decimal) -> str:
-        normalized = value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        text = format(normalized, "f")
-        if "." in text:
-            text = text.rstrip("0").rstrip(".")
-        return text or "0"
+        return format_percent(value)
 
     @staticmethod
     def _format_amount(value: Decimal) -> str:
-        normalized = value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        text = format(normalized, "f")
-        if "." in text:
-            text = text.rstrip("0").rstrip(".")
-        return text or "0"
+        return format_amount(value)
 
     @staticmethod
     def _calculate_referral_reward_cents(*, amount_cents: int, percent: Decimal) -> int:

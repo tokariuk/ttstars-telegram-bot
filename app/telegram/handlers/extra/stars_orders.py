@@ -39,6 +39,7 @@ from app.telegram.keyboards.callback_data.order import (
     CDStarsSellInvoiceCancel,
 )
 from app.utils.localization import normalize_i18n_locale
+from app.utils.routes import normalize_route_path
 
 logger: Final[logging.Logger] = logging.getLogger(name=__name__)
 router: Final[Router] = Router(name=__name__)
@@ -327,7 +328,7 @@ async def _setup_crypto_pay_webhook(
         logger.warning("Skipping CryptoPay webhook setup: CRYPTO_PAY_WEBHOOK_PATH is empty.")
         return
 
-    normalized_path = webhook_path if webhook_path.startswith("/") else f"/{webhook_path}"
+    normalized_path = normalize_route_path(webhook_path)
     webhook_url = f"{base_url}{normalized_path}"
     try:
         applied = await crypto_pay_service.set_webhook(webhook_url=webhook_url)

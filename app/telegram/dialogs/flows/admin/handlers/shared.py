@@ -9,6 +9,16 @@ from app.services.crud.stars_order import StarsOrderService
 from app.services.crud.stars_sell_order import StarsSellOrderService
 from app.services.crud.user import UserService
 from app.services.promo_codes import PromoCodeService
+from app.telegram.dialogs.common.state import (
+    clear_state_keys,
+    read_non_negative_int,
+    read_optional_int,
+    read_positive_int,
+    read_stripped_string,
+    set_optional_int,
+    set_positive_int,
+    set_stripped_string,
+)
 
 from ..helpers import BroadcastPayload, payload_from_state, payload_to_state
 
@@ -172,53 +182,23 @@ def toggle_promo_bulk_selected_code(dialog_manager: DialogManager, code: str) ->
 
 
 def stars_sell_count(dialog_manager: DialogManager) -> int | None:
-    raw = dialog_manager.dialog_data.get(STARS_SELL_COUNT_KEY)
-    if isinstance(raw, int) and raw > 0:
-        return raw
-    if isinstance(raw, str) and raw.isdigit():
-        value = int(raw)
-        if value > 0:
-            return value
-    return None
+    return read_positive_int(dialog_manager.dialog_data, STARS_SELL_COUNT_KEY)
 
 
 def set_stars_sell_count(dialog_manager: DialogManager, stars_count: int | None) -> None:
-    if stars_count is None:
-        dialog_manager.dialog_data.pop(STARS_SELL_COUNT_KEY, None)
-        return
-    value = int(stars_count)
-    if value <= 0:
-        dialog_manager.dialog_data.pop(STARS_SELL_COUNT_KEY, None)
-        return
-    dialog_manager.dialog_data[STARS_SELL_COUNT_KEY] = value
+    set_positive_int(dialog_manager.dialog_data, STARS_SELL_COUNT_KEY, stars_count)
 
 
 def stars_sell_wallet(dialog_manager: DialogManager) -> str | None:
-    raw = dialog_manager.dialog_data.get(STARS_SELL_WALLET_KEY)
-    if not isinstance(raw, str):
-        return None
-    value = raw.strip()
-    return value or None
+    return read_stripped_string(dialog_manager.dialog_data, STARS_SELL_WALLET_KEY)
 
 
 def set_stars_sell_wallet(dialog_manager: DialogManager, wallet: str | None) -> None:
-    if wallet is None:
-        dialog_manager.dialog_data.pop(STARS_SELL_WALLET_KEY, None)
-        return
-    value = wallet.strip()
-    if not value:
-        dialog_manager.dialog_data.pop(STARS_SELL_WALLET_KEY, None)
-        return
-    dialog_manager.dialog_data[STARS_SELL_WALLET_KEY] = value
+    set_stripped_string(dialog_manager.dialog_data, STARS_SELL_WALLET_KEY, wallet)
 
 
 def stars_sell_history_page(dialog_manager: DialogManager) -> int:
-    raw = dialog_manager.dialog_data.get(STARS_SELL_HISTORY_PAGE_KEY)
-    if isinstance(raw, int):
-        return max(raw, 0)
-    if isinstance(raw, str) and raw.isdigit():
-        return int(raw)
-    return 0
+    return read_non_negative_int(dialog_manager.dialog_data, STARS_SELL_HISTORY_PAGE_KEY)
 
 
 def set_stars_sell_history_page(dialog_manager: DialogManager, page: int) -> None:
@@ -226,37 +206,34 @@ def set_stars_sell_history_page(dialog_manager: DialogManager, page: int) -> Non
 
 
 def stars_sell_history_selected_order_id(dialog_manager: DialogManager) -> int | None:
-    raw = dialog_manager.dialog_data.get(STARS_SELL_HISTORY_SELECTED_ORDER_ID_KEY)
-    if isinstance(raw, int):
-        return raw
-    if isinstance(raw, str) and raw.isdigit():
-        return int(raw)
-    return None
+    return read_optional_int(
+        dialog_manager.dialog_data,
+        STARS_SELL_HISTORY_SELECTED_ORDER_ID_KEY,
+    )
 
 
 def set_stars_sell_history_selected_order_id(
     dialog_manager: DialogManager,
     order_id: int | None,
 ) -> None:
-    if order_id is None:
-        dialog_manager.dialog_data.pop(STARS_SELL_HISTORY_SELECTED_ORDER_ID_KEY, None)
-        return
-    dialog_manager.dialog_data[STARS_SELL_HISTORY_SELECTED_ORDER_ID_KEY] = order_id
+    set_optional_int(
+        dialog_manager.dialog_data,
+        STARS_SELL_HISTORY_SELECTED_ORDER_ID_KEY,
+        order_id,
+    )
 
 
 def clear_stars_sell_draft(dialog_manager: DialogManager) -> None:
-    dialog_manager.dialog_data.pop(STARS_SELL_COUNT_KEY, None)
-    dialog_manager.dialog_data.pop(STARS_SELL_WALLET_KEY, None)
-    dialog_manager.dialog_data.pop(STARS_SELL_HISTORY_SELECTED_ORDER_ID_KEY, None)
+    clear_state_keys(
+        dialog_manager.dialog_data,
+        STARS_SELL_COUNT_KEY,
+        STARS_SELL_WALLET_KEY,
+        STARS_SELL_HISTORY_SELECTED_ORDER_ID_KEY,
+    )
 
 
 def stars_sell_admin_page(dialog_manager: DialogManager) -> int:
-    raw = dialog_manager.dialog_data.get(STARS_SELL_ADMIN_PAGE_KEY)
-    if isinstance(raw, int):
-        return max(raw, 0)
-    if isinstance(raw, str) and raw.isdigit():
-        return int(raw)
-    return 0
+    return read_non_negative_int(dialog_manager.dialog_data, STARS_SELL_ADMIN_PAGE_KEY)
 
 
 def set_stars_sell_admin_page(dialog_manager: DialogManager, page: int) -> None:
@@ -264,19 +241,18 @@ def set_stars_sell_admin_page(dialog_manager: DialogManager, page: int) -> None:
 
 
 def stars_sell_admin_selected_order_id(dialog_manager: DialogManager) -> int | None:
-    raw = dialog_manager.dialog_data.get(STARS_SELL_ADMIN_SELECTED_ORDER_ID_KEY)
-    if isinstance(raw, int):
-        return raw
-    if isinstance(raw, str) and raw.isdigit():
-        return int(raw)
-    return None
+    return read_optional_int(
+        dialog_manager.dialog_data,
+        STARS_SELL_ADMIN_SELECTED_ORDER_ID_KEY,
+    )
 
 
 def set_stars_sell_admin_selected_order_id(
     dialog_manager: DialogManager,
     order_id: int | None,
 ) -> None:
-    if order_id is None:
-        dialog_manager.dialog_data.pop(STARS_SELL_ADMIN_SELECTED_ORDER_ID_KEY, None)
-        return
-    dialog_manager.dialog_data[STARS_SELL_ADMIN_SELECTED_ORDER_ID_KEY] = order_id
+    set_optional_int(
+        dialog_manager.dialog_data,
+        STARS_SELL_ADMIN_SELECTED_ORDER_ID_KEY,
+        order_id,
+    )
