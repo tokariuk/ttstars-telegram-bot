@@ -19,9 +19,7 @@ def _render_buttons_preview(*, payload_buttons: Sequence[BroadcastButton]) -> st
         text = getattr(item, "text", "")
         url = getattr(item, "url", "")
         if isinstance(text, str) and isinstance(url, str) and text and url:
-            lines.append(
-                f'• <a href="{html.escape(url, quote=True)}">{html.escape(text)}</a>'
-            )
+            lines.append(f'• <a href="{html.escape(url, quote=True)}">{html.escape(text)}</a>')
     return "\n".join(lines) if lines else "—"
 
 
@@ -108,11 +106,7 @@ async def broadcast_confirm_getter(dialog_manager: DialogManager, **_: Any) -> d
         if payload.photo_file_id is not None:
             preview_text = f"<i>[Photo]</i>\n{preview_text}"
         buttons_text = _render_buttons_preview(payload_buttons=payload.buttons)
-        base_text = (
-            f"{summary}\n\n"
-            f"<b>📝</b>\n{preview_text}\n\n"
-            f"<b>🔗</b>\n{buttons_text}"
-        )
+        base_text = f"{summary}\n\n<b>📝</b>\n{preview_text}\n\n<b>🔗</b>\n{buttons_text}"
     text = with_notice(
         text=base_text,
         notice=consume_notice(dialog_manager),

@@ -189,4 +189,3 @@ async def create_order_with_result(
             order=order,
         )
     await dialog_manager.switch_to(target_state, show_mode=ShowMode.EDIT)
-

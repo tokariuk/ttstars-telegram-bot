@@ -259,7 +259,7 @@ class TelegramGiftService:
         if user_id is not None and user_id > 0:
             try:
                 entity = await client.get_input_entity(user_id)
-            except (ValueError, RPCError):
+            except ValueError, RPCError:
                 entity = None
             else:
                 if isinstance(entity, types.InputPeerUser):

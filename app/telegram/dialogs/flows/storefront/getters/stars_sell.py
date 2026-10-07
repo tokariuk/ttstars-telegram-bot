@@ -74,9 +74,7 @@ async def stars_sell_menu_getter(dialog_manager: DialogManager, **_: Any) -> dic
     i18n = get_i18n(dialog_manager=dialog_manager)
     service = stars_sell_order_service(dialog_manager)
     text = str(
-        i18n.messages.stars_sell_menu_screen(
-            rate_usd=_decimal_to_text(service.usd_per_star)
-        )
+        i18n.messages.stars_sell_menu_screen(rate_usd=_decimal_to_text(service.usd_per_star))
     )
     notice = consume_notice(dialog_manager)
     if notice:

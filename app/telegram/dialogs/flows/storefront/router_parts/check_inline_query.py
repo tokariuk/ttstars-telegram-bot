@@ -168,4 +168,3 @@ async def handle_inline_check_query(
         cache_time=1,
         is_personal=True,
     )
-

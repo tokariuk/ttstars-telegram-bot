@@ -480,9 +480,8 @@ class StarsSellOrderService(CrudService):
                 raise StatusConflictError(
                     f"Sell order {order_id} status is {order.status.value}, expected paid_hold."
                 )
-            if (
-                not allow_before_hold
-                and (order.payout_available_at is None or order.payout_available_at > now)
+            if not allow_before_hold and (
+                order.payout_available_at is None or order.payout_available_at > now
             ):
                 raise NotReadyForPayoutError(payout_available_at=order.payout_available_at)
 

@@ -55,9 +55,7 @@ def get_stars_pack(pack_key: str | None) -> StarsPack:
 
 def build_stars_pack(*, stars_count: int) -> StarsPack:
     if stars_count < MIN_STARS_COUNT or stars_count > MAX_STARS_COUNT:
-        raise ValueError(
-            f"Stars count must be between {MIN_STARS_COUNT} and {MAX_STARS_COUNT}."
-        )
+        raise ValueError(f"Stars count must be between {MIN_STARS_COUNT} and {MAX_STARS_COUNT}.")
     return StarsPack(
         key=str(stars_count),
         stars_count=stars_count,

@@ -67,7 +67,7 @@ class PlategaPayService:
         self.merchant_id = (merchant_id or "").strip()
         self.secret_key = (secret_key or "").strip()
         self.base_url = (base_url or "https://app.platega.io").strip().rstrip("/")
-        self.currency = ((currency or "RUB").strip().upper() or "RUB")
+        self.currency = (currency or "RUB").strip().upper() or "RUB"
         self.payment_method = int(payment_method)
         self.success_url = (success_url or "").strip()
         self.fail_url = (fail_url or "").strip()
@@ -80,10 +80,7 @@ class PlategaPayService:
     @property
     def configured(self) -> bool:
         return bool(
-            self.merchant_id
-            and self.secret_key
-            and self.base_url
-            and self.payment_method > 0
+            self.merchant_id and self.secret_key and self.base_url and self.payment_method > 0
         )
 
     async def create_invoice(
@@ -184,10 +181,9 @@ class PlategaPayService:
         status = self._normalize_status(payload.get("status"))
         if not status:
             return None
-        transaction_id = (
-            self._extract_optional_string(payload.get("id"))
-            or self._extract_optional_string(payload.get("transactionId"))
-        )
+        transaction_id = self._extract_optional_string(
+            payload.get("id")
+        ) or self._extract_optional_string(payload.get("transactionId"))
         payment_payload = self._extract_optional_string(payload.get("payload"))
         is_paid = status in _PAID_STATUSES
         is_terminal = bool(is_paid or status in _TERMINAL_FAILURE_STATUSES)

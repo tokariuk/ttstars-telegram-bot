@@ -118,10 +118,7 @@ async def mark_failed_and_refund(
     )
     if not refunded:
         logger.error(
-            (
-                "Order %s failed, but refund to user balance failed "
-                "(user_id=%s, amount_cents=%s)."
-            ),
+            ("Order %s failed, but refund to user balance failed (user_id=%s, amount_cents=%s)."),
             failed.id,
             failed.user_id,
             failed.amount_cents,

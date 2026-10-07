@@ -25,7 +25,7 @@ from .common import (
 )
 
 HISTORY_PAGE_SIZE: Final[int] = 6
-_INVISIBLE_BUTTON_TEXT: Final[str] = "\u200B"
+_INVISIBLE_BUTTON_TEXT: Final[str] = "\u200b"
 
 
 def _format_tg_time(value: datetime | None, *, fmt: str = "dt") -> str:

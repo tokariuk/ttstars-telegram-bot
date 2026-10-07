@@ -561,11 +561,7 @@ async def stop_stars_orders_loop(
 ) -> None:
     global _stars_orders_task, _ton_payments_task
 
-    tasks = [
-        task
-        for task in (_stars_orders_task, _ton_payments_task)
-        if task is not None
-    ]
+    tasks = [task for task in (_stars_orders_task, _ton_payments_task) if task is not None]
     _stars_orders_task = None
     _ton_payments_task = None
     if not tasks:

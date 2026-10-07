@@ -75,4 +75,3 @@ profile_window: Window = Window(
     state=StorefrontSG.profile,
     getter=profile_getter,
 )
-

@@ -53,16 +53,12 @@ class TonPayService:
         invoice_tx_scan_limit: int = 50,
         rate_cache_ttl_seconds: int = 30,
     ) -> None:
-        self.tonapi_base_url = (
-            (tonapi_base_url or "https://tonapi.io").strip().rstrip("/")
-        )
+        self.tonapi_base_url = (tonapi_base_url or "https://tonapi.io").strip().rstrip("/")
         self.tonapi_api_key = (tonapi_api_key or "").strip()
         self.invoice_api_key = (invoice_api_key or "").strip()
-        self.invoice_base_url = (
-            (invoice_base_url or "https://tonconsole.com").strip().rstrip("/")
-        )
+        self.invoice_base_url = (invoice_base_url or "https://tonconsole.com").strip().rstrip("/")
         self.invoice_lifetime_seconds = max(60, int(invoice_lifetime_seconds))
-        self.invoice_currency = ((invoice_currency or "TON").strip().upper() or "TON")
+        self.invoice_currency = (invoice_currency or "TON").strip().upper() or "TON"
         self.invoice_status_cache_ttl_seconds = max(5, int(invoice_status_cache_ttl_seconds))
         self.invoice_tx_scan_limit = min(200, max(10, int(invoice_tx_scan_limit)))
         self.rate_cache_ttl_seconds = max(3, int(rate_cache_ttl_seconds))
@@ -171,9 +167,7 @@ class TonPayService:
             )
             self._invoice_status_cache.pop(normalized_invoice_id, None)
             return result
-        status = (
-            self._extract_optional_string(payload.get("status")) or "unknown"
-        ).lower()
+        status = (self._extract_optional_string(payload.get("status")) or "unknown").lower()
         amount_nano = self._extract_int(payload.get("amount")) or expected_nano
         amount_nano = max(0, int(amount_nano))
         overpayment_nano = max(0, int(self._extract_int(payload.get("overpayment")) or 0))
@@ -201,12 +195,17 @@ class TonPayService:
             )
             if chain_result is not None:
                 result = chain_result
-        if use_cache and not result.is_paid and result.status not in {
-            "paid",
-            "paid_chain",
-            "cancelled",
-            "expired",
-        }:
+        if (
+            use_cache
+            and not result.is_paid
+            and result.status
+            not in {
+                "paid",
+                "paid_chain",
+                "cancelled",
+                "expired",
+            }
+        ):
             self._invoice_status_cache[normalized_invoice_id] = (
                 now + self.invoice_status_cache_ttl_seconds,
                 result,
@@ -299,9 +298,8 @@ class TonPayService:
         comment = self._extract_message_comment(in_msg)
         if comment != invoice_id:
             return None
-        paid_at = (
-            self._extract_int(transaction.get("utime"))
-            or self._extract_int(in_msg.get("created_at"))
+        paid_at = self._extract_int(transaction.get("utime")) or self._extract_int(
+            in_msg.get("created_at")
         )
         return amount_nano, paid_at
 

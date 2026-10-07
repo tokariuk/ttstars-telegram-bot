@@ -246,9 +246,9 @@ async def send_stars_sell_invoice(
                 i18n_ctx.messages.admin_stars_sell_invoice_replaced(order_id=order.id)
                 if create_result.replaced_existing
                 else (
-                i18n_ctx.messages.admin_stars_sell_invoice_resent(order_id=order.id)
-                if create_result.reused_existing
-                else i18n_ctx.messages.admin_stars_sell_invoice_sent(order_id=order.id)
+                    i18n_ctx.messages.admin_stars_sell_invoice_resent(order_id=order.id)
+                    if create_result.reused_existing
+                    else i18n_ctx.messages.admin_stars_sell_invoice_sent(order_id=order.id)
                 )
             )
         ),
@@ -292,7 +292,7 @@ async def admin_mark_stars_sell_completed(
                 )
             ),
         )
-    except (OrderNotFoundError, StatusConflictError):
+    except OrderNotFoundError, StatusConflictError:
         set_notice(
             dialog_manager,
             str(i18n_ctx.messages.admin_stars_sell_admin_action_conflict(order_id=order_id)),
@@ -330,7 +330,7 @@ async def admin_mark_stars_sell_rejected(
             dialog_manager,
             str(i18n_ctx.messages.admin_stars_sell_admin_action_rejected(order_id=order_id)),
         )
-    except (OrderNotFoundError, StatusConflictError):
+    except OrderNotFoundError, StatusConflictError:
         set_notice(
             dialog_manager,
             str(i18n_ctx.messages.admin_stars_sell_admin_action_conflict(order_id=order_id)),

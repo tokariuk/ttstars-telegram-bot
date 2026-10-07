@@ -94,4 +94,3 @@ history_details_window: Window = Window(
     state=StorefrontSG.history_details,
     getter=history_details_getter,
 )
-

@@ -25,4 +25,3 @@ promo_window: Window = Window(
     state=StorefrontSG.promo,
     getter=promo_getter,
 )
-

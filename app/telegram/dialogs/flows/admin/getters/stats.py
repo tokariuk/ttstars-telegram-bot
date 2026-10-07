@@ -39,9 +39,7 @@ async def stats_getter(dialog_manager: DialogManager, **_: Any) -> dict[str, Any
                 orders_new_7d=order_stats.created_last_7d,
                 orders_paid_24h=order_stats.paid_last_24h,
                 orders_paid_7d=order_stats.paid_last_7d,
-                orders_paid_amount_24h=price_usd_for_cents(
-                    order_stats.paid_amount_last_24h_cents
-                ),
+                orders_paid_amount_24h=price_usd_for_cents(order_stats.paid_amount_last_24h_cents),
                 orders_paid_amount_7d=price_usd_for_cents(order_stats.paid_amount_last_7d_cents),
                 orders_completed_amount=price_usd_for_cents(order_stats.completed_amount_cents),
                 completed_stars_count=completed_stars.count,

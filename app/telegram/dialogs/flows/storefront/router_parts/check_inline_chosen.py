@@ -150,4 +150,3 @@ async def handle_chosen_inline_check(  # noqa: C901
         check_id=check.id,
         inline_message_id=event.inline_message_id,
     )
-

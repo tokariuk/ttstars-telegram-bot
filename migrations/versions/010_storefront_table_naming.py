@@ -51,29 +51,19 @@ def upgrade() -> None:
         "ALTER INDEX ix_stars_orders_user_id_created_at "
         "RENAME TO ix_store_orders_user_id_created_at"
     )
-    op.execute(
-        "ALTER INDEX ix_stars_orders_status "
-        "RENAME TO ix_store_orders_status"
-    )
+    op.execute("ALTER INDEX ix_stars_orders_status RENAME TO ix_store_orders_status")
     op.execute(
         "ALTER INDEX ix_stars_orders_provider_invoice_id "
         "RENAME TO ix_store_orders_provider_invoice_id"
     )
-    op.execute(
-        "ALTER INDEX ix_stars_orders_product_type "
-        "RENAME TO ix_store_orders_product_type"
-    )
+    op.execute("ALTER INDEX ix_stars_orders_product_type RENAME TO ix_store_orders_product_type")
     op.execute(
         "ALTER INDEX ix_stars_orders_referral_processed_at "
         "RENAME TO ix_store_orders_referral_processed_at"
     )
+    op.execute("ALTER INDEX ix_stars_orders_polling_queue RENAME TO ix_store_orders_polling_queue")
     op.execute(
-        "ALTER INDEX ix_stars_orders_polling_queue "
-        "RENAME TO ix_store_orders_polling_queue"
-    )
-    op.execute(
-        "ALTER INDEX ix_stars_orders_provider_payload "
-        "RENAME TO ix_store_orders_provider_payload"
+        "ALTER INDEX ix_stars_orders_provider_payload RENAME TO ix_store_orders_provider_payload"
     )
     op.execute(
         "ALTER INDEX ix_stars_orders_provider_reference "
@@ -84,29 +74,15 @@ def upgrade() -> None:
         "RENAME TO ix_store_orders_user_status_created_at"
     )
 
+    op.execute("ALTER INDEX ix_user_checks_code RENAME TO ix_stars_checks_code")
+    op.execute("ALTER INDEX ix_user_checks_creator_id RENAME TO ix_stars_checks_creator_id")
+    op.execute("ALTER INDEX ix_user_checks_recipient_id RENAME TO ix_stars_checks_recipient_id")
+    op.execute("ALTER INDEX ix_user_checks_status RENAME TO ix_stars_checks_status")
     op.execute(
-        "ALTER INDEX ix_user_checks_code "
-        "RENAME TO ix_stars_checks_code"
+        "ALTER INDEX ix_user_checks_creator_status RENAME TO ix_stars_checks_creator_status"
     )
     op.execute(
-        "ALTER INDEX ix_user_checks_creator_id "
-        "RENAME TO ix_stars_checks_creator_id"
-    )
-    op.execute(
-        "ALTER INDEX ix_user_checks_recipient_id "
-        "RENAME TO ix_stars_checks_recipient_id"
-    )
-    op.execute(
-        "ALTER INDEX ix_user_checks_status "
-        "RENAME TO ix_stars_checks_status"
-    )
-    op.execute(
-        "ALTER INDEX ix_user_checks_creator_status "
-        "RENAME TO ix_stars_checks_creator_status"
-    )
-    op.execute(
-        "ALTER INDEX ix_user_checks_inline_message_id "
-        "RENAME TO ix_stars_checks_inline_message_id"
+        "ALTER INDEX ix_user_checks_inline_message_id RENAME TO ix_stars_checks_inline_message_id"
     )
     op.execute(
         "ALTER INDEX ix_user_checks_creator_status_updated_at "
@@ -145,29 +121,19 @@ def downgrade() -> None:
         "ALTER INDEX ix_store_orders_user_id_created_at "
         "RENAME TO ix_stars_orders_user_id_created_at"
     )
-    op.execute(
-        "ALTER INDEX ix_store_orders_status "
-        "RENAME TO ix_stars_orders_status"
-    )
+    op.execute("ALTER INDEX ix_store_orders_status RENAME TO ix_stars_orders_status")
     op.execute(
         "ALTER INDEX ix_store_orders_provider_invoice_id "
         "RENAME TO ix_stars_orders_provider_invoice_id"
     )
-    op.execute(
-        "ALTER INDEX ix_store_orders_product_type "
-        "RENAME TO ix_stars_orders_product_type"
-    )
+    op.execute("ALTER INDEX ix_store_orders_product_type RENAME TO ix_stars_orders_product_type")
     op.execute(
         "ALTER INDEX ix_store_orders_referral_processed_at "
         "RENAME TO ix_stars_orders_referral_processed_at"
     )
+    op.execute("ALTER INDEX ix_store_orders_polling_queue RENAME TO ix_stars_orders_polling_queue")
     op.execute(
-        "ALTER INDEX ix_store_orders_polling_queue "
-        "RENAME TO ix_stars_orders_polling_queue"
-    )
-    op.execute(
-        "ALTER INDEX ix_store_orders_provider_payload "
-        "RENAME TO ix_stars_orders_provider_payload"
+        "ALTER INDEX ix_store_orders_provider_payload RENAME TO ix_stars_orders_provider_payload"
     )
     op.execute(
         "ALTER INDEX ix_store_orders_provider_reference "
@@ -178,29 +144,15 @@ def downgrade() -> None:
         "RENAME TO ix_stars_orders_user_status_created_at"
     )
 
+    op.execute("ALTER INDEX ix_stars_checks_code RENAME TO ix_user_checks_code")
+    op.execute("ALTER INDEX ix_stars_checks_creator_id RENAME TO ix_user_checks_creator_id")
+    op.execute("ALTER INDEX ix_stars_checks_recipient_id RENAME TO ix_user_checks_recipient_id")
+    op.execute("ALTER INDEX ix_stars_checks_status RENAME TO ix_user_checks_status")
     op.execute(
-        "ALTER INDEX ix_stars_checks_code "
-        "RENAME TO ix_user_checks_code"
+        "ALTER INDEX ix_stars_checks_creator_status RENAME TO ix_user_checks_creator_status"
     )
     op.execute(
-        "ALTER INDEX ix_stars_checks_creator_id "
-        "RENAME TO ix_user_checks_creator_id"
-    )
-    op.execute(
-        "ALTER INDEX ix_stars_checks_recipient_id "
-        "RENAME TO ix_user_checks_recipient_id"
-    )
-    op.execute(
-        "ALTER INDEX ix_stars_checks_status "
-        "RENAME TO ix_user_checks_status"
-    )
-    op.execute(
-        "ALTER INDEX ix_stars_checks_creator_status "
-        "RENAME TO ix_user_checks_creator_status"
-    )
-    op.execute(
-        "ALTER INDEX ix_stars_checks_inline_message_id "
-        "RENAME TO ix_user_checks_inline_message_id"
+        "ALTER INDEX ix_stars_checks_inline_message_id RENAME TO ix_user_checks_inline_message_id"
     )
     op.execute(
         "ALTER INDEX ix_stars_checks_creator_status_updated_at "

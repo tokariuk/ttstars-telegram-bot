@@ -39,10 +39,7 @@ class CryptoPayService:
         self.accepted_assets = ",".join(
             [
                 token
-                for token in [
-                    part.strip().upper()
-                    for part in (accepted_assets or "").split(",")
-                ]
+                for token in [part.strip().upper() for part in (accepted_assets or "").split(",")]
                 if token
             ]
         )

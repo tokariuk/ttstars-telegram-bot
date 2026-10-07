@@ -111,9 +111,7 @@ async def admin_stats(
             completed_amount_cents=orders.completed_amount_cents,
             completed_amount_usd=price_usd_for_cents(orders.completed_amount_cents),
             completed_stars_count=orders.completed_stars_count,
-            status_counts={
-                status.value: count for status, count in orders.status_counts.items()
-            },
+            status_counts={status.value: count for status, count in orders.status_counts.items()},
             completed_products={
                 product.value: AdminProductStatResponse(
                     count=stat.count,

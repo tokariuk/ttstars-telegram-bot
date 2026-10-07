@@ -111,12 +111,7 @@ class UsersRepository(BaseRepository):
     ) -> list[User]:
         if limit <= 0:
             return []
-        query = (
-            select(User)
-            .order_by(User.id.asc())
-            .offset(max(offset, 0))
-            .limit(limit)
-        )
+        query = select(User).order_by(User.id.asc()).offset(max(offset, 0)).limit(limit)
         query = self._apply_admin_filters(
             query,
             search=search,
@@ -153,10 +148,7 @@ class UsersRepository(BaseRepository):
 
     async def set_blocked_at(self, *, user_id: int, blocked_at: datetime | None) -> Optional[User]:
         query = (
-            update(User)
-            .where(User.id == user_id)
-            .values(blocked_at=blocked_at)
-            .returning(User)
+            update(User).where(User.id == user_id).values(blocked_at=blocked_at).returning(User)
         )
         result = await self.session.execute(query)
         await self.session.commit()
@@ -243,9 +235,7 @@ class UsersRepository(BaseRepository):
     ) -> int:
         user = cast(
             Optional[User],
-            await self.session.scalar(
-                select(User).where(User.id == user_id).with_for_update()
-            ),
+            await self.session.scalar(select(User).where(User.id == user_id).with_for_update()),
         )
         if user is None:
             return 0

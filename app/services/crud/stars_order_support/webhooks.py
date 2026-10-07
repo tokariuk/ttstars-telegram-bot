@@ -134,9 +134,7 @@ async def process_platega_webhook_payment(
     webhook_status: str | None = None,
 ) -> StarsOrderDto | None:
     order: StarsOrder | None = None
-    normalized_transaction_id = (
-        transaction_id.strip() if isinstance(transaction_id, str) else ""
-    )
+    normalized_transaction_id = transaction_id.strip() if isinstance(transaction_id, str) else ""
     normalized_payment_payload = (
         payment_payload.strip() if isinstance(payment_payload, str) else ""
     )

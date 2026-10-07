@@ -56,9 +56,7 @@ def order_checkout_message_text(
         )
     if order.product_type == StarsOrderProductType.GIFT:
         gift_name = (
-            _localized_gift_name(i18n=i18n, gift_id=order.gift_id)
-            if order.gift_id
-            else "—"
+            _localized_gift_name(i18n=i18n, gift_id=order.gift_id) if order.gift_id else "—"
         )
         recipient_display = (
             f"@{order.recipient_username}"

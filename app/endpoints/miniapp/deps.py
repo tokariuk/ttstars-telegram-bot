@@ -80,9 +80,7 @@ ConfigDep = Annotated[AppConfig, Depends(get_config)]
 RedisDep = Annotated[Redis, Depends(get_redis)]
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 StarsOrderServiceDep = Annotated[StarsOrderService, Depends(get_stars_order_service)]
-StarsSellOrderServiceDep = Annotated[
-    StarsSellOrderService, Depends(get_stars_sell_order_service)
-]
+StarsSellOrderServiceDep = Annotated[StarsSellOrderService, Depends(get_stars_sell_order_service)]
 CheckServiceDep = Annotated[CheckService, Depends(get_check_service)]
 PromoCodeServiceDep = Annotated[PromoCodeService, Depends(get_promo_code_service)]
 BotDep = Annotated[Bot, Depends(get_bot)]

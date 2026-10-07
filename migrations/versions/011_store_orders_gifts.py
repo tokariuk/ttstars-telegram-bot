@@ -124,4 +124,3 @@ def downgrade() -> None:
     op.drop_column("store_orders", "gift_message")
     op.drop_column("store_orders", "gift_id")
     op.drop_column("store_orders", "recipient_user_id")
-

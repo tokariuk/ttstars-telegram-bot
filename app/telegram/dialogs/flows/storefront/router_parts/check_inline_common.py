@@ -309,4 +309,3 @@ async def mark_inline_claimed(
             inline_message_id=check.inline_message_id,
             reply_markup=claimed_markup(i18n=i18n),
         )
-

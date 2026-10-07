@@ -157,9 +157,7 @@ async def send_stars_sell_invoice(
                 i18n.messages.stars_sell_invoice_description(
                     stars_count=order.stars_count,
                     payout_amount=price_usd_for_cents(order.payout_amount_cents),
-                    hold_days_text=str(
-                        i18n.messages.stars_sell_days(count=service.hold_days)
-                    ),
+                    hold_days_text=str(i18n.messages.stars_sell_days(count=service.hold_days)),
                 )
             ),
             payload=order.invoice_payload,

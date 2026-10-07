@@ -241,12 +241,8 @@ async def stars_payment_getter(dialog_manager: DialogManager, **_: Any) -> dict[
         "can_pay_ton_danger": bool(can_pay_ton and not can_pay_ton_min_ok),
         "can_pay_platega_danger": bool(can_pay_platega and not can_pay_platega_min_ok),
         "can_pay_lzt_danger": bool(can_pay_lzt and not can_pay_lzt_min_ok),
-        "can_pay_nicepay_ru_danger": bool(
-            can_pay_nicepay_ru and not can_pay_nicepay_ru_min_ok
-        ),
-        "can_pay_nicepay_kz_danger": bool(
-            can_pay_nicepay_kz and not can_pay_nicepay_kz_min_ok
-        ),
+        "can_pay_nicepay_ru_danger": bool(can_pay_nicepay_ru and not can_pay_nicepay_ru_min_ok),
+        "can_pay_nicepay_kz_danger": bool(can_pay_nicepay_kz and not can_pay_nicepay_kz_min_ok),
         "can_pay_heleket_danger": bool(can_pay_heleket and not can_pay_heleket_min_ok),
         "can_pay_xrocket_danger": bool(can_pay_xrocket and not can_pay_xrocket_min_ok),
     }

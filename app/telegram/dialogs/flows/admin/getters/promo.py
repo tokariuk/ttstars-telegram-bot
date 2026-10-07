@@ -175,8 +175,7 @@ async def promo_details_getter(dialog_manager: DialogManager, **_: Any) -> dict[
         )
         activation_list = (
             "\n".join(
-                f"• {escape(item.user_name)} (<code>{item.user_id}</code>)"
-                for item in activations
+                f"• {escape(item.user_name)} (<code>{item.user_id}</code>)" for item in activations
             )
             or "—"
         )

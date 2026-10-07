@@ -103,4 +103,3 @@ async def handle_start(
         state=StorefrontSG.menu,
         data=({STATE_NOTICE_KEY: claim_message} if claim_message else None),
     )
-

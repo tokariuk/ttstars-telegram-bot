@@ -215,11 +215,19 @@ def upgrade() -> None:
                 o.fragment_error,
                 o.paid_at,
                 CASE
-                    WHEN o.status = 'completed' THEN COALESCE(o.fulfilled_at, o.paid_at, o.updated_at)
+                    WHEN o.status = 'completed' THEN COALESCE(
+                        o.fulfilled_at,
+                        o.paid_at,
+                        o.updated_at
+                    )
                     ELSE NULL
                 END AS credited_at,
                 CASE
-                    WHEN o.status = 'completed' THEN COALESCE(o.fulfilled_at, o.paid_at, o.updated_at)
+                    WHEN o.status = 'completed' THEN COALESCE(
+                        o.fulfilled_at,
+                        o.paid_at,
+                        o.updated_at
+                    )
                     ELSE NULL
                 END AS completed_at,
                 o.canceled_at,

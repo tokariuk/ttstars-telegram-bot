@@ -220,6 +220,7 @@ async def _pay_gift_with_provider(
     dialog_manager: DialogManager,
     provider: StarsPaymentProvider,
 ) -> None:
+    # fmt: off
     await _pay_gift_order(
         callback=callback,
         dialog_manager=dialog_manager,
@@ -241,6 +242,7 @@ async def _pay_gift_with_provider(
             )
         ),
     )
+    # fmt: on
 
 
 def _bind_provider_handler(

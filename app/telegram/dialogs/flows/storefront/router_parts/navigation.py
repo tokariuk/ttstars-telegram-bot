@@ -54,4 +54,3 @@ __all__ = [
     "legacy_deposit_callback",
     "legacy_menu_callback",
 ]
-

@@ -52,9 +52,7 @@ class LZTPayService:
         self.merchant_key = (merchant_key or "").strip()
         normalized_currency = (currency or "usd").strip().lower()
         self.currency = (
-            normalized_currency
-            if normalized_currency in _ALLOWED_CURRENCIES
-            else "usd"
+            normalized_currency if normalized_currency in _ALLOWED_CURRENCIES else "usd"
         )
         self.success_url = success_url.strip()
         self.timeout = ClientTimeout(total=20)

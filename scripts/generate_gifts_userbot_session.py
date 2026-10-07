@@ -42,9 +42,7 @@ def _env_int(name: str) -> int | None:
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=(
-            "Generate TELEGRAM_GIFTS_USERBOT_SESSION without interactive input() calls."
-        ),
+        description=("Generate TELEGRAM_GIFTS_USERBOT_SESSION without interactive input() calls."),
     )
     parser.add_argument(
         "--api-id",
@@ -78,9 +76,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--state-file",
         default=".telegram_gifts_userbot_login_state.json",
-        help=(
-            "Path to temporary login state file used between step 1 and step 2."
-        ),
+        help=("Path to temporary login state file used between step 1 and step 2."),
     )
     parser.add_argument(
         "--device-model",

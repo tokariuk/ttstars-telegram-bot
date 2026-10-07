@@ -468,9 +468,7 @@ def product_label(i18n: Any, order: StarsOrderDto) -> str:
         return str(i18n.messages.order_product_topup())
     if order.product_type == StarsOrderProductType.GIFT:
         gift_name = (
-            _localized_gift_name(i18n=i18n, gift_id=order.gift_id)
-            if order.gift_id
-            else "Gift"
+            _localized_gift_name(i18n=i18n, gift_id=order.gift_id) if order.gift_id else "Gift"
         )
         return str(i18n.messages.order_product_gift(gift=gift_name))
     if order.product_type == StarsOrderProductType.PREMIUM:

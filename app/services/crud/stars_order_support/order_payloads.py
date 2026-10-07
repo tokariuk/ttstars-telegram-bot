@@ -211,9 +211,7 @@ def _prepare_external_premium_payload(
         recipient_username=normalized_username,
         stars_count=0,
         amount_cents=(
-            forced_amount_cents
-            if forced_amount_cents is not None
-            else premium_pack.price_cents
+            forced_amount_cents if forced_amount_cents is not None else premium_pack.price_cents
         ),
         premium_months=premium_pack.months,
         recipient_user_id=None,

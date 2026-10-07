@@ -150,4 +150,3 @@ referral_details_window: Window = Window(
     state=StorefrontSG.referrals_details,
     getter=referral_details_getter,
 )
-

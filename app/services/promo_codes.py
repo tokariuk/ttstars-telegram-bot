@@ -275,7 +275,8 @@ class PromoCodeService:
                 continue
             legacy = self._parse_legacy_hash(normalized, data)
             activation_keys = [
-                key async for key in self.redis.scan_iter(
+                key
+                async for key in self.redis.scan_iter(
                     match=f"promo:activation:*:{normalized}", count=200
                 )
             ]
@@ -301,7 +302,7 @@ class PromoCodeService:
                         )
                         try:
                             activation_user_id = int(key_text.split(":")[-2])
-                        except (ValueError, IndexError):
+                        except ValueError, IndexError:
                             continue
                         if await session.get(User, activation_user_id) is not None:
                             session.add(
@@ -368,9 +369,7 @@ class PromoCodeService:
             max_activations=None if max_raw <= 0 else max_raw,
             is_enabled=True,
             created_at=(
-                datetime.fromtimestamp(created_ts, tz=UTC)
-                if created_ts > 0
-                else datetime.now(UTC)
+                datetime.fromtimestamp(created_ts, tz=UTC) if created_ts > 0 else datetime.now(UTC)
             ),
         )
 

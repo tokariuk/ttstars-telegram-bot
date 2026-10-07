@@ -27,4 +27,3 @@ def _normalize_locale_key(value: str | None) -> str:
     if "-" in locale:
         locale = locale.split("-", 1)[0]
     return locale
-

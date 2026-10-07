@@ -18,9 +18,7 @@ if TYPE_CHECKING:
 
 
 _VALID_TELEGRAM_UPDATE_TYPES = frozenset(
-    field_name
-    for field_name in Update.model_fields
-    if field_name != "update_id"
+    field_name for field_name in Update.model_fields if field_name != "update_id"
 )
 
 

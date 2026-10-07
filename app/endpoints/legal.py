@@ -173,7 +173,9 @@ def _render_doc(
     intro_html = "".join(f"<p>{escape(paragraph)}</p>" for paragraph in doc.intro)
     sections_html_parts: list[str] = []
     for section in doc.sections:
-        paragraphs_html = "".join(f"<p>{escape(paragraph)}</p>" for paragraph in section.paragraphs)
+        paragraphs_html = "".join(
+            f"<p>{escape(paragraph)}</p>" for paragraph in section.paragraphs
+        )
         bullets_html = ""
         if section.bullets:
             bullets_items = "".join(f"<li>{escape(item)}</li>" for item in section.bullets)
@@ -213,7 +215,7 @@ def _render_doc(
       {intro_html}
       {switch_link}
     </header>
-    {''.join(sections_html_parts)}
+    {"".join(sections_html_parts)}
     <p class="footer">{escape(doc.contact_line)}</p>
   </main>
   {_telegram_theme_script()}

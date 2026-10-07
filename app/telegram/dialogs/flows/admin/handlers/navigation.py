@@ -392,9 +392,7 @@ async def open_promo_code(
                     (
                         i18n_ctx.messages.admin_promo_bulk_item_selected(code=code.upper())
                         if selected_now
-                        else i18n_ctx.messages.admin_promo_bulk_item_unselected(
-                            code=code.upper()
-                        )
+                        else i18n_ctx.messages.admin_promo_bulk_item_unselected(code=code.upper())
                     )
                 ),
             )

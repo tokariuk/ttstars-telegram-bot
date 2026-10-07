@@ -111,4 +111,3 @@ async def handle_referral_withdraw_input(
         )
     await dialog_manager.switch_to(StorefrontSG.referrals, show_mode=ShowMode.EDIT)
     await _delete_user_message(message)
-

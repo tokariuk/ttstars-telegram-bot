@@ -69,10 +69,7 @@ def create_router(path: str) -> APIRouter:
             )
         except Exception:
             logger.exception(
-                (
-                    "Failed to process Platega webhook transaction_id=%s "
-                    "payload=%s status=%s"
-                ),
+                ("Failed to process Platega webhook transaction_id=%s payload=%s status=%s"),
                 event.transaction_id,
                 event.payment_payload,
                 event.status,

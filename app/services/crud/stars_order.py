@@ -474,7 +474,7 @@ class StarsOrderService(CrudService):
         total_count = orders_count + topups_count
         total_pages = max(1, (total_count + safe_page_size - 1) // safe_page_size)
         has_next = safe_page + 1 < total_pages
-        page_orders = merged[offset:offset + safe_page_size]
+        page_orders = merged[offset : offset + safe_page_size]
         return page_orders, has_next, total_pages
 
     async def list_admin_page(
@@ -539,7 +539,7 @@ class StarsOrderService(CrudService):
         total_count = orders_count + topups_count
         total_pages = max(1, (total_count + safe_page_size - 1) // safe_page_size)
         has_next = safe_page + 1 < total_pages
-        page_orders = merged[safe_offset:safe_offset + safe_page_size]
+        page_orders = merged[safe_offset : safe_offset + safe_page_size]
         return page_orders, has_next, total_pages
 
     async def get_user_order(self, *, user_id: int, order_id: int) -> Optional[StarsOrderDto]:
@@ -592,36 +592,30 @@ class StarsOrderService(CrudService):
         since_7d = now - timedelta(days=7)
         async with SQLSessionContext(session_pool=self.session_pool) as (repository, _uow):
             orders_total = await repository.stars_orders.count()
-            topups_total = await repository.balance_topups.count_for_admin(
-                include_linked=False
+            topups_total = await repository.balance_topups.count_for_admin(include_linked=False)
+            created_last_24h = await repository.stars_orders.count_created_since(
+                since=since_24h
+            ) + await repository.balance_topups.count_created_since(
+                since=since_24h,
+                include_linked=False,
             )
-            created_last_24h = (
-                await repository.stars_orders.count_created_since(since=since_24h)
-                + await repository.balance_topups.count_created_since(
-                    since=since_24h,
-                    include_linked=False,
-                )
+            created_last_7d = await repository.stars_orders.count_created_since(
+                since=since_7d
+            ) + await repository.balance_topups.count_created_since(
+                since=since_7d,
+                include_linked=False,
             )
-            created_last_7d = (
-                await repository.stars_orders.count_created_since(since=since_7d)
-                + await repository.balance_topups.count_created_since(
-                    since=since_7d,
-                    include_linked=False,
-                )
+            paid_last_24h = await repository.stars_orders.count_paid_since(
+                since=since_24h
+            ) + await repository.balance_topups.count_paid_since(
+                since=since_24h,
+                include_linked=False,
             )
-            paid_last_24h = (
-                await repository.stars_orders.count_paid_since(since=since_24h)
-                + await repository.balance_topups.count_paid_since(
-                    since=since_24h,
-                    include_linked=False,
-                )
-            )
-            paid_last_7d = (
-                await repository.stars_orders.count_paid_since(since=since_7d)
-                + await repository.balance_topups.count_paid_since(
-                    since=since_7d,
-                    include_linked=False,
-                )
+            paid_last_7d = await repository.stars_orders.count_paid_since(
+                since=since_7d
+            ) + await repository.balance_topups.count_paid_since(
+                since=since_7d,
+                include_linked=False,
             )
             paid_amount_last_24h_cents = await repository.stars_orders.sum_paid_amount_since(
                 since=since_24h
@@ -1397,8 +1391,8 @@ class StarsOrderService(CrudService):
                         return_after_locked_tx = True
                     else:
                         if int(current.amount_cents) > 0:
-                            user.balance_cents = (
-                                int(user.balance_cents) + int(current.amount_cents)
+                            user.balance_cents = int(user.balance_cents) + int(
+                                current.amount_cents
                             )
                         current.credited_at = current.credited_at or datetime_now()
 
@@ -1746,9 +1740,7 @@ class StarsOrderService(CrudService):
             update_data["provider_reference"] = normalized_reference
 
         updated_topup = (
-            await self._update_topup(topup_id=topup.id, **update_data)
-            if update_data
-            else topup
+            await self._update_topup(topup_id=topup.id, **update_data) if update_data else topup
         )
         if updated_topup is None:
             refreshed = await self._get_topup(topup_id=topup.id)
@@ -2296,8 +2288,7 @@ end
                 provider=provider,
                 payment_rate=self.payment_fee_percents.get(provider, Decimal("0"))
                 / Decimal("100"),
-                payout_rate=self.payout_fee_percents.get(provider, Decimal("0"))
-                / Decimal("100"),
+                payout_rate=self.payout_fee_percents.get(provider, Decimal("0")) / Decimal("100"),
             )
         except ValidationError:
             return f"{self.provider_payment_fee_percent_text(provider=provider)}%"

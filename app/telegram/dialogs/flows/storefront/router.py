@@ -31,4 +31,3 @@ router.callback_query.register(ignore_pending_check_button, F.data == CHECK_PEND
 router.message.register(handle_help, Command("help"))
 router.callback_query.register(legacy_menu_callback, CDMenu.filter())
 router.callback_query.register(legacy_deposit_callback, CDDeposit.filter())
-
