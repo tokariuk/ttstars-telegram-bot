@@ -2,15 +2,18 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import hashlib
 import json
 import logging
 import re
+import struct
 import time
 from dataclasses import dataclass
 from typing import Any, Literal, cast
 
 import aiohttp
-from pytoniq_core import Cell
+from nacl.signing import SigningKey
+from pytoniq_core.boc.cell import Cell
 from ton_core import NetworkGlobalID
 from tonutils.clients import TonapiClient
 from tonutils.contracts.wallet import WalletV4R2, WalletV5R1
@@ -20,7 +23,9 @@ WalletVersion = Literal["V4R2", "V5R1"]
 _FRAGMENT_STARS_PAGE: str = "https://fragment.com/stars/buy"
 _FRAGMENT_PREMIUM_PAGE: str = "https://fragment.com/premium/gift"
 _FRAGMENT_API_URL: str = "https://fragment.com/api"
+_FRAGMENT_DOMAIN: str = "fragment.com"
 _HASH_RE = re.compile(r"(?:https://fragment\.com)?/api\?hash=([a-f0-9]+)")
+_WALLET_INIT_RE = re.compile(r"Wallet\.init\((.*?)\);", re.S)
 _MIN_STARS_AMOUNT = 50
 _ALLOWED_PREMIUM_MONTHS: set[int] = {3, 6, 12}
 _FRAGMENT_PAYMENT_METHOD = "ton"
@@ -80,6 +85,12 @@ class FragmentPurchaseResult:
     recipient: FragmentRecipient
 
 
+@dataclass(frozen=True, slots=True)
+class FragmentWalletCredentials:
+    account: dict[str, str]
+    private_key_seed: bytes
+
+
 class FragmentStarsService:
     def __init__(
         self,
@@ -134,6 +145,11 @@ class FragmentStarsService:
         account = await self._get_wallet_account()
 
         async with aiohttp.ClientSession(cookies=cookies) as session:
+            await self._ensure_tonconnect_auth(
+                session=session,
+                page_url=_FRAGMENT_STARS_PAGE,
+                context_name="stars",
+            )
             for attempt in range(2):
                 fragment_hash = await self._resolve_fragment_hash(
                     session=session,
@@ -228,6 +244,11 @@ class FragmentStarsService:
         account = await self._get_wallet_account()
 
         async with aiohttp.ClientSession(cookies=cookies) as session:
+            await self._ensure_tonconnect_auth(
+                session=session,
+                page_url=_FRAGMENT_PREMIUM_PAGE,
+                context_name="premium",
+            )
             for attempt in range(2):
                 fragment_hash = await self._resolve_fragment_hash(
                     session=session,
@@ -345,6 +366,11 @@ class FragmentStarsService:
             "referer": _FRAGMENT_PREMIUM_PAGE,
             "x-aj-referer": _FRAGMENT_PREMIUM_PAGE,
         }
+
+    def _headers_for_page(self, *, page_url: str) -> dict[str, str]:
+        if page_url == _FRAGMENT_PREMIUM_PAGE:
+            return self._headers_for_premium()
+        return self._headers_for_stars()
 
     def _headers_for_hash_page(self) -> dict[str, str]:
         headers = {
@@ -705,21 +731,147 @@ class FragmentStarsService:
         return _WALLET_BY_VERSION[self.wallet_version]
 
     async def _get_wallet_account(self) -> dict[str, str]:
+        return (await self._get_wallet_credentials()).account
+
+    async def _get_wallet_credentials(self) -> FragmentWalletCredentials:
         async with TonapiClient(NetworkGlobalID.MAINNET, api_key=self.wallet_api_key) as client:
             wallet_cls = self._wallet_class()
             wallet: Any
             public_key: Any
-            wallet, public_key, *_ = wallet_cls.from_mnemonic(
+            private_key: Any
+            wallet, public_key, private_key, *_ = wallet_cls.from_mnemonic(
                 client=client,  # pyright: ignore[reportArgumentType]
                 mnemonic=self.wallet_mnemonic,
             )
             state_init_boc = wallet.state_init.serialize().to_boc()
 
-        return {
+        account = {
             "address": wallet.address.to_str(False, False),
             "publicKey": public_key.as_hex,
             "chain": "-239",
             "walletStateInit": base64.b64encode(state_init_boc).decode("utf-8"),
+        }
+        return FragmentWalletCredentials(
+            account=account,
+            private_key_seed=private_key.as_bytes,
+        )
+
+    async def _ensure_tonconnect_auth(
+        self,
+        *,
+        session: aiohttp.ClientSession,
+        page_url: str,
+        context_name: str,
+    ) -> None:
+        options = await self._fetch_wallet_init_options(
+            session=session,
+            page_url=page_url,
+            context_name=context_name,
+        )
+        if options.get("logged_in") is True:
+            return
+
+        proof_payload = options.get("ton_proof")
+        if not isinstance(proof_payload, str) or not proof_payload.strip():
+            raise RuntimeError(f"Fragment {context_name} TonConnect proof is missing.")
+
+        credentials = await self._get_wallet_credentials()
+        proof = self._build_tonconnect_proof(
+            account=credentials.account,
+            private_key_seed=credentials.private_key_seed,
+            payload=proof_payload,
+        )
+        fragment_hash = await self._resolve_fragment_hash(
+            session=session,
+            page_url=page_url,
+            context_name=context_name,
+            use_configured_hash=False,
+        )
+        result = await self._fragment_request(
+            session=session,
+            fragment_hash=fragment_hash,
+            method="checkTonProofAuth",
+            data={
+                "account": json.dumps(credentials.account),
+                "device": _DEVICE,
+                "proof": json.dumps(proof),
+                "method": "checkTonProofAuth",
+            },
+            headers=self._headers_for_page(page_url=page_url),
+        )
+        if result.get("verified") is not True:
+            error_text = result.get("error")
+            if isinstance(error_text, str) and error_text.strip():
+                raise RuntimeError(
+                    f"Fragment {context_name} TonConnect proof failed: {error_text.strip()}."
+                )
+            raise RuntimeError(f"Fragment {context_name} TonConnect proof was not verified.")
+
+    async def _fetch_wallet_init_options(
+        self,
+        *,
+        session: aiohttp.ClientSession,
+        page_url: str,
+        context_name: str,
+    ) -> dict[str, Any]:
+        async with session.get(
+            page_url,
+            headers=self._headers_for_hash_page(),
+        ) as response:
+            if response.status != 200:
+                raise RuntimeError(
+                    f"Failed to fetch Fragment {context_name} page: HTTP {response.status}."
+                )
+            page_source = await response.text()
+
+        match = _WALLET_INIT_RE.search(page_source)
+        if match is None:
+            raise RuntimeError(f"Failed to parse Fragment {context_name} wallet init options.")
+        try:
+            options = json.loads(match.group(1))
+        except Exception as error:
+            raise RuntimeError(
+                f"Fragment {context_name} wallet init options are invalid."
+            ) from error
+        if not isinstance(options, dict):
+            raise RuntimeError(f"Fragment {context_name} wallet init options are invalid.")
+        return options
+
+    @staticmethod
+    def _build_tonconnect_proof(
+        *,
+        account: dict[str, str],
+        private_key_seed: bytes,
+        payload: str,
+    ) -> dict[str, Any]:
+        address = account.get("address", "")
+        workchain_raw, address_hash_hex = address.split(":", 1)
+        workchain = int(workchain_raw)
+        address_hash = bytes.fromhex(address_hash_hex)
+        domain_bytes = _FRAGMENT_DOMAIN.encode("utf-8")
+        timestamp = int(time.time())
+
+        message = (
+            b"ton-proof-item-v2/"
+            + struct.pack(">i", workchain)
+            + address_hash
+            + struct.pack("<I", len(domain_bytes))
+            + domain_bytes
+            + struct.pack("<Q", timestamp)
+            + payload.encode("utf-8")
+        )
+        digest = hashlib.sha256(message).digest()
+        signature_payload = hashlib.sha256(b"\xff\xff" + b"ton-connect" + digest).digest()
+        signature = SigningKey(private_key_seed).sign(signature_payload).signature
+
+        return {
+            "timestamp": timestamp,
+            "domain": {
+                "lengthBytes": len(domain_bytes),
+                "value": _FRAGMENT_DOMAIN,
+            },
+            "signature": base64.b64encode(signature).decode("utf-8"),
+            "payload": payload,
         }
 
     @staticmethod
@@ -745,10 +897,10 @@ class FragmentStarsService:
         decoded = base64.b64decode(encoded_payload)
         try:
             cell = Cell.one_from_boc(decoded)
-            slice_ = cell.begin_parse()
+            slice_ = cell.begin_parse()  # type: ignore[no-untyped-call]
             # For text comments Fragment returns BOC with 32-bit opcode + snake string.
             slice_.load_uint(32)
-            return slice_.load_snake_string().strip()
+            return cast(str, slice_.load_snake_string()).strip()
         except Exception as error:
             raise RuntimeError(
                 "Fragment transaction payload is not a valid BOC comment."
