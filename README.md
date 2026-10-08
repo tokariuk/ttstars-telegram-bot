@@ -30,6 +30,25 @@ Use `make` to see all available commands
 uv sync
 ```
 
+### Tests
+
+Run the local unit suite without external services:
+
+```bash
+uv run python -m unittest discover -s tests -v
+```
+
+Run opt-in PostgreSQL and Redis integration tests in disposable Docker
+containers:
+
+```bash
+make integration-test
+```
+
+The integration command uses only test-specific credentials and ports, then
+removes its containers and temporary data. It does not contact Telegram or
+payment provider APIs.
+
 ### Configure payment and delivery
 - Configure public domain for webhooks and checkout links:
   - `SERVER_URL=https://trolololo.icu`

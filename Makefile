@@ -18,6 +18,16 @@ lint: reformat ## Lint code
 	@uv run mypy $(project_dir)
 	@uv run pyright
 
+.PHONY: integration-test
+integration-test: ## Run disposable PostgreSQL and Redis integration tests
+	@set -e; \
+	  trap 'docker compose -f docker-compose.test.yml down --volumes --remove-orphans' EXIT; \
+	  docker compose -f docker-compose.test.yml up -d --wait; \
+	  env \
+	    TEST_POSTGRES_URL=postgresql+asyncpg://ttstars_test:ttstars_test@127.0.0.1:55432/ttstars_test \
+	    TEST_REDIS_URL=redis://:ttstars_test@127.0.0.1:56379/0 \
+	    uv run python -m unittest discover -s tests/integration -t . -v
+
 ##@ Database
 
 .PHONY: migration

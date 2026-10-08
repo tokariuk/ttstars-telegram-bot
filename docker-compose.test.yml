@@ -1,0 +1,29 @@
+services:
+  postgres-test:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: ttstars_test
+      POSTGRES_PASSWORD: ttstars_test
+      POSTGRES_DB: ttstars_test
+    ports:
+      - "55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ttstars_test -d ttstars_test"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+    tmpfs:
+      - /var/lib/postgresql
+
+  redis-test:
+    image: redis:8.4.0
+    command: ["redis-server", "--requirepass", "ttstars_test"]
+    ports:
+      - "56379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "ttstars_test", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+    tmpfs:
+      - /data
