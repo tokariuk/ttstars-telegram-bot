@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import unittest
 from datetime import UTC, datetime
+from types import SimpleNamespace
 from typing import Any, cast
 from uuid import uuid4
 
@@ -12,7 +13,8 @@ from sqlalchemy import delete, text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.enums.stars_order import StarsOrderProductType, StarsOrderStatus, StarsPaymentProvider
-from app.models.sql import StarsOrder, User
+from app.models.sql import BalanceTopup, StarsOrder, User
+from app.services.crud.stars_order_support import topups as topup_support
 from app.services.postgres.repositories.general import Repository
 from app.services.redis import RedisRepository
 from app.services.redis.keys import WebhookLockKey
@@ -46,6 +48,7 @@ class RepositoryIntegrationTests(unittest.IsolatedAsyncioTestCase):
         await self.redis.clear_webhooks(bot_id=self.user_id)
         async with self.session_pool() as session:
             await session.execute(delete(StarsOrder).where(StarsOrder.user_id == self.user_id))
+            await session.execute(delete(BalanceTopup).where(BalanceTopup.user_id == self.user_id))
             await session.execute(delete(User).where(User.id == self.user_id))
             await session.commit()
         await self.redis_client.aclose(close_connection_pool=True)
@@ -121,6 +124,48 @@ class RepositoryIntegrationTests(unittest.IsolatedAsyncioTestCase):
         assert transitioned is not None
         self.assertEqual(transitioned.status, StarsOrderStatus.PAYMENT_CONFIRMED)
         self.assertIsNone(rejected)
+
+    async def test_topup_credit_transaction_updates_balance_and_status_once(self) -> None:
+        async with self.session_pool() as session:
+            repository = Repository(session=session)
+            user = User(
+                id=self.user_id,
+                name="Topup Integration User",
+                language="en",
+                language_code="en",
+            )
+            await repository.uow.commit(user)
+            topup = BalanceTopup(
+                user_id=self.user_id,
+                amount_cents=275,
+                payment_provider=StarsPaymentProvider.CRYPTO_BOT,
+                payment_currency="USDT",
+                status=StarsOrderStatus.FULFILLING,
+            )
+            await repository.uow.commit(topup)
+            topup_dto = topup.dto()
+
+        stopped, linked_order_id = await topup_support._credit_topup_transaction(
+            service=cast(Any, SimpleNamespace(session_pool=self.session_pool)),
+            topup=topup_dto,
+            error_cls=RuntimeError,
+        )
+
+        async with self.session_pool() as session:
+            repository = Repository(session=session)
+            updated_user = await repository.users.get(user_id=self.user_id)
+            updated_topup = await repository.balance_topups.get(topup_id=topup.id)
+
+        self.assertFalse(stopped)
+        self.assertIsNone(linked_order_id)
+        self.assertIsNotNone(updated_user)
+        assert updated_user is not None
+        self.assertEqual(updated_user.balance_cents, 275)
+        self.assertIsNotNone(updated_topup)
+        assert updated_topup is not None
+        self.assertEqual(updated_topup.status, StarsOrderStatus.COMPLETED)
+        self.assertIsNotNone(updated_topup.credited_at)
+        self.assertIsNotNone(updated_topup.completed_at)
 
 
 if __name__ == "__main__":

@@ -12,7 +12,6 @@ from uuid import uuid4
 
 from aiohttp import ClientError
 from redis.asyncio import Redis
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.enums.stars_order import (
@@ -26,7 +25,6 @@ from app.models.dto.balance_topup import BalanceTopupDto
 from app.models.dto.stars_order import StarsOrderDto
 from app.models.sql.balance_topup import BalanceTopup
 from app.models.sql.stars_order import StarsOrder
-from app.models.sql.user import User
 from app.services.crud.base import CrudService
 from app.services.crud.stars_order_support import (
     apply_referral_rewards as apply_referral_rewards_support,
@@ -87,6 +85,9 @@ from app.services.crud.stars_order_support import (
 )
 from app.services.crud.stars_order_support import (
     fulfill_paid_order as fulfill_paid_order_support,
+)
+from app.services.crud.stars_order_support import (
+    fulfill_paid_topup as fulfill_paid_topup_support,
 )
 from app.services.crud.stars_order_support import (
     heleket_callback_url as heleket_callback_url_support,
@@ -1224,145 +1225,12 @@ class StarsOrderService(CrudService):
         topup_order = self._topup_to_order_dto(topup=topup)
         return await self._is_order_paid(order=topup_order)
 
-    async def _fulfill_paid_topup(self, *, topup_id: int) -> StarsOrderDto:  # noqa: C901
-        encoded_topup_order_id = self._encode_topup_order_id(topup_id=topup_id)
-        lock_token = await self._acquire_fulfill_lock(order_id=encoded_topup_order_id)
-        if lock_token is None:
-            latest = await self._get_topup(topup_id=topup_id)
-            if latest is None:
-                raise StarsOrderError("Top-up not found during fulfillment.")
-            return self._topup_to_order_dto(topup=latest)
-        try:
-            topup = await self._get_topup(topup_id=topup_id)
-            if topup is None:
-                raise StarsOrderError("Top-up not found during fulfillment.")
-            if topup.status in {
-                StarsOrderStatus.COMPLETED,
-                StarsOrderStatus.FAILED,
-                StarsOrderStatus.CANCELED,
-            }:
-                return self._topup_to_order_dto(topup=topup)
-
-            if topup.status == StarsOrderStatus.PAYMENT_CONFIRMED:
-                transitioned = await self._transition_topup_status(
-                    topup_id=topup.id,
-                    from_statuses=[StarsOrderStatus.PAYMENT_CONFIRMED],
-                    to_status=StarsOrderStatus.FULFILLING,
-                )
-                if transitioned is not None:
-                    topup = transitioned
-
-            if topup.status != StarsOrderStatus.FULFILLING:
-                return self._topup_to_order_dto(topup=topup)
-
-            linked_order_id: int | None = None
-            return_after_locked_tx = False
-
-            async with SQLSessionContext(session_pool=self.session_pool) as (repository, _uow):
-                session = repository.session
-                current = await session.scalar(
-                    select(BalanceTopup).where(BalanceTopup.id == topup.id).with_for_update()
-                )
-                if current is None:
-                    raise StarsOrderError("Top-up not found during fulfillment.")
-                if current.status in {
-                    StarsOrderStatus.COMPLETED.value,
-                    StarsOrderStatus.CANCELED.value,
-                    StarsOrderStatus.FAILED.value,
-                }:
-                    return_after_locked_tx = True
-                else:
-                    user = await session.scalar(
-                        select(User).where(User.id == current.user_id).with_for_update()
-                    )
-                    if user is None:
-                        current.status = StarsOrderStatus.FAILED
-                        current.failed_at = datetime_now()
-                        current.error_message = "Top-up user not found."
-                        await session.commit()
-                        return_after_locked_tx = True
-                    else:
-                        if int(current.amount_cents) > 0:
-                            user.balance_cents = int(user.balance_cents) + int(
-                                current.amount_cents
-                            )
-                        current.credited_at = current.credited_at or datetime_now()
-
-                        linked_order: StarsOrder | None = None
-                        if current.auto_product_type is not None:
-                            product_type = StarsOrderProductType(str(current.auto_product_type))
-                            amount_cents = int(current.amount_cents)
-                            if int(user.balance_cents) < amount_cents:
-                                current.status = StarsOrderStatus.FAILED
-                                current.failed_at = datetime_now()
-                                current.error_message = "Insufficient balance after top-up credit."
-                                await session.commit()
-                                return_after_locked_tx = True
-                            else:
-                                user.balance_cents = int(user.balance_cents) - amount_cents
-                                linked_order = StarsOrder(
-                                    user_id=int(current.user_id),
-                                    recipient_username=(
-                                        current.auto_recipient_username
-                                        if current.auto_recipient_username
-                                        else "balance"
-                                    ),
-                                    stars_count=int(current.auto_stars_count or 0),
-                                    product_type=product_type.value,
-                                    premium_months=current.auto_premium_months,
-                                    recipient_user_id=current.auto_recipient_user_id,
-                                    gift_id=current.auto_gift_id,
-                                    gift_message=current.auto_gift_message,
-                                    gift_sender_private=current.auto_gift_sender_private,
-                                    amount_cents=amount_cents,
-                                    payment_provider=current.payment_provider,
-                                    payment_currency=current.payment_currency,
-                                    status=StarsOrderStatus.PAYMENT_CONFIRMED.value,
-                                    provider_status="paid_via_balance_topup",
-                                    paid_at=datetime_now(),
-                                    funding_topup_id=current.id,
-                                    funding_provider=current.payment_provider,
-                                )
-                                session.add(linked_order)
-                                await session.flush()
-                                current.linked_order_id = linked_order.id
-                                linked_order_id = int(linked_order.id)
-                        if not return_after_locked_tx:
-                            current.status = StarsOrderStatus.COMPLETED
-                            current.completed_at = datetime_now()
-                            current.error_message = None
-                            await session.commit()
-
-            topup_dto = await self._get_topup(topup_id=topup.id)
-            if topup_dto is None:
-                raise StarsOrderError("Top-up disappeared after fulfillment transaction.")
-            if return_after_locked_tx:
-                return self._topup_to_order_dto(topup=topup_dto)
-
-            await self._clear_user_cache(user_id=topup.user_id)
-
-            if linked_order_id is not None:
-                try:
-                    await self._fulfill_paid_order(order_id=linked_order_id)
-                except Exception as error:
-                    error_text = str(error).strip() or "Auto purchase fulfillment failed."
-                    failed = await self._update_topup(
-                        topup_id=topup_dto.id,
-                        status=StarsOrderStatus.FAILED,
-                        failed_at=datetime_now(),
-                        error_message=error_text,
-                    )
-                    if failed is not None:
-                        return self._topup_to_order_dto(topup=failed)
-            refreshed = await self._get_topup(topup_id=topup_id)
-            if refreshed is None:
-                raise StarsOrderError("Top-up disappeared after fulfillment.")
-            return self._topup_to_order_dto(topup=refreshed)
-        finally:
-            await self._release_fulfill_lock(
-                order_id=encoded_topup_order_id,
-                lock_token=lock_token,
-            )
+    async def _fulfill_paid_topup(self, *, topup_id: int) -> StarsOrderDto:
+        return await fulfill_paid_topup_support(
+            service=self,
+            topup_id=topup_id,
+            error_cls=StarsOrderError,
+        )
 
     async def _verify_topup(self, *, order_id: int) -> PaymentCheckResult:
         return await verify_topup_support(

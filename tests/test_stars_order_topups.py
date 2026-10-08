@@ -15,6 +15,7 @@ from app.services.crud.stars_order import (
 from app.services.crud.stars_order_support.pricing import CheckoutPricing
 from app.services.crud.stars_order_support.topups import (
     create_and_attach_topup_invoice,
+    fulfill_paid_topup,
     verify_topup,
 )
 from app.services.crypto_pay import CryptoPayInvoice
@@ -110,6 +111,29 @@ class TopupInvoiceServiceFake:
     async def _update_topup(self, *, topup_id: int, **data: Any) -> BalanceTopupDto | None:
         self.updates.append({"topup_id": topup_id, **data})
         return make_topup(status=cast(StarsOrderStatus, data["status"]))
+
+
+class LockedTopupServiceFake:
+    def __init__(self) -> None:
+        self.topup = make_topup(status=StarsOrderStatus.PAYMENT_CONFIRMED)
+        self.order_marker = cast(StarsOrderDto, object())
+        self.calls: list[tuple[str, dict[str, Any]]] = []
+
+    @staticmethod
+    def _encode_topup_order_id(*, topup_id: int) -> int:
+        return 1_000_000_000 + topup_id
+
+    async def _acquire_fulfill_lock(self, *, order_id: int) -> None:
+        self.calls.append(("acquire", {"order_id": order_id}))
+        return None
+
+    async def _get_topup(self, *, topup_id: int) -> BalanceTopupDto:
+        self.calls.append(("get", {"topup_id": topup_id}))
+        return self.topup
+
+    def _topup_to_order_dto(self, *, topup: BalanceTopupDto) -> StarsOrderDto:
+        self.calls.append(("to_order", {"topup_id": topup.id}))
+        return self.order_marker
 
 
 class TopupVirtualOrderIdTests(unittest.TestCase):
@@ -218,6 +242,27 @@ class TopupInvoiceTests(unittest.IsolatedAsyncioTestCase):
                     "checkout_url": "https://checkout.invalid/314",
                     "provider_status": "pending",
                 }
+            ],
+        )
+
+
+class TopupFulfillmentTests(unittest.IsolatedAsyncioTestCase):
+    async def test_busy_lock_returns_latest_topup_without_mutation(self) -> None:
+        service = LockedTopupServiceFake()
+
+        result = await fulfill_paid_topup(
+            service=cast(Any, service),
+            topup_id=42,
+            error_cls=RuntimeError,
+        )
+
+        self.assertIs(result, service.order_marker)
+        self.assertEqual(
+            service.calls,
+            [
+                ("acquire", {"order_id": 1_000_000_042}),
+                ("get", {"topup_id": 42}),
+                ("to_order", {"topup_id": 42}),
             ],
         )
 

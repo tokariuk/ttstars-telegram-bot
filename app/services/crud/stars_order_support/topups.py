@@ -4,9 +4,19 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, TypeVar
 from uuid import uuid4
 
-from app.enums.stars_order import StarsOrderStatus, StarsPaymentProvider
+from sqlalchemy import select
+
+from app.enums.stars_order import (
+    StarsOrderProductType,
+    StarsOrderStatus,
+    StarsPaymentProvider,
+)
 from app.models.dto.balance_topup import BalanceTopupDto
 from app.models.dto.stars_order import StarsOrderDto
+from app.models.sql.balance_topup import BalanceTopup
+from app.models.sql.stars_order import StarsOrder
+from app.models.sql.user import User
+from app.services.postgres import SQLSessionContext
 from app.stars import build_crypto_payload
 from app.utils.time import datetime_now
 
@@ -178,6 +188,192 @@ async def create_and_attach_topup_invoice(
             provider_status=xrocket_invoice.status,
         )
     raise validation_error_cls("Unsupported payment provider.")
+
+
+async def fulfill_paid_topup(
+    *,
+    service: StarsOrderService,
+    topup_id: int,
+    error_cls: type[Exception],
+) -> StarsOrderDto:
+    encoded_order_id = service._encode_topup_order_id(topup_id=topup_id)
+    lock_token = await service._acquire_fulfill_lock(order_id=encoded_order_id)
+    if lock_token is None:
+        latest = await service._get_topup(topup_id=topup_id)
+        if latest is None:
+            raise error_cls("Top-up not found during fulfillment.")
+        return service._topup_to_order_dto(topup=latest)
+    try:
+        prepared = await _prepare_topup_for_credit(
+            service=service,
+            topup_id=topup_id,
+            error_cls=error_cls,
+        )
+        if not isinstance(prepared, tuple):
+            return prepared
+        topup = prepared[0]
+
+        stop_after_transaction, linked_order_id = await _credit_topup_transaction(
+            service=service,
+            topup=topup,
+            error_cls=error_cls,
+        )
+        topup_dto = await service._get_topup(topup_id=topup.id)
+        if topup_dto is None:
+            raise error_cls("Top-up disappeared after fulfillment transaction.")
+        if stop_after_transaction:
+            return service._topup_to_order_dto(topup=topup_dto)
+
+        await service._clear_user_cache(user_id=topup.user_id)
+
+        if linked_order_id is not None:
+            failed = await _fulfill_linked_order(
+                service=service,
+                topup=topup_dto,
+                linked_order_id=linked_order_id,
+            )
+            if failed is not None:
+                return failed
+        refreshed = await service._get_topup(topup_id=topup_id)
+        if refreshed is None:
+            raise error_cls("Top-up disappeared after fulfillment.")
+        return service._topup_to_order_dto(topup=refreshed)
+    finally:
+        await service._release_fulfill_lock(
+            order_id=encoded_order_id,
+            lock_token=lock_token,
+        )
+
+
+async def _prepare_topup_for_credit(
+    *,
+    service: StarsOrderService,
+    topup_id: int,
+    error_cls: type[Exception],
+) -> tuple[BalanceTopupDto] | StarsOrderDto:
+    topup = await service._get_topup(topup_id=topup_id)
+    if topup is None:
+        raise error_cls("Top-up not found during fulfillment.")
+    if topup.status in {
+        StarsOrderStatus.COMPLETED,
+        StarsOrderStatus.FAILED,
+        StarsOrderStatus.CANCELED,
+    }:
+        return service._topup_to_order_dto(topup=topup)
+
+    if topup.status == StarsOrderStatus.PAYMENT_CONFIRMED:
+        transitioned = await service._transition_topup_status(
+            topup_id=topup.id,
+            from_statuses=[StarsOrderStatus.PAYMENT_CONFIRMED],
+            to_status=StarsOrderStatus.FULFILLING,
+        )
+        if transitioned is not None:
+            topup = transitioned
+
+    if topup.status != StarsOrderStatus.FULFILLING:
+        return service._topup_to_order_dto(topup=topup)
+    return (topup,)
+
+
+async def _fulfill_linked_order(
+    *,
+    service: StarsOrderService,
+    topup: BalanceTopupDto,
+    linked_order_id: int,
+) -> StarsOrderDto | None:
+    try:
+        await service._fulfill_paid_order(order_id=linked_order_id)
+    except Exception as error:
+        error_text = str(error).strip() or "Auto purchase fulfillment failed."
+        failed = await service._update_topup(
+            topup_id=topup.id,
+            status=StarsOrderStatus.FAILED,
+            failed_at=datetime_now(),
+            error_message=error_text,
+        )
+        if failed is not None:
+            return service._topup_to_order_dto(topup=failed)
+    return None
+
+
+async def _credit_topup_transaction(
+    *,
+    service: StarsOrderService,
+    topup: BalanceTopupDto,
+    error_cls: type[Exception],
+) -> tuple[bool, int | None]:
+    linked_order_id: int | None = None
+    async with SQLSessionContext(session_pool=service.session_pool) as (repository, _uow):
+        session = repository.session
+        current = await session.scalar(
+            select(BalanceTopup).where(BalanceTopup.id == topup.id).with_for_update()
+        )
+        if current is None:
+            raise error_cls("Top-up not found during fulfillment.")
+        if current.status in {
+            StarsOrderStatus.COMPLETED.value,
+            StarsOrderStatus.CANCELED.value,
+            StarsOrderStatus.FAILED.value,
+        }:
+            return True, None
+
+        user = await session.scalar(
+            select(User).where(User.id == current.user_id).with_for_update()
+        )
+        if user is None:
+            current.status = StarsOrderStatus.FAILED
+            current.failed_at = datetime_now()
+            current.error_message = "Top-up user not found."
+            await session.commit()
+            return True, None
+
+        if int(current.amount_cents) > 0:
+            user.balance_cents = int(user.balance_cents) + int(current.amount_cents)
+        current.credited_at = current.credited_at or datetime_now()
+
+        if current.auto_product_type is not None:
+            product_type = StarsOrderProductType(str(current.auto_product_type))
+            amount_cents = int(current.amount_cents)
+            if int(user.balance_cents) < amount_cents:
+                current.status = StarsOrderStatus.FAILED
+                current.failed_at = datetime_now()
+                current.error_message = "Insufficient balance after top-up credit."
+                await session.commit()
+                return True, None
+            user.balance_cents = int(user.balance_cents) - amount_cents
+            linked_order = StarsOrder(
+                user_id=int(current.user_id),
+                recipient_username=(
+                    current.auto_recipient_username
+                    if current.auto_recipient_username
+                    else "balance"
+                ),
+                stars_count=int(current.auto_stars_count or 0),
+                product_type=product_type.value,
+                premium_months=current.auto_premium_months,
+                recipient_user_id=current.auto_recipient_user_id,
+                gift_id=current.auto_gift_id,
+                gift_message=current.auto_gift_message,
+                gift_sender_private=current.auto_gift_sender_private,
+                amount_cents=amount_cents,
+                payment_provider=current.payment_provider,
+                payment_currency=current.payment_currency,
+                status=StarsOrderStatus.PAYMENT_CONFIRMED.value,
+                provider_status="paid_via_balance_topup",
+                paid_at=datetime_now(),
+                funding_topup_id=current.id,
+                funding_provider=current.payment_provider,
+            )
+            session.add(linked_order)
+            await session.flush()
+            current.linked_order_id = linked_order.id
+            linked_order_id = int(linked_order.id)
+
+        current.status = StarsOrderStatus.COMPLETED
+        current.completed_at = datetime_now()
+        current.error_message = None
+        await session.commit()
+    return False, linked_order_id
 
 
 async def verify_topup(
