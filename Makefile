@@ -24,6 +24,14 @@ integration-test: ## Run disposable PostgreSQL and Redis integration tests
 	  trap 'docker compose -f docker-compose.test.yml down --volumes --remove-orphans' EXIT; \
 	  docker compose -f docker-compose.test.yml up -d --wait; \
 	  env \
+	    POSTGRES_HOST=127.0.0.1 \
+	    POSTGRES_PORT=55432 \
+	    POSTGRES_USER=ttstars_test \
+	    POSTGRES_PASSWORD=ttstars_test \
+	    POSTGRES_DB=ttstars_test \
+	    POSTGRES_DATA=/tmp/ttstars-test-postgres \
+	    uv run alembic upgrade head; \
+	  env \
 	    TEST_POSTGRES_URL=postgresql+asyncpg://ttstars_test:ttstars_test@127.0.0.1:55432/ttstars_test \
 	    TEST_REDIS_URL=redis://:ttstars_test@127.0.0.1:56379/0 \
 	    uv run python -m unittest discover -s tests/integration -t . -v
