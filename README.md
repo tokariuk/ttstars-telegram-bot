@@ -47,7 +47,8 @@ make integration-test
 
 The integration command uses only test-specific credentials and ports, then
 removes its containers and temporary data. It does not contact Telegram or
-payment provider APIs.
+payment provider APIs. Payment webhooks and the Telegram webhook adapter run
+in-process against local protocol doubles.
 
 ### Configure payment and delivery
 - Configure public domain for webhooks and checkout links:
