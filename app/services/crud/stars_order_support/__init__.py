@@ -37,9 +37,11 @@ from .topups import (
     create_and_attach_topup_invoice,
     decode_topup_order_id,
     encode_topup_order_id,
+    find_topup_for_webhook,
     fulfill_paid_topup,
     is_topup_virtual_order_id,
     is_unpaid_terminal_provider_status,
+    process_topup_webhook,
     verify_topup,
 )
 from .webhooks import (
@@ -74,6 +76,7 @@ __all__ = [
     "decode_topup_order_id",
     "encode_topup_order_id",
     "find_nice_pay_webhook_order",
+    "find_topup_for_webhook",
     "force_fulfill_order",
     "fulfill_paid_order",
     "fulfill_paid_topup",
@@ -95,6 +98,7 @@ __all__ = [
     "process_nice_pay_webhook_payment",
     "process_platega_webhook_payment",
     "process_xrocket_webhook_invoice",
+    "process_topup_webhook",
     "provider_currency",
     "verify_order",
     "verify_topup",

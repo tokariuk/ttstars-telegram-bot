@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, TypeVar
 from uuid import uuid4
 
@@ -374,6 +374,104 @@ async def _credit_topup_transaction(
         current.error_message = None
         await session.commit()
     return False, linked_order_id
+
+
+async def find_topup_for_webhook(
+    *,
+    service: StarsOrderService,
+    providers: Sequence[StarsPaymentProvider],
+    provider_invoice_id: int | None = None,
+    payment_payload: str | None = None,
+    provider_reference: str | None = None,
+) -> BalanceTopupDto | None:
+    normalized_payload = (payment_payload or "").strip()
+    normalized_reference = (provider_reference or "").strip()
+    normalized_invoice = (
+        int(provider_invoice_id)
+        if provider_invoice_id is not None and provider_invoice_id > 0
+        else None
+    )
+    async with SQLSessionContext(session_pool=service.session_pool) as (repository, _uow):
+        if normalized_invoice is not None:
+            for provider in providers:
+                found = await repository.balance_topups.get_by_provider_invoice(
+                    provider=provider,
+                    provider_invoice_id=normalized_invoice,
+                )
+                if found is not None:
+                    return found.dto()
+        if normalized_payload:
+            for provider in providers:
+                found = await repository.balance_topups.get_by_provider_payload(
+                    provider=provider,
+                    payment_payload=normalized_payload,
+                )
+                if found is not None:
+                    return found.dto()
+        if normalized_reference:
+            for provider in providers:
+                found = await repository.balance_topups.get_by_provider_reference(
+                    provider=provider,
+                    provider_reference=normalized_reference,
+                )
+                if found is not None:
+                    return found.dto()
+    return None
+
+
+async def process_topup_webhook(
+    *,
+    service: StarsOrderService,
+    topup: BalanceTopupDto,
+    provider_status: str | None = None,
+    provider_invoice_id: int | None = None,
+    payment_payload: str | None = None,
+    provider_reference: str | None = None,
+    error_cls: type[Exception],
+) -> StarsOrderDto:
+    normalized_status = (provider_status or "").strip().lower() or None
+    normalized_payload = (payment_payload or "").strip() or None
+    normalized_reference = (provider_reference or "").strip() or None
+    normalized_invoice = (
+        int(provider_invoice_id)
+        if provider_invoice_id is not None and provider_invoice_id > 0
+        else None
+    )
+
+    update_data: dict[str, Any] = {}
+    if normalized_status is not None:
+        update_data["provider_status"] = normalized_status
+    if normalized_invoice is not None:
+        update_data["provider_invoice_id"] = normalized_invoice
+    if normalized_payload is not None:
+        update_data["payment_payload"] = normalized_payload
+    if normalized_reference is not None:
+        update_data["provider_reference"] = normalized_reference
+
+    updated_topup = (
+        await service._update_topup(topup_id=topup.id, **update_data) if update_data else topup
+    )
+    if updated_topup is None:
+        refreshed = await service._get_topup(topup_id=topup.id)
+        if refreshed is None:
+            raise error_cls("Top-up disappeared during webhook processing.")
+        updated_topup = refreshed
+    if updated_topup.status in {
+        StarsOrderStatus.COMPLETED,
+        StarsOrderStatus.FAILED,
+        StarsOrderStatus.CANCELED,
+    }:
+        return service._topup_to_order_dto(topup=updated_topup)
+
+    result = await service.verify_order(
+        order_id=service._encode_topup_order_id(topup_id=updated_topup.id)
+    )
+    if result.order is not None:
+        return result.order
+    latest = await service._get_topup(topup_id=updated_topup.id)
+    if latest is None:
+        raise error_cls("Top-up disappeared after webhook verification.")
+    return service._topup_to_order_dto(topup=latest)
 
 
 async def verify_topup(

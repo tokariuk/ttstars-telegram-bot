@@ -16,6 +16,7 @@ from app.services.crud.stars_order_support.pricing import CheckoutPricing
 from app.services.crud.stars_order_support.topups import (
     create_and_attach_topup_invoice,
     fulfill_paid_topup,
+    process_topup_webhook,
     verify_topup,
 )
 from app.services.crypto_pay import CryptoPayInvoice
@@ -134,6 +135,32 @@ class LockedTopupServiceFake:
     def _topup_to_order_dto(self, *, topup: BalanceTopupDto) -> StarsOrderDto:
         self.calls.append(("to_order", {"topup_id": topup.id}))
         return self.order_marker
+
+
+class TopupWebhookServiceFake:
+    def __init__(self) -> None:
+        self.topup = make_topup(status=StarsOrderStatus.CANCELED)
+        self.order_marker = cast(StarsOrderDto, object())
+        self.calls: list[tuple[str, dict[str, Any]]] = []
+
+    async def _update_topup(self, *, topup_id: int, **data: Any) -> BalanceTopupDto | None:
+        self.calls.append(("update", {"topup_id": topup_id, **data}))
+        return self.topup
+
+    async def _get_topup(self, *, topup_id: int) -> BalanceTopupDto | None:
+        self.calls.append(("get", {"topup_id": topup_id}))
+        return self.topup
+
+    def _topup_to_order_dto(self, *, topup: BalanceTopupDto) -> StarsOrderDto:
+        self.calls.append(("to_order", {"topup_id": topup.id}))
+        return self.order_marker
+
+    async def verify_order(self, *, order_id: int) -> PaymentCheckResult:
+        raise AssertionError(f"unexpected verification for terminal topup {order_id}")
+
+    @staticmethod
+    def _encode_topup_order_id(*, topup_id: int) -> int:
+        return 1_000_000_000 + topup_id
 
 
 class TopupVirtualOrderIdTests(unittest.TestCase):
@@ -262,6 +289,38 @@ class TopupFulfillmentTests(unittest.IsolatedAsyncioTestCase):
             [
                 ("acquire", {"order_id": 1_000_000_042}),
                 ("get", {"topup_id": 42}),
+                ("to_order", {"topup_id": 42}),
+            ],
+        )
+
+
+class TopupWebhookTests(unittest.IsolatedAsyncioTestCase):
+    async def test_terminal_topup_normalizes_metadata_without_verification(self) -> None:
+        service = TopupWebhookServiceFake()
+
+        result = await process_topup_webhook(
+            service=cast(Any, service),
+            topup=service.topup,
+            provider_status=" PAID ",
+            provider_invoice_id=-1,
+            payment_payload=" payload-42 ",
+            provider_reference=" reference-42 ",
+            error_cls=RuntimeError,
+        )
+
+        self.assertIs(result, service.order_marker)
+        self.assertEqual(
+            service.calls,
+            [
+                (
+                    "update",
+                    {
+                        "topup_id": 42,
+                        "provider_status": "paid",
+                        "payment_payload": "payload-42",
+                        "provider_reference": "reference-42",
+                    },
+                ),
                 ("to_order", {"topup_id": 42}),
             ],
         )

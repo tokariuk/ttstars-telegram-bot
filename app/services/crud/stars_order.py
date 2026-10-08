@@ -81,6 +81,9 @@ from app.services.crud.stars_order_support import (
     encode_topup_order_id as encode_topup_order_id_support,
 )
 from app.services.crud.stars_order_support import (
+    find_topup_for_webhook as find_topup_for_webhook_support,
+)
+from app.services.crud.stars_order_support import (
     force_fulfill_order as force_fulfill_order_support,
 )
 from app.services.crud.stars_order_support import (
@@ -136,6 +139,9 @@ from app.services.crud.stars_order_support import (
 )
 from app.services.crud.stars_order_support import (
     process_platega_webhook_payment as process_platega_webhook_payment_support,
+)
+from app.services.crud.stars_order_support import (
+    process_topup_webhook as process_topup_webhook_support,
 )
 from app.services.crud.stars_order_support import (
     process_xrocket_webhook_invoice as process_xrocket_webhook_invoice_support,
@@ -917,7 +923,7 @@ class StarsOrderService(CrudService):
             description=prepared.description,
         )
 
-    async def _create_balance_product_order(  # noqa: C901
+    async def _create_balance_product_order(
         self,
         *,
         user_id: int,
@@ -948,7 +954,7 @@ class StarsOrderService(CrudService):
             balance_in_progress_error_cls=BalanceOrderInProgressError,
         )
 
-    async def _create_external_order(  # noqa: C901
+    async def _create_external_order(
         self,
         *,
         user_id: int,
@@ -1362,39 +1368,13 @@ class StarsOrderService(CrudService):
         payment_payload: str | None = None,
         provider_reference: str | None = None,
     ) -> BalanceTopupDto | None:
-        normalized_payload = (payment_payload or "").strip()
-        normalized_reference = (provider_reference or "").strip()
-        normalized_invoice = (
-            int(provider_invoice_id)
-            if provider_invoice_id is not None and provider_invoice_id > 0
-            else None
+        return await find_topup_for_webhook_support(
+            service=self,
+            providers=providers,
+            provider_invoice_id=provider_invoice_id,
+            payment_payload=payment_payload,
+            provider_reference=provider_reference,
         )
-        async with SQLSessionContext(session_pool=self.session_pool) as (repository, _uow):
-            if normalized_invoice is not None:
-                for provider in providers:
-                    found = await repository.balance_topups.get_by_provider_invoice(
-                        provider=provider,
-                        provider_invoice_id=normalized_invoice,
-                    )
-                    if found is not None:
-                        return found.dto()
-            if normalized_payload:
-                for provider in providers:
-                    found = await repository.balance_topups.get_by_provider_payload(
-                        provider=provider,
-                        payment_payload=normalized_payload,
-                    )
-                    if found is not None:
-                        return found.dto()
-            if normalized_reference:
-                for provider in providers:
-                    found = await repository.balance_topups.get_by_provider_reference(
-                        provider=provider,
-                        provider_reference=normalized_reference,
-                    )
-                    if found is not None:
-                        return found.dto()
-        return None
 
     async def _process_topup_webhook(
         self,
@@ -1405,49 +1385,15 @@ class StarsOrderService(CrudService):
         payment_payload: str | None = None,
         provider_reference: str | None = None,
     ) -> StarsOrderDto:
-        normalized_status = (provider_status or "").strip().lower() or None
-        normalized_payload = (payment_payload or "").strip() or None
-        normalized_reference = (provider_reference or "").strip() or None
-        normalized_invoice = (
-            int(provider_invoice_id)
-            if provider_invoice_id is not None and provider_invoice_id > 0
-            else None
+        return await process_topup_webhook_support(
+            service=self,
+            topup=topup,
+            provider_status=provider_status,
+            provider_invoice_id=provider_invoice_id,
+            payment_payload=payment_payload,
+            provider_reference=provider_reference,
+            error_cls=StarsOrderError,
         )
-
-        update_data: dict[str, Any] = {}
-        if normalized_status is not None:
-            update_data["provider_status"] = normalized_status
-        if normalized_invoice is not None:
-            update_data["provider_invoice_id"] = normalized_invoice
-        if normalized_payload is not None:
-            update_data["payment_payload"] = normalized_payload
-        if normalized_reference is not None:
-            update_data["provider_reference"] = normalized_reference
-
-        updated_topup = (
-            await self._update_topup(topup_id=topup.id, **update_data) if update_data else topup
-        )
-        if updated_topup is None:
-            refreshed = await self._get_topup(topup_id=topup.id)
-            if refreshed is None:
-                raise StarsOrderError("Top-up disappeared during webhook processing.")
-            updated_topup = refreshed
-        if updated_topup.status in {
-            StarsOrderStatus.COMPLETED,
-            StarsOrderStatus.FAILED,
-            StarsOrderStatus.CANCELED,
-        }:
-            return self._topup_to_order_dto(topup=updated_topup)
-
-        result = await self.verify_order(
-            order_id=self._encode_topup_order_id(topup_id=updated_topup.id)
-        )
-        if result.order is not None:
-            return result.order
-        latest = await self._get_topup(topup_id=updated_topup.id)
-        if latest is None:
-            raise StarsOrderError("Top-up disappeared after webhook verification.")
-        return self._topup_to_order_dto(topup=latest)
 
     async def process_ton_invoice_webhook_payment(
         self,
@@ -1757,10 +1703,10 @@ class StarsOrderService(CrudService):
         merged.extend(item for item in topup_results if item is not None)
         return merged
 
-    async def _is_order_paid(self, *, order: StarsOrderDto) -> tuple[bool, str]:  # noqa: C901
+    async def _is_order_paid(self, *, order: StarsOrderDto) -> tuple[bool, str]:
         return await is_order_paid_support(service=self, order=order)
 
-    async def _fulfill_paid_order(self, *, order_id: int) -> StarsOrderDto:  # noqa: C901
+    async def _fulfill_paid_order(self, *, order_id: int) -> StarsOrderDto:
         return await fulfill_paid_order_support(
             service=self,
             order_id=order_id,
@@ -1768,7 +1714,7 @@ class StarsOrderService(CrudService):
             logger=logger,
         )
 
-    async def _apply_referral_rewards(self, *, order_id: int) -> None:  # noqa: C901
+    async def _apply_referral_rewards(self, *, order_id: int) -> None:
         await apply_referral_rewards_support(
             service=self,
             order_id=order_id,
