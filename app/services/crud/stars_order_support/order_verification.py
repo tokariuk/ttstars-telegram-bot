@@ -1,9 +1,16 @@
 from __future__ import annotations
 
-from typing import Any
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from app.enums.stars_order import StarsOrderProductType, StarsOrderStatus
+from app.models.dto.stars_order import StarsOrderDto
 from app.utils.time import datetime_now
+
+if TYPE_CHECKING:
+    from app.services.crud.stars_order import StarsOrderService
+
+ResultT = TypeVar("ResultT")
 
 _UNPAID_TERMINAL_PROVIDER_STATUSES: set[str] = {
     "canceled",
@@ -14,11 +21,11 @@ _UNPAID_TERMINAL_PROVIDER_STATUSES: set[str] = {
 
 async def force_fulfill_order(
     *,
-    service: Any,
+    service: StarsOrderService,
     order_id: int,
     outcome_enum: Any,
-    result_cls: type,
-) -> Any:
+    result_cls: Callable[..., ResultT],
+) -> ResultT:
     order = await service.get(order_id=order_id)
     if order is None:
         return result_cls(outcome=outcome_enum.NO_PENDING)
@@ -80,11 +87,11 @@ async def force_fulfill_order(
 
 async def verify_order(
     *,
-    service: Any,
+    service: StarsOrderService,
     order_id: int,
     outcome_enum: Any,
-    result_cls: type,
-) -> Any:
+    result_cls: Callable[..., ResultT],
+) -> ResultT:
     order = await service.get(order_id=order_id)
     if order is None:
         return result_cls(outcome=outcome_enum.NO_PENDING)
@@ -128,7 +135,12 @@ async def verify_order(
     return result_cls(outcome=outcome_enum.PROCESSING, order=order)
 
 
-def _terminal_result(*, order: Any, outcome_enum: Any, result_cls: type) -> Any | None:
+def _terminal_result(
+    *,
+    order: StarsOrderDto,
+    outcome_enum: Any,
+    result_cls: Callable[..., ResultT],
+) -> ResultT | None:
     if order.status == StarsOrderStatus.CANCELED:
         return result_cls(outcome=outcome_enum.CANCELED, order=order)
     if order.status == StarsOrderStatus.COMPLETED:
@@ -144,18 +156,19 @@ def _is_unpaid_terminal_provider_status(provider_status: str) -> bool:
 
 async def _verify_pending_payment(
     *,
-    service: Any,
-    order: Any,
+    service: StarsOrderService,
+    order: StarsOrderDto,
     outcome_enum: Any,
-    result_cls: type,
-) -> tuple[Any] | Any:
+    result_cls: Callable[..., ResultT],
+) -> tuple[StarsOrderDto] | ResultT:
     is_paid, provider_status = await service._is_order_paid(order=order)
-    order = await service._update_order(
+    updated_order = await service._update_order(
         order_id=order.id,
         provider_status=provider_status,
     )
-    if order is None:
+    if updated_order is None:
         return result_cls(outcome=outcome_enum.FAILED)
+    order = updated_order
     if not is_paid:
         return await _pending_unpaid_result(
             service=service,
@@ -175,12 +188,12 @@ async def _verify_pending_payment(
 
 async def _pending_unpaid_result(
     *,
-    service: Any,
-    order: Any,
+    service: StarsOrderService,
+    order: StarsOrderDto,
     provider_status: str,
     outcome_enum: Any,
-    result_cls: type,
-) -> Any:
+    result_cls: Callable[..., ResultT],
+) -> ResultT:
     canceled_result = await _cancel_if_unpaid_terminal_provider_status(
         service=service,
         order=order,
@@ -199,12 +212,12 @@ async def _pending_unpaid_result(
 
 async def _cancel_if_unpaid_terminal_provider_status(
     *,
-    service: Any,
-    order: Any,
+    service: StarsOrderService,
+    order: StarsOrderDto,
     provider_status: str,
     outcome_enum: Any,
-    result_cls: type,
-) -> Any | None:
+    result_cls: Callable[..., ResultT],
+) -> ResultT | None:
     if not _is_unpaid_terminal_provider_status(provider_status):
         return None
     canceled = await service._transition_order_status(
@@ -224,7 +237,12 @@ async def _cancel_if_unpaid_terminal_provider_status(
     )
 
 
-def _force_topup_precheck(*, current: Any, outcome_enum: Any, result_cls: type) -> Any | None:
+def _force_topup_precheck(
+    *,
+    current: StarsOrderDto,
+    outcome_enum: Any,
+    result_cls: Callable[..., ResultT],
+) -> ResultT | None:
     if current.product_type != StarsOrderProductType.TOPUP:
         return None
     if current.status not in {
@@ -242,11 +260,11 @@ def _force_topup_precheck(*, current: Any, outcome_enum: Any, result_cls: type) 
 
 async def _force_reopen_failed(
     *,
-    service: Any,
-    current: Any,
+    service: StarsOrderService,
+    current: StarsOrderDto,
     outcome_enum: Any,
-    result_cls: type,
-) -> tuple[Any] | Any:
+    result_cls: Callable[..., ResultT],
+) -> tuple[StarsOrderDto] | ResultT:
     if (
         current.provider_status == "delivery_failed_refunded_to_balance"
         and current.amount_cents > 0
@@ -280,7 +298,12 @@ async def _force_reopen_failed(
     return (reopened,)
 
 
-def _result_for_fulfilled(*, fulfilled: Any, outcome_enum: Any, result_cls: type) -> Any:
+def _result_for_fulfilled(
+    *,
+    fulfilled: StarsOrderDto,
+    outcome_enum: Any,
+    result_cls: Callable[..., ResultT],
+) -> ResultT:
     if fulfilled.status == StarsOrderStatus.COMPLETED:
         return result_cls(
             outcome=outcome_enum.COMPLETED,

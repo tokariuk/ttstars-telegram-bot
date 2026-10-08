@@ -1623,7 +1623,7 @@ class StarsOrderService(CrudService):
         }:
             return order
 
-        canceled = await self._transition_order_status(
+        canceled_order = await self._transition_order_status(
             order_id=order.id,
             from_statuses=[
                 StarsOrderStatus.CREATING_PAYMENT,
@@ -1632,13 +1632,13 @@ class StarsOrderService(CrudService):
             to_status=StarsOrderStatus.CANCELED,
             canceled_at=datetime_now(),
         )
-        if canceled is not None:
-            return canceled
+        if canceled_order is not None:
+            return canceled_order
 
-        latest = await self.get(order_id=order.id)
-        if latest is None or latest.user_id != user_id:
+        latest_order = await self.get(order_id=order.id)
+        if latest_order is None or latest_order.user_id != user_id:
             return None
-        return latest
+        return latest_order
 
     async def verify_open_order(self, *, user_id: int) -> PaymentCheckResult:
         open_order = await self.get_open_order(user_id=user_id)

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any
+from typing import TYPE_CHECKING
 
 from aiohttp import ClientError
 from sqlalchemy import and_, select
 
 from app.enums.stars_order import StarsOrderProductType, StarsOrderStatus, StarsPaymentProvider
+from app.models.dto.stars_order import StarsOrderDto
 from app.models.sql import User
 from app.models.sql.stars_order import StarsOrder
 from app.services.postgres import SQLSessionContext
@@ -15,10 +16,13 @@ from app.utils.time import datetime_now
 
 from .constants import BALANCE_IN_PROGRESS_ORDER_STATUSES, EXTERNAL_PAYMENT_PROVIDERS
 
+if TYPE_CHECKING:
+    from app.services.crud.stars_order import StarsOrderService
+
 
 async def create_stars_order(
     *,
-    service: Any,
+    service: StarsOrderService,
     provider: StarsPaymentProvider,
     user_id: int,
     recipient_username: str,
@@ -28,7 +32,7 @@ async def create_stars_order(
     insufficient_balance_error_cls: type[Exception],
     balance_in_progress_error_cls: type[Exception],
     stars_order_error_cls: type[Exception],
-) -> Any:
+) -> StarsOrderDto:
     if provider == StarsPaymentProvider.BALANCE:
         try:
             stars_pack = build_stars_pack(stars_count=stars_count)
@@ -64,7 +68,7 @@ async def create_stars_order(
 
 async def create_premium_order(
     *,
-    service: Any,
+    service: StarsOrderService,
     provider: StarsPaymentProvider,
     user_id: int,
     recipient_username: str,
@@ -74,7 +78,7 @@ async def create_premium_order(
     insufficient_balance_error_cls: type[Exception],
     balance_in_progress_error_cls: type[Exception],
     stars_order_error_cls: type[Exception],
-) -> Any:
+) -> StarsOrderDto:
     premium_pack = get_premium_pack(months=months)
     if provider == StarsPaymentProvider.BALANCE:
         return await create_balance_product_order(
@@ -110,7 +114,7 @@ async def create_premium_order(
 
 async def create_gift_order(
     *,
-    service: Any,
+    service: StarsOrderService,
     provider: StarsPaymentProvider,
     user_id: int,
     recipient_username: str,
@@ -123,7 +127,7 @@ async def create_gift_order(
     insufficient_balance_error_cls: type[Exception],
     balance_in_progress_error_cls: type[Exception],
     stars_order_error_cls: type[Exception],
-) -> Any:
+) -> StarsOrderDto:
     gift = service._resolve_gift_pack(gift_key=gift_key)
     normalized_message = service._normalize_gift_message(gift_message)
     if provider == StarsPaymentProvider.BALANCE:
@@ -166,14 +170,14 @@ async def create_gift_order(
 
 async def create_topup_order(
     *,
-    service: Any,
+    service: StarsOrderService,
     provider: StarsPaymentProvider,
     user_id: int,
     amount_cents: int,
     provider_unavailable_error_cls: type[Exception],
     validation_error_cls: type[Exception],
     stars_order_error_cls: type[Exception],
-) -> Any:
+) -> StarsOrderDto:
     if provider == StarsPaymentProvider.BALANCE:
         raise provider_unavailable_error_cls(
             "Balance provider is not supported for top-up orders."
@@ -197,7 +201,7 @@ async def create_topup_order(
 
 async def create_balance_product_order(
     *,
-    service: Any,
+    service: StarsOrderService,
     user_id: int,
     recipient_username: str,
     stars_count: int,
@@ -211,7 +215,7 @@ async def create_balance_product_order(
     validation_error_cls: type[Exception],
     insufficient_balance_error_cls: type[Exception],
     balance_in_progress_error_cls: type[Exception],
-) -> Any:
+) -> StarsOrderDto:
     prepared = await service._prepare_balance_order_payload(
         recipient_username=recipient_username,
         product_type=product_type,
@@ -279,7 +283,7 @@ async def create_balance_product_order(
 
 async def create_external_order(
     *,
-    service: Any,
+    service: StarsOrderService,
     user_id: int,
     recipient_username: str,
     stars_count: int,
@@ -294,7 +298,7 @@ async def create_external_order(
     validation_error_cls: type[Exception],
     provider_unavailable_error_cls: type[Exception],
     stars_order_error_cls: type[Exception],
-) -> Any:
+) -> StarsOrderDto:
     prepared = await service._prepare_external_order_payload(
         user_id=user_id,
         recipient_username=recipient_username,

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from app.enums.stars_order import StarsPaymentProvider
@@ -13,8 +13,11 @@ from .constants import (
     PLATEGA_PAYLOAD_PREFIX,
 )
 
+if TYPE_CHECKING:
+    from app.services.crud.stars_order import StarsOrderService
 
-def is_provider_configured(*, service: Any, provider: StarsPaymentProvider) -> bool:
+
+def is_provider_configured(*, service: StarsOrderService, provider: StarsPaymentProvider) -> bool:
     if provider == StarsPaymentProvider.CRYPTO_BOT:
         return service.crypto_pay_service.configured
     if provider == StarsPaymentProvider.TON_PAY:
@@ -34,7 +37,7 @@ def is_provider_configured(*, service: Any, provider: StarsPaymentProvider) -> b
     return False
 
 
-def provider_currency(*, service: Any, provider: StarsPaymentProvider) -> str:
+def provider_currency(*, service: StarsOrderService, provider: StarsPaymentProvider) -> str:
     if provider == StarsPaymentProvider.CRYPTO_BOT:
         return service.crypto_pay_service.asset
     if provider == StarsPaymentProvider.TON_PAY:
@@ -68,7 +71,7 @@ def build_nice_pay_order_id(*, provider: StarsPaymentProvider, local_order_id: i
     return f"{NICEPAY_ORDER_ID_PREFIX}-{provider_suffix}-{local_order_id}-{uuid4().hex[:10]}"
 
 
-def nice_pay_currency(*, service: Any, provider: StarsPaymentProvider) -> str:
+def nice_pay_currency(*, service: StarsOrderService, provider: StarsPaymentProvider) -> str:
     value = service.nice_pay_provider_currencies.get(provider, service.nice_pay_service.currency)
     normalized = (value or "").strip().upper()
     return normalized or service.nice_pay_service.currency
@@ -79,21 +82,21 @@ def build_heleket_order_id(*, local_order_id: int) -> str:
     return f"{HELEKET_ORDER_ID_PREFIX}-{local_order_id}-{uuid4().hex[:10]}"
 
 
-def lzt_callback_url(*, service: Any) -> str | None:
+def lzt_callback_url(*, service: StarsOrderService) -> str | None:
     return _provider_callback_url(
         base_url=service.config.server.url,
         webhook_path=service.config.lzt_pay.webhook_path,
     )
 
 
-def xrocket_callback_url(*, service: Any) -> str | None:
+def xrocket_callback_url(*, service: StarsOrderService) -> str | None:
     return _provider_callback_url(
         base_url=service.config.server.url,
         webhook_path=service.config.xrocket_pay.webhook_path,
     )
 
 
-def heleket_callback_url(*, service: Any) -> str | None:
+def heleket_callback_url(*, service: StarsOrderService) -> str | None:
     explicit = service.config.heleket_pay.callback_url
     if explicit is not None and explicit.strip():
         return explicit.strip()

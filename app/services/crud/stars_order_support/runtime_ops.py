@@ -3,9 +3,10 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, cast
 
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.enums.stars_order import StarsOrderProductType, StarsOrderStatus, StarsPaymentProvider
 from app.models.sql import User
@@ -15,15 +16,19 @@ from app.utils.time import datetime_now
 
 from .constants import REFERRAL_LEVELS_COUNT
 
+if TYPE_CHECKING:
+    from app.models.dto.stars_order import StarsOrderDto
+    from app.services.crud.stars_order import PaymentCheckResult, StarsOrderService
+
 
 async def poll_pending_orders(
     *,
-    service: Any,
+    service: StarsOrderService,
     limit: int,
     logger: logging.Logger,
     provider: StarsPaymentProvider | None = None,
     pending_created_after: datetime | None = None,
-) -> list[Any]:
+) -> list[PaymentCheckResult]:
     if limit <= 0:
         return []
     async with SQLSessionContext(session_pool=service.session_pool) as (repository, _uow):
@@ -37,7 +42,7 @@ async def poll_pending_orders(
 
     semaphore = asyncio.Semaphore(service.poll_concurrency)
 
-    async def verify_one(order_id: int) -> Any | None:
+    async def verify_one(order_id: int) -> PaymentCheckResult | None:
         async with semaphore:
             try:
                 return await service.verify_order(order_id=order_id)
@@ -56,7 +61,7 @@ async def poll_pending_orders(
 
 async def apply_referral_rewards(
     *,
-    service: Any,
+    service: StarsOrderService,
     order_id: int,
 ) -> None:
     if all(percent <= 0 for percent in service.referral_level_percents):
@@ -93,12 +98,12 @@ async def apply_referral_rewards(
 
 async def mark_failed_and_refund(
     *,
-    service: Any,
-    order: Any,
+    service: StarsOrderService,
+    order: StarsOrderDto,
     error_text: str,
     order_error_cls: type[Exception],
     logger: logging.Logger,
-) -> Any:
+) -> StarsOrderDto:
     failed = await service._update_order(
         order_id=order.id,
         status=StarsOrderStatus.FAILED,
@@ -132,24 +137,30 @@ async def mark_failed_and_refund(
     return refunded_order if refunded_order is not None else failed
 
 
-async def _load_locked_order(*, session: Any, order_id: int) -> StarsOrder | None:
-    return await session.scalar(
-        select(StarsOrder).where(StarsOrder.id == order_id).with_for_update()
+async def _load_locked_order(*, session: AsyncSession, order_id: int) -> StarsOrder | None:
+    return cast(
+        StarsOrder | None,
+        await session.scalar(
+            select(StarsOrder).where(StarsOrder.id == order_id).with_for_update()
+        ),
     )
 
 
-async def _load_locked_user(*, session: Any, user_id: int) -> User | None:
-    return await session.scalar(select(User).where(User.id == user_id).with_for_update())
+async def _load_locked_user(*, session: AsyncSession, user_id: int) -> User | None:
+    return cast(
+        User | None,
+        await session.scalar(select(User).where(User.id == user_id).with_for_update()),
+    )
 
 
-async def _finalize_if_non_rewardable(*, session: Any, order: StarsOrder) -> bool:
+async def _finalize_if_non_rewardable(*, session: AsyncSession, order: StarsOrder) -> bool:
     if order.product_type != StarsOrderProductType.TOPUP.value:
         return False
     await _mark_referral_processed_empty(session=session, order=order)
     return True
 
 
-async def _mark_referral_processed_empty(*, session: Any, order: StarsOrder) -> None:
+async def _mark_referral_processed_empty(*, session: AsyncSession, order: StarsOrder) -> None:
     order.referral_processed_at = datetime_now()
     order.referral_reward_total_cents = 0
     order.referral_reward_level1_cents = 0
@@ -160,8 +171,8 @@ async def _mark_referral_processed_empty(*, session: Any, order: StarsOrder) -> 
 
 async def _apply_referral_chain(
     *,
-    service: Any,
-    session: Any,
+    service: StarsOrderService,
+    session: AsyncSession,
     buyer: User,
     order: StarsOrder,
     rewarded_user_ids: set[int],

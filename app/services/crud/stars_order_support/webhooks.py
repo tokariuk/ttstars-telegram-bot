@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING
 
 from app.enums.stars_order import StarsOrderStatus, StarsPaymentProvider
 from app.models.dto.stars_order import StarsOrderDto
@@ -13,10 +13,13 @@ from .constants import NICE_PAY_PROVIDER_VARIANTS
 
 logger = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+    from app.services.crud.stars_order import StarsOrderService
+
 
 async def _try_fulfill_after_paid(
     *,
-    service: Any,
+    service: StarsOrderService,
     order: StarsOrderDto,
 ) -> StarsOrderDto:
     if order.status not in {
@@ -36,7 +39,7 @@ async def _try_fulfill_after_paid(
 
 async def process_crypto_webhook_invoice(
     *,
-    service: Any,
+    service: StarsOrderService,
     invoice_id: int,
 ) -> StarsOrderDto | None:
     async with SQLSessionContext(session_pool=service.session_pool) as (repository, _uow):
@@ -72,7 +75,7 @@ async def process_crypto_webhook_invoice(
 
 async def process_lzt_webhook_invoice(
     *,
-    service: Any,
+    service: StarsOrderService,
     invoice_id: int | None = None,
     payment_id: str | None = None,
 ) -> StarsOrderDto | None:
@@ -128,7 +131,7 @@ async def process_lzt_webhook_invoice(
 
 async def process_platega_webhook_payment(
     *,
-    service: Any,
+    service: StarsOrderService,
     transaction_id: str | None = None,
     payment_payload: str | None = None,
     webhook_status: str | None = None,
@@ -207,7 +210,7 @@ async def process_platega_webhook_payment(
 
 async def find_nice_pay_webhook_order(
     *,
-    service: Any,
+    service: StarsOrderService,
     payment_id: str,
     order_id: str,
 ) -> StarsOrder | None:
@@ -244,7 +247,7 @@ def nice_pay_provider_status(
 
 async def process_nice_pay_webhook_payment(
     *,
-    service: Any,
+    service: StarsOrderService,
     payment_id: str | None = None,
     order_id: str | None = None,
     webhook_result: str | None = None,
@@ -312,7 +315,7 @@ async def process_nice_pay_webhook_payment(
 
 async def process_heleket_webhook_invoice(
     *,
-    service: Any,
+    service: StarsOrderService,
     invoice_uuid: str | None = None,
     order_id: str | None = None,
     webhook_status: str | None = None,
@@ -389,7 +392,7 @@ async def process_heleket_webhook_invoice(
 
 async def process_xrocket_webhook_invoice(
     *,
-    service: Any,
+    service: StarsOrderService,
     payment_payload: str | None = None,
     invoice_id: str | None = None,
     webhook_status: str | None = None,

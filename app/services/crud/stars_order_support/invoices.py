@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from app.enums.stars_order import StarsOrderStatus, StarsPaymentProvider
@@ -9,14 +9,18 @@ from app.stars import build_crypto_payload
 
 from .constants import NICE_PAY_PROVIDER_VARIANTS
 
+if TYPE_CHECKING:
+    from app.services.crud.stars_order import StarsOrderService
+    from app.services.crud.stars_order_support.pricing import CheckoutPricing
+
 
 async def create_and_attach_invoice(
     *,
-    service: Any,
+    service: StarsOrderService,
     order: StarsOrderDto,
     provider: StarsPaymentProvider,
     user_id: int,
-    checkout_pricing: Any,
+    checkout_pricing: CheckoutPricing,
     checkout_amount_usd: str,
     description: str,
     validation_error_cls: type[Exception],

@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING
 
 from app.enums.stars_order import StarsOrderProductType, StarsOrderStatus
 from app.models.dto.stars_order import StarsOrderDto
 from app.utils.time import datetime_now
 
+if TYPE_CHECKING:
+    from app.services.crud.stars_order import StarsOrderService
+
 
 async def fulfill_paid_order(  # noqa: C901
     *,
-    service: Any,
+    service: StarsOrderService,
     order_id: int,
     order_error_cls: type[Exception],
     logger: logging.Logger,
@@ -84,7 +87,7 @@ async def fulfill_paid_order(  # noqa: C901
 
 async def _fulfill_topup_order(
     *,
-    service: Any,
+    service: StarsOrderService,
     order: StarsOrderDto,
     order_error_cls: type[Exception],
 ) -> StarsOrderDto:
@@ -118,7 +121,7 @@ async def _fulfill_topup_order(
 
 async def _fulfill_gift_order(
     *,
-    service: Any,
+    service: StarsOrderService,
     order: StarsOrderDto,
     order_error_cls: type[Exception],
     logger: logging.Logger,
@@ -190,7 +193,7 @@ async def _fulfill_gift_order(
 
 async def _fulfill_fragment_order(
     *,
-    service: Any,
+    service: StarsOrderService,
     order: StarsOrderDto,
     order_error_cls: type[Exception],
     logger: logging.Logger,

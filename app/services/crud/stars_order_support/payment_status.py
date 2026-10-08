@@ -1,16 +1,19 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING
 
 from app.enums.stars_order import StarsPaymentProvider
 from app.models.dto.stars_order import StarsOrderDto
 
 from .constants import NICE_PAY_PROVIDER_VARIANTS
 
+if TYPE_CHECKING:
+    from app.services.crud.stars_order import StarsOrderService
+
 
 async def is_order_paid(  # noqa: C901
     *,
-    service: Any,
+    service: StarsOrderService,
     order: StarsOrderDto,
 ) -> tuple[bool, str]:
     if order.payment_provider == StarsPaymentProvider.CRYPTO_BOT:
