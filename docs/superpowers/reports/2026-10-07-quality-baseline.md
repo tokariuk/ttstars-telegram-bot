@@ -41,4 +41,40 @@ The pyright failures reproduce the same adapter-boundary problems:
 
 ## Final Result
 
-To be completed after all implementation and integration tasks.
+Recorded on 2026-10-08 after the refactor and integration hardening work.
+
+| Check | Final result |
+| --- | --- |
+| `python -m unittest discover -s tests -v` | 63 tests passed; 5 infrastructure tests skipped without opt-in URLs |
+| `python -m compileall -q app migrations scripts tests` | Passed |
+| `ruff check app tests migrations scripts` | Passed |
+| `ruff format --check app tests migrations scripts` | 334 files already formatted |
+| `mypy app tests migrations scripts` | Passed; 334 source files checked |
+| `pyright` | 0 errors, 0 warnings |
+| `make integration-test` | 17 tests passed against disposable PostgreSQL 18 and Redis 8.4 |
+| `docker compose -f docker-compose.test.yml ps -a` | No remaining test containers |
+
+The integration target applies all Alembic revisions through `018`, verifies
+the database revision against the repository head, exercises Redis
+serialization and wildcard deletion, checks repository status transitions and
+the atomic balance top-up credit transaction, and runs payment/Telegram HTTP
+boundaries in-process without contacting live provider APIs.
+
+`StarsOrderService` retains its public facade while top-up identity, invoice,
+verification, fulfillment, and webhook behavior now live in the focused
+`stars_order_support.topups` module. Provider adapters and support
+collaborators have precise type boundaries instead of leaking `Any` through
+the orchestration layer.
+
+The protected `.DS_Store` and `app/services/fragment_stars.py` changes remain
+unstaged and are absent from every hardening commit. The Fragment file remains
+part of the clean static-analysis run through small local typing adjustments,
+but its complete user-owned diff is still uncommitted for independent review.
+
+Known non-failing tool output:
+
+- Pyright reports that a newer release is available; the locked project
+  version completes with zero diagnostics.
+- FastAPI/Pydantic emits an upstream `UnsupportedFieldAttributeWarning` while
+  generating the request schema for `aiogram.Update`; Telegram webhook parsing
+  and dispatch tests pass.
