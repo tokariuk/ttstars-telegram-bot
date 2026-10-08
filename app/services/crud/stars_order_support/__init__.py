@@ -33,6 +33,12 @@ from .provider_helpers import (
     xrocket_callback_url,
 )
 from .runtime_ops import apply_referral_rewards, mark_failed_and_refund, poll_pending_orders
+from .topups import (
+    decode_topup_order_id,
+    encode_topup_order_id,
+    is_topup_virtual_order_id,
+    is_unpaid_terminal_provider_status,
+)
 from .webhooks import (
     find_nice_pay_webhook_order,
     nice_pay_provider_status,
@@ -61,11 +67,15 @@ __all__ = [
     "create_premium_order",
     "create_stars_order",
     "create_topup_order",
+    "decode_topup_order_id",
+    "encode_topup_order_id",
     "find_nice_pay_webhook_order",
     "force_fulfill_order",
     "fulfill_paid_order",
     "heleket_callback_url",
     "is_provider_configured",
+    "is_topup_virtual_order_id",
+    "is_unpaid_terminal_provider_status",
     "is_order_paid",
     "lzt_callback_url",
     "mark_failed_and_refund",

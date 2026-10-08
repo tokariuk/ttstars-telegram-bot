@@ -74,6 +74,12 @@ from app.services.crud.stars_order_support import (
     create_stars_order as create_stars_order_support,
 )
 from app.services.crud.stars_order_support import (
+    decode_topup_order_id as decode_topup_order_id_support,
+)
+from app.services.crud.stars_order_support import (
+    encode_topup_order_id as encode_topup_order_id_support,
+)
+from app.services.crud.stars_order_support import (
     force_fulfill_order as force_fulfill_order_support,
 )
 from app.services.crud.stars_order_support import (
@@ -87,6 +93,12 @@ from app.services.crud.stars_order_support import (
 )
 from app.services.crud.stars_order_support import (
     is_provider_configured as is_provider_configured_support,
+)
+from app.services.crud.stars_order_support import (
+    is_topup_virtual_order_id as is_topup_virtual_order_id_support,
+)
+from app.services.crud.stars_order_support import (
+    is_unpaid_terminal_provider_status as is_unpaid_terminal_provider_status_support,
 )
 from app.services.crud.stars_order_support import (
     lzt_callback_url as lzt_callback_url_support,
@@ -252,12 +264,6 @@ class AdminOrdersStats:
 
 
 logger: logging.Logger = logging.getLogger(name=__name__)
-_TOPUP_ORDER_ID_OFFSET = 1_000_000_000
-_UNPAID_TERMINAL_PROVIDER_STATUSES: set[str] = {
-    "canceled",
-    "cancelled",
-    "expired",
-}
 
 
 class StarsOrderService(CrudService):
@@ -318,22 +324,19 @@ class StarsOrderService(CrudService):
 
     @staticmethod
     def _encode_topup_order_id(*, topup_id: int) -> int:
-        return _TOPUP_ORDER_ID_OFFSET + int(topup_id)
+        return encode_topup_order_id_support(topup_id=topup_id)
 
     @staticmethod
     def _decode_topup_order_id(*, order_id: int) -> int | None:
-        parsed = int(order_id)
-        if parsed <= _TOPUP_ORDER_ID_OFFSET:
-            return None
-        return parsed - _TOPUP_ORDER_ID_OFFSET
+        return decode_topup_order_id_support(order_id=order_id)
 
     @staticmethod
     def _is_topup_virtual_order_id(*, order_id: int) -> bool:
-        return StarsOrderService._decode_topup_order_id(order_id=order_id) is not None
+        return is_topup_virtual_order_id_support(order_id=order_id)
 
     @staticmethod
     def _is_unpaid_terminal_provider_status(provider_status: str) -> bool:
-        return provider_status.strip().lower() in _UNPAID_TERMINAL_PROVIDER_STATUSES
+        return is_unpaid_terminal_provider_status_support(provider_status)
 
     def _topup_to_order_dto(self, *, topup: BalanceTopupDto) -> StarsOrderDto:
         product_type = topup.auto_product_type or StarsOrderProductType.TOPUP
