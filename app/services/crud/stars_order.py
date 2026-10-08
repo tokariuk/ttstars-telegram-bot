@@ -59,6 +59,9 @@ from app.services.crud.stars_order_support import (
     create_and_attach_invoice as create_and_attach_invoice_support,
 )
 from app.services.crud.stars_order_support import (
+    create_and_attach_topup_invoice as create_and_attach_topup_invoice_support,
+)
+from app.services.crud.stars_order_support import (
     create_balance_product_order as create_balance_product_order_support,
 )
 from app.services.crud.stars_order_support import (
@@ -177,7 +180,7 @@ from app.services.postgres import SQLSessionContext
 from app.services.telegram_gifts import TelegramGiftService
 from app.services.ton_pay import TonPayService
 from app.services.xrocket_pay import XRocketPayService
-from app.stars import build_crypto_payload, get_premium_pack, price_usd_for_cents
+from app.stars import get_premium_pack, price_usd_for_cents
 from app.utils.key_builder import build_key
 from app.utils.time import datetime_now
 
@@ -1057,133 +1060,16 @@ class StarsOrderService(CrudService):
         checkout_amount_usd: str,
         description: str,
     ) -> BalanceTopupDto | None:
-        virtual_order_id = self._encode_topup_order_id(topup_id=topup.id)
-        if provider == StarsPaymentProvider.CRYPTO_BOT:
-            payload = build_crypto_payload(order_id=virtual_order_id, user_id=user_id)
-            crypto_invoice = await self.crypto_pay_service.create_invoice(
-                amount=checkout_amount_usd,
-                description=description,
-                invoice_payload=payload,
-            )
-            return await self._update_topup(
-                topup_id=topup.id,
-                status=StarsOrderStatus.PENDING_PAYMENT,
-                payment_payload=payload,
-                provider_invoice_id=crypto_invoice.invoice_id,
-                checkout_url=crypto_invoice.pay_url,
-                provider_status="pending",
-            )
-        if provider == StarsPaymentProvider.TON_PAY:
-            payment_token = f"ton-topup-{virtual_order_id}-{uuid4().hex[:12]}"
-            ton_invoice = await self.ton_pay_service.create_invoice(
-                order_id=virtual_order_id,
-                payment_token=payment_token,
-                amount_usd=checkout_amount_usd,
-            )
-            return await self._update_topup(
-                topup_id=topup.id,
-                status=StarsOrderStatus.PENDING_PAYMENT,
-                payment_payload=ton_invoice.payment_token,
-                provider_reference=ton_invoice.invoice_id,
-                provider_amount_minor=ton_invoice.expected_amount_nano,
-                checkout_url=ton_invoice.pay_url,
-                provider_status=ton_invoice.status,
-            )
-        if provider == StarsPaymentProvider.LZT_PAY:
-            payment_id = f"topup-{virtual_order_id}"
-            callback_url = self._lzt_callback_url()
-            lzt_invoice = await self.lzt_pay_service.create_invoice(
-                amount=checkout_amount_usd,
-                description=description,
-                payment_id=payment_id,
-                callback_url=callback_url,
-            )
-            return await self._update_topup(
-                topup_id=topup.id,
-                status=StarsOrderStatus.PENDING_PAYMENT,
-                payment_payload=lzt_invoice.payment_id,
-                provider_invoice_id=lzt_invoice.invoice_id,
-                checkout_url=lzt_invoice.pay_url,
-                provider_status=lzt_invoice.status,
-            )
-        if provider == StarsPaymentProvider.HELEKET_PAY:
-            heleket_order_id = self._build_heleket_order_id(local_order_id=virtual_order_id)
-            heleket_invoice = await self.heleket_pay_service.create_invoice(
-                amount=checkout_amount_usd,
-                order_id=heleket_order_id,
-                description=description,
-                callback_url=self._heleket_callback_url(),
-            )
-            return await self._update_topup(
-                topup_id=topup.id,
-                status=StarsOrderStatus.PENDING_PAYMENT,
-                payment_payload=heleket_invoice.invoice_uuid,
-                provider_reference=heleket_invoice.order_id,
-                checkout_url=heleket_invoice.pay_url,
-                provider_status=heleket_invoice.status,
-            )
-        if provider == StarsPaymentProvider.PLATEGA_PAY:
-            platega_payload = self._build_platega_payload(local_order_id=virtual_order_id)
-            platega_invoice = await self.platega_pay_service.create_invoice(
-                amount_usd=checkout_amount_usd,
-                payment_payload=platega_payload,
-                description=description,
-            )
-            return await self._update_topup(
-                topup_id=topup.id,
-                status=StarsOrderStatus.PENDING_PAYMENT,
-                payment_payload=platega_invoice.payment_payload,
-                provider_reference=platega_invoice.transaction_id,
-                provider_amount_minor=platega_invoice.amount_minor,
-                checkout_url=platega_invoice.pay_url,
-                provider_status=platega_invoice.status,
-            )
-        if provider in {
-            StarsPaymentProvider.NICE_PAY_RU,
-            StarsPaymentProvider.NICE_PAY_KZ,
-        }:
-            nice_order_id = self._build_nice_pay_order_id(
-                provider=provider,
-                local_order_id=virtual_order_id,
-            )
-            nice_currency = self._nice_pay_currency(provider=provider)
-            nice_amount_minor = await self.nice_pay_service.invoice_amount_minor_from_usd_cents(
-                usd_cents=checkout_pricing.invoice_amount_cents,
-                currency=nice_currency,
-            )
-            nice_invoice = await self.nice_pay_service.create_invoice(
-                amount_minor=nice_amount_minor,
-                order_id=nice_order_id,
-                customer=f"user_{user_id}",
-                description=description,
-                currency=nice_currency,
-            )
-            return await self._update_topup(
-                topup_id=topup.id,
-                status=StarsOrderStatus.PENDING_PAYMENT,
-                payment_payload=nice_invoice.payment_id,
-                provider_reference=nice_invoice.order_id,
-                provider_amount_minor=nice_invoice.amount_minor,
-                checkout_url=nice_invoice.pay_url,
-                provider_status=nice_invoice.status,
-            )
-        if provider == StarsPaymentProvider.XROCKET_PAY:
-            payment_payload = f"topup-{virtual_order_id}"
-            xrocket_invoice = await self.xrocket_pay_service.create_invoice(
-                amount=checkout_amount_usd,
-                description=description,
-                payment_payload=payment_payload,
-                callback_url=self._xrocket_callback_url(),
-            )
-            return await self._update_topup(
-                topup_id=topup.id,
-                status=StarsOrderStatus.PENDING_PAYMENT,
-                payment_payload=xrocket_invoice.payment_payload,
-                provider_reference=xrocket_invoice.invoice_id,
-                checkout_url=xrocket_invoice.pay_url,
-                provider_status=xrocket_invoice.status,
-            )
-        raise ValidationError("Unsupported payment provider.")
+        return await create_and_attach_topup_invoice_support(
+            service=self,
+            topup=topup,
+            provider=provider,
+            user_id=user_id,
+            checkout_pricing=checkout_pricing,
+            checkout_amount_usd=checkout_amount_usd,
+            description=description,
+            validation_error_cls=ValidationError,
+        )
 
     async def _create_external_topup(
         self,

@@ -12,7 +12,12 @@ from app.services.crud.stars_order import (
     PaymentCheckResult,
     StarsOrderService,
 )
-from app.services.crud.stars_order_support.topups import verify_topup
+from app.services.crud.stars_order_support.pricing import CheckoutPricing
+from app.services.crud.stars_order_support.topups import (
+    create_and_attach_topup_invoice,
+    verify_topup,
+)
+from app.services.crypto_pay import CryptoPayInvoice
 
 
 def make_topup(*, status: StarsOrderStatus) -> BalanceTopupDto:
@@ -84,6 +89,29 @@ class TopupServiceFake:
         raise AssertionError(f"unexpected fulfillment for topup {topup_id}")
 
 
+class CryptoPayServiceFake:
+    def __init__(self) -> None:
+        self.calls: list[dict[str, Any]] = []
+
+    async def create_invoice(self, **kwargs: Any) -> CryptoPayInvoice:
+        self.calls.append(kwargs)
+        return CryptoPayInvoice(invoice_id=314, pay_url="https://checkout.invalid/314")
+
+
+class TopupInvoiceServiceFake:
+    def __init__(self) -> None:
+        self.crypto_pay_service = CryptoPayServiceFake()
+        self.updates: list[dict[str, Any]] = []
+
+    @staticmethod
+    def _encode_topup_order_id(*, topup_id: int) -> int:
+        return 1_000_000_000 + topup_id
+
+    async def _update_topup(self, *, topup_id: int, **data: Any) -> BalanceTopupDto | None:
+        self.updates.append({"topup_id": topup_id, **data})
+        return make_topup(status=cast(StarsOrderStatus, data["status"]))
+
+
 class TopupVirtualOrderIdTests(unittest.TestCase):
     def test_round_trip_uses_existing_offset(self) -> None:
         virtual_id = StarsOrderService._encode_topup_order_id(topup_id=42)
@@ -144,6 +172,54 @@ class TopupVerificationTests(unittest.IsolatedAsyncioTestCase):
         transition = service.calls[3][1]
         self.assertEqual(transition["to_status"], StarsOrderStatus.CANCELED)
         self.assertEqual(transition["provider_status"], " expired ")
+
+
+class TopupInvoiceTests(unittest.IsolatedAsyncioTestCase):
+    async def test_crypto_invoice_uses_virtual_order_id_and_attaches_existing_fields(self) -> None:
+        service = TopupInvoiceServiceFake()
+        topup = make_topup(status=StarsOrderStatus.CREATING_PAYMENT)
+        pricing = CheckoutPricing(
+            net_amount_cents=125,
+            invoice_amount_cents=130,
+            customer_total_cents=130,
+            fee_percent_text="4",
+        )
+
+        updated = await create_and_attach_topup_invoice(
+            service=cast(Any, service),
+            topup=topup,
+            provider=StarsPaymentProvider.CRYPTO_BOT,
+            user_id=7,
+            checkout_pricing=pricing,
+            checkout_amount_usd="1.30",
+            description="Balance top-up",
+            validation_error_cls=ValueError,
+        )
+
+        self.assertIsNotNone(updated)
+        self.assertEqual(
+            service.crypto_pay_service.calls,
+            [
+                {
+                    "amount": "1.30",
+                    "description": "Balance top-up",
+                    "invoice_payload": "stars_crypto:1000000042:7",
+                }
+            ],
+        )
+        self.assertEqual(
+            service.updates,
+            [
+                {
+                    "topup_id": 42,
+                    "status": StarsOrderStatus.PENDING_PAYMENT,
+                    "payment_payload": "stars_crypto:1000000042:7",
+                    "provider_invoice_id": 314,
+                    "checkout_url": "https://checkout.invalid/314",
+                    "provider_status": "pending",
+                }
+            ],
+        )
 
 
 if __name__ == "__main__":

@@ -34,6 +34,7 @@ from .provider_helpers import (
 )
 from .runtime_ops import apply_referral_rewards, mark_failed_and_refund, poll_pending_orders
 from .topups import (
+    create_and_attach_topup_invoice,
     decode_topup_order_id,
     encode_topup_order_id,
     is_topup_virtual_order_id,
@@ -62,6 +63,7 @@ __all__ = [
     "build_payout_fee_percents",
     "build_payout_fixed_cents",
     "create_and_attach_invoice",
+    "create_and_attach_topup_invoice",
     "create_balance_product_order",
     "create_external_order",
     "create_gift_order",
