@@ -143,6 +143,9 @@ from app.services.crud.stars_order_support import (
     verify_order as verify_order_support,
 )
 from app.services.crud.stars_order_support import (
+    verify_topup as verify_topup_support,
+)
+from app.services.crud.stars_order_support import (
     xrocket_callback_url as xrocket_callback_url_support,
 )
 from app.services.crud.stars_order_support.constants import (
@@ -1475,87 +1478,12 @@ class StarsOrderService(CrudService):
                 lock_token=lock_token,
             )
 
-    async def _verify_topup(self, *, order_id: int) -> PaymentCheckResult:  # noqa: C901
-        topup_id = self._decode_topup_order_id(order_id=order_id)
-        if topup_id is None:
-            return PaymentCheckResult(outcome=PaymentCheckOutcome.NO_PENDING)
-        topup = await self._get_topup(topup_id=topup_id)
-        if topup is None:
-            return PaymentCheckResult(outcome=PaymentCheckOutcome.NO_PENDING)
-
-        if topup.status == StarsOrderStatus.CANCELED:
-            return PaymentCheckResult(
-                outcome=PaymentCheckOutcome.CANCELED,
-                order=self._topup_to_order_dto(topup=topup),
-            )
-        if topup.status == StarsOrderStatus.COMPLETED:
-            return PaymentCheckResult(
-                outcome=PaymentCheckOutcome.COMPLETED,
-                order=self._topup_to_order_dto(topup=topup),
-            )
-        if topup.status == StarsOrderStatus.FAILED:
-            return PaymentCheckResult(
-                outcome=PaymentCheckOutcome.FAILED,
-                order=self._topup_to_order_dto(topup=topup),
-            )
-
-        if topup.status in {StarsOrderStatus.CREATING_PAYMENT, StarsOrderStatus.PENDING_PAYMENT}:
-            is_paid, provider_status = await self._is_topup_paid(topup=topup)
-            topup = (
-                await self._update_topup(
-                    topup_id=topup.id,
-                    provider_status=provider_status,
-                )
-                or topup
-            )
-            if not is_paid:
-                if self._is_unpaid_terminal_provider_status(provider_status):
-                    canceled = await self._transition_topup_status(
-                        topup_id=topup.id,
-                        from_statuses=[
-                            StarsOrderStatus.CREATING_PAYMENT,
-                            StarsOrderStatus.PENDING_PAYMENT,
-                        ],
-                        to_status=StarsOrderStatus.CANCELED,
-                        provider_status=provider_status,
-                        canceled_at=datetime_now(),
-                    )
-                    return PaymentCheckResult(
-                        outcome=PaymentCheckOutcome.CANCELED,
-                        order=self._topup_to_order_dto(topup=canceled or topup),
-                        provider_status=provider_status,
-                    )
-                return PaymentCheckResult(
-                    outcome=PaymentCheckOutcome.PENDING,
-                    order=self._topup_to_order_dto(topup=topup),
-                    provider_status=provider_status,
-                )
-            transitioned = await self._transition_topup_status(
-                topup_id=topup.id,
-                from_statuses=[
-                    StarsOrderStatus.CREATING_PAYMENT,
-                    StarsOrderStatus.PENDING_PAYMENT,
-                ],
-                to_status=StarsOrderStatus.PAYMENT_CONFIRMED,
-                provider_status=provider_status,
-                paid_at=datetime_now(),
-            )
-            if transitioned is not None:
-                topup = transitioned
-
-        if topup.status in {StarsOrderStatus.PAYMENT_CONFIRMED, StarsOrderStatus.FULFILLING}:
-            fulfilled = await self._fulfill_paid_topup(topup_id=topup.id)
-            if fulfilled.status == StarsOrderStatus.COMPLETED:
-                return PaymentCheckResult(outcome=PaymentCheckOutcome.COMPLETED, order=fulfilled)
-            if fulfilled.status == StarsOrderStatus.FAILED:
-                return PaymentCheckResult(outcome=PaymentCheckOutcome.FAILED, order=fulfilled)
-            if fulfilled.status == StarsOrderStatus.CANCELED:
-                return PaymentCheckResult(outcome=PaymentCheckOutcome.CANCELED, order=fulfilled)
-            return PaymentCheckResult(outcome=PaymentCheckOutcome.PROCESSING, order=fulfilled)
-
-        return PaymentCheckResult(
-            outcome=PaymentCheckOutcome.PROCESSING,
-            order=self._topup_to_order_dto(topup=topup),
+    async def _verify_topup(self, *, order_id: int) -> PaymentCheckResult:
+        return await verify_topup_support(
+            service=self,
+            order_id=order_id,
+            outcome_enum=PaymentCheckOutcome,
+            result_cls=PaymentCheckResult,
         )
 
     async def cancel_open_order(self, *, user_id: int) -> Optional[StarsOrderDto]:
