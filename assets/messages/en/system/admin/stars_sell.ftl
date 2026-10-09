@@ -56,7 +56,7 @@ messages-admin_stars_sell_history_list_screen =
 messages-admin_stars_sell_history_list_empty_screen =
     <blockquote><b><tg-emoji emoji-id="5381819344462327797">⭐</tg-emoji> Stars Sale · Requests History</b></blockquote>
 
-    You have no sale requests yet.
+    No sale requests yet. Create the first request from the Stars Sale section.
 
 messages-admin_stars_sell_history_detail_not_found =
     <blockquote><tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> Request not found.</blockquote>
@@ -78,30 +78,30 @@ messages-admin_stars_sell_history_detail_screen =
     • Rejected: { $rejected_at }
     • Refunded: { $refunded_at }
 
-    <b>Technical details:</b>
+    <blockquote expandable><b>Technical details</b>
     • User ID: <code>{ $user_id }</code>
     • Invoice payload: <code>{ $invoice_payload }</code>
     • Paid in Stars: <code>{ $paid_stars }</code>
     • Failure reason: <code>{ $failure_reason }</code>
     • Resolution reason: <code>{ $resolution_reason }</code>
-    • Resolution note: <code>{ $resolution_note }</code>
+    • Resolution note: <code>{ $resolution_note }</code></blockquote>
 
 messages-admin_stars_sell_admin_list_screen =
-    <b>Stars Sale · Requests Control</b>
+    <blockquote><b><tg-emoji emoji-id="5382118858301676590">⚙️</tg-emoji> Stars Sale · Request Management</b></blockquote>
 
     Select a request to manage.
     • Page: <code>{ $page }</code>
 
 messages-admin_stars_sell_admin_list_empty_screen =
-    <b>Stars Sale · Requests Control</b>
+    <blockquote><b><tg-emoji emoji-id="5382118858301676590">⚙️</tg-emoji> Stars Sale · Request Management</b></blockquote>
 
-    No requests to manage yet.
+    No requests currently require management.
 
 messages-admin_stars_sell_admin_detail_not_found =
-    ⚠️ Request not found.
+    <blockquote><tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> Request not found.</blockquote>
 
 messages-admin_stars_sell_admin_detail_screen =
-    <b>Manage Request #{ $order_id }</b>
+    <blockquote><b><tg-emoji emoji-id="5382118858301676590">⚙️</tg-emoji> Manage Request #{ $order_id }</b></blockquote>
 
     • User ID: <code>{ $user_id }</code>
     • Status: <code>{ $status }</code>
@@ -118,12 +118,12 @@ messages-admin_stars_sell_admin_detail_screen =
     • Rejected: { $rejected_at }
     • Refunded: { $refunded_at }
 
-    <b>Technical details:</b>
+    <blockquote expandable><b>Technical details</b>
     • Invoice payload: <code>{ $invoice_payload }</code>
     • Paid in Stars: <code>{ $paid_stars }</code>
     • Failure reason: <code>{ $failure_reason }</code>
     • Resolution reason: <code>{ $resolution_reason }</code>
-    • Resolution note: <code>{ $resolution_note }</code>
+    • Resolution note: <code>{ $resolution_note }</code></blockquote>
 
 messages-admin_stars_sell_status_pending_payment = pending payment
 messages-admin_stars_sell_status_paid_hold = paid (hold)
@@ -165,15 +165,15 @@ messages-admin_stars_sell_invoice_canceled = <blockquote><tg-emoji emoji-id="538
 messages-admin_stars_sell_invoice_cancel_unavailable = <blockquote><tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> This request can no longer be canceled.</blockquote>
 messages-admin_stars_sell_invoice_cancel_not_found = <blockquote><tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> Request not found.</blockquote>
 
-messages-admin_stars_sell_admin_action_completed = ✅ Request <code>{ $order_id }</code> marked as completed.
-messages-admin_stars_sell_admin_action_rejected = ✅ Request <code>{ $order_id }</code> was rejected.
-messages-admin_stars_sell_admin_action_not_ready = ⚠️ Request <code>{ $order_id }</code> is still on hold. Available after: <code>{ $payout_available_at }</code>.
-messages-admin_stars_sell_admin_action_conflict = ⚠️ Request <code>{ $order_id }</code> status has changed. Refresh data.
-messages-admin_stars_sell_admin_action_failed = ❌ Failed to process action for request <code>{ $order_id }</code>.
+messages-admin_stars_sell_admin_action_completed = <tg-emoji emoji-id="5382230286933205157">✅</tg-emoji> Request <code>{ $order_id }</code> marked as completed.
+messages-admin_stars_sell_admin_action_rejected = <tg-emoji emoji-id="5382230286933205157">✅</tg-emoji> Request <code>{ $order_id }</code> was rejected.
+messages-admin_stars_sell_admin_action_not_ready = <tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> Request <code>{ $order_id }</code> is still on hold. Available after: <code>{ $payout_available_at }</code>.
+messages-admin_stars_sell_admin_action_conflict = <tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> Request <code>{ $order_id }</code> status has changed. Refresh data.
+messages-admin_stars_sell_admin_action_failed = <tg-emoji emoji-id="5381932538325404900">❌</tg-emoji> Failed to process action for request <code>{ $order_id }</code>.
 
 messages-admin_stars_sell_invoice_title = Sell Telegram Stars
-messages-admin_stars_sell_invoice_description = Sell { $stars_count } ⭐. After payment confirmation, payout { $payout_amount } USD will be available in { $hold_days_text }.
-messages-admin_stars_sell_invoice_label = Sell { $stars_count } ⭐
+messages-admin_stars_sell_invoice_description = Sell { $stars_count } Stars. After payment confirmation, payout { $payout_amount } USD will be available in { $hold_days_text }.
+messages-admin_stars_sell_invoice_label = Sell { $stars_count } Stars
 
 messages-admin_stars_sell_payment_confirmed =
     <blockquote><b><tg-emoji emoji-id="5382230286933205157">✅</tg-emoji> Stars payment confirmed</b></blockquote>

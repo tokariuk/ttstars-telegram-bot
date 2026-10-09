@@ -58,7 +58,7 @@ messages-admin_stars_sell_history_list_screen =
 messages-admin_stars_sell_history_list_empty_screen =
     <blockquote><b><tg-emoji emoji-id="5381819344462327797">⭐</tg-emoji> Продаж зірок · Історія заявок</b></blockquote>
 
-    У тебе ще немає заявок на продаж.
+    Заявок на продаж поки немає. Створи першу заявку в розділі продажу зірок.
 
 messages-admin_stars_sell_history_detail_not_found =
     <blockquote><tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> Заявку не знайдено.</blockquote>
@@ -78,34 +78,34 @@ messages-admin_stars_sell_history_detail_screen =
     • Доступно до виплати: { $payout_available_at }
     • Завершено: { $completed_at }
     • Відхилено: { $rejected_at }
-    • Рефанд: { $refunded_at }
+    • Повернення: { $refunded_at }
 
-    <b>Технічні дані:</b>
-    • User ID: <code>{ $user_id }</code>
+    <blockquote expandable><b>Технічні дані</b>
+    • ID користувача: <code>{ $user_id }</code>
     • Дані інвойсу: <code>{ $invoice_payload }</code>
     • Сплачено в Stars: <code>{ $paid_stars }</code>
     • Причина помилки: <code>{ $failure_reason }</code>
-    • Причина резолюції: <code>{ $resolution_reason }</code>
-    • Коментар резолюції: <code>{ $resolution_note }</code>
+    • Причина рішення: <code>{ $resolution_reason }</code>
+    • Коментар до рішення: <code>{ $resolution_note }</code></blockquote>
 
 messages-admin_stars_sell_admin_list_screen =
-    <b>Продаж зірок · Керування заявками</b>
+    <blockquote><b><tg-emoji emoji-id="5382118858301676590">⚙️</tg-emoji> Продаж зірок · Керування заявками</b></blockquote>
 
     Обери заявку для керування.
     • Сторінка: <code>{ $page }</code>
 
 messages-admin_stars_sell_admin_list_empty_screen =
-    <b>Продаж зірок · Керування заявками</b>
+    <blockquote><b><tg-emoji emoji-id="5382118858301676590">⚙️</tg-emoji> Продаж зірок · Керування заявками</b></blockquote>
 
-    Заявок для керування поки немає.
+    Заявок, що потребують керування, поки немає.
 
 messages-admin_stars_sell_admin_detail_not_found =
-    ⚠️ Заявку не знайдено.
+    <blockquote><tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> Заявку не знайдено.</blockquote>
 
 messages-admin_stars_sell_admin_detail_screen =
-    <b>Керування заявкою #{ $order_id }</b>
+    <blockquote><b><tg-emoji emoji-id="5382118858301676590">⚙️</tg-emoji> Керування заявкою #{ $order_id }</b></blockquote>
 
-    • User ID: <code>{ $user_id }</code>
+    • ID користувача: <code>{ $user_id }</code>
     • Статус: <code>{ $status }</code>
     • Кількість: <code>{ $stars_count }</code> <tg-emoji emoji-id="5381819344462327797">⭐</tg-emoji>
     • До виплати: <code>{ $payout_amount } USD</code>
@@ -118,14 +118,14 @@ messages-admin_stars_sell_admin_detail_screen =
     • Доступно до виплати: { $payout_available_at }
     • Завершено: { $completed_at }
     • Відхилено: { $rejected_at }
-    • Рефанд: { $refunded_at }
+    • Повернення: { $refunded_at }
 
-    <b>Технічні дані:</b>
+    <blockquote expandable><b>Технічні дані</b>
     • Дані інвойсу: <code>{ $invoice_payload }</code>
     • Сплачено в Stars: <code>{ $paid_stars }</code>
     • Причина помилки: <code>{ $failure_reason }</code>
-    • Причина резолюції: <code>{ $resolution_reason }</code>
-    • Коментар резолюції: <code>{ $resolution_note }</code>
+    • Причина рішення: <code>{ $resolution_reason }</code>
+    • Коментар до рішення: <code>{ $resolution_note }</code></blockquote>
 
 messages-admin_stars_sell_status_pending_payment = очікує оплату
 messages-admin_stars_sell_status_paid_hold = оплачено (холд)
@@ -167,15 +167,15 @@ messages-admin_stars_sell_invoice_canceled = <blockquote><tg-emoji emoji-id="538
 messages-admin_stars_sell_invoice_cancel_unavailable = <blockquote><tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> Цю заявку вже не можна скасувати.</blockquote>
 messages-admin_stars_sell_invoice_cancel_not_found = <blockquote><tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> Заявку не знайдено.</blockquote>
 
-messages-admin_stars_sell_admin_action_completed = ✅ Заявку <code>{ $order_id }</code> позначено як завершену.
-messages-admin_stars_sell_admin_action_rejected = ✅ Заявку <code>{ $order_id }</code> відхилено.
-messages-admin_stars_sell_admin_action_not_ready = ⚠️ Заявка <code>{ $order_id }</code> ще на холді. Доступно після: <code>{ $payout_available_at }</code>.
-messages-admin_stars_sell_admin_action_conflict = ⚠️ Статус заявки <code>{ $order_id }</code> вже змінено. Онови дані.
-messages-admin_stars_sell_admin_action_failed = ❌ Не вдалося виконати дію для заявки <code>{ $order_id }</code>.
+messages-admin_stars_sell_admin_action_completed = <tg-emoji emoji-id="5382230286933205157">✅</tg-emoji> Заявку <code>{ $order_id }</code> позначено як завершену.
+messages-admin_stars_sell_admin_action_rejected = <tg-emoji emoji-id="5382230286933205157">✅</tg-emoji> Заявку <code>{ $order_id }</code> відхилено.
+messages-admin_stars_sell_admin_action_not_ready = <tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> Заявка <code>{ $order_id }</code> ще на холді. Доступно після: <code>{ $payout_available_at }</code>.
+messages-admin_stars_sell_admin_action_conflict = <tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> Статус заявки <code>{ $order_id }</code> вже змінено. Онови дані.
+messages-admin_stars_sell_admin_action_failed = <tg-emoji emoji-id="5381932538325404900">❌</tg-emoji> Не вдалося виконати дію для заявки <code>{ $order_id }</code>.
 
 messages-admin_stars_sell_invoice_title = Продаж Telegram Stars
-messages-admin_stars_sell_invoice_description = Продаж { $stars_count } ⭐. Після підтвердження оплати виплата { $payout_amount } USD стане доступною через { $hold_days_text }.
-messages-admin_stars_sell_invoice_label = Продаж { $stars_count } ⭐
+messages-admin_stars_sell_invoice_description = Продаж { $stars_count } Stars. Після підтвердження оплати виплата { $payout_amount } USD стане доступною через { $hold_days_text }.
+messages-admin_stars_sell_invoice_label = Продаж { $stars_count } Stars
 
 messages-admin_stars_sell_payment_confirmed =
     <blockquote><b><tg-emoji emoji-id="5382230286933205157">✅</tg-emoji> Оплату зірками підтверджено</b></blockquote>

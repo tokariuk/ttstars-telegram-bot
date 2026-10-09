@@ -1,13 +1,15 @@
 messages-admin_broadcast_content_prompt =
-    <blockquote><b>📣 Рассылка</b></blockquote>
+    <blockquote><b><tg-emoji emoji-id="5381969161511543757">🔔</tg-emoji> Рассылка · Шаг 1/4</b></blockquote>
 
     Отправь контент рассылки:
     • текст с HTML-форматированием и премиум-эмодзи
     • или фото с подписью
 
-messages-admin_broadcast_content_invalid = <blockquote>❌ Отправь текст или фото с подписью.</blockquote>
+messages-admin_broadcast_content_invalid = <blockquote><tg-emoji emoji-id="5381932538325404900">❌</tg-emoji> Отправь текст или фото с подписью.</blockquote>
 
 messages-admin_broadcast_options_prompt =
+    <blockquote><b><tg-emoji emoji-id="5382107098681220386">👥</tg-emoji> Рассылка · Шаг 2/4</b></blockquote>
+
     Настрой получателей и кнопку закрытия.
 
     Доступные локали: <code>{ $locales }</code>
@@ -21,30 +23,35 @@ messages-admin_broadcast_options_prompt =
 
     Или нажми «Пропустить» для значений по умолчанию (all + без кнопки).
 
-messages-admin_broadcast_options_invalid = <blockquote>❌ Некорректные параметры рассылки: { $error }</blockquote>
+messages-admin_broadcast_options_invalid = <blockquote><tg-emoji emoji-id="5381932538325404900">❌</tg-emoji> Некорректные параметры рассылки: { $error }</blockquote>
 messages-admin_broadcast_option_enabled = включено
 messages-admin_broadcast_option_disabled = выключено
 
 messages-admin_broadcast_buttons_prompt =
+    <blockquote><b><tg-emoji emoji-id="5382283505872967732">🔗</tg-emoji> Рассылка · Шаг 3/4</b></blockquote>
+
     Отправь кнопки со ссылками (по одной в строке):
     <code>Текст | https://example.com</code>
 
     Или нажми «Пропустить».
 
-messages-admin_broadcast_buttons_invalid = <blockquote>❌ Некорректные кнопки: { $error }</blockquote>
+messages-admin_broadcast_buttons_invalid = <blockquote><tg-emoji emoji-id="5381932538325404900">❌</tg-emoji> Некорректные кнопки: { $error }</blockquote>
 
 messages-admin_broadcast_preview_ready =
-    <blockquote>✅ Превью рассылки сформировано.</blockquote>
+    <blockquote><b><tg-emoji emoji-id="5382230286933205157">✅</tg-emoji> Рассылка · Шаг 4/4</b></blockquote>
 
     Получатели: <b>{ $recipients }</b>
     Локали: <b>{ $locales }</b>
     Кнопка «Закрыть»: <b>{ $close_button }</b>
     Кнопок: <b>{ $buttons }</b>
 
-messages-admin_broadcast_preview_failed = <blockquote>❌ Не удалось собрать превью. Проверь форматирование.</blockquote>
-messages-admin_broadcast_started = <blockquote>⏳ Рассылка запущена, подожди...</blockquote>
+messages-admin_broadcast_preview_failed = <blockquote><tg-emoji emoji-id="5381932538325404900">❌</tg-emoji> Не удалось собрать превью. Проверь форматирование.</blockquote>
+messages-admin_broadcast_preview_content = Содержимое
+messages-admin_broadcast_preview_buttons = Кнопки
+messages-admin_broadcast_preview_photo = Фото
+messages-admin_broadcast_started = <blockquote><tg-emoji emoji-id="5382080345329934499">⏳</tg-emoji> Рассылка запущена. Результат появится после завершения.</blockquote>
 messages-admin_broadcast_done =
-    <blockquote>✅ Рассылка завершена</blockquote>
+    <blockquote><b><tg-emoji emoji-id="5382230286933205157">✅</tg-emoji> Рассылка завершена</b></blockquote>
 
     Всего: <b>{ $total }</b>
     Доставлено: <b>{ $sent }</b>

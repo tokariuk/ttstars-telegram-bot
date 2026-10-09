@@ -1,5 +1,5 @@
 messages-admin_stats_screen =
-    <blockquote><b>📊 Статистика</b></blockquote>
+    <blockquote><b><tg-emoji emoji-id="5381817355892465423">📊</tg-emoji> Статистика</b></blockquote>
 
     <b>Користувачі</b>
     • Всього: <b>{ $users_total }</b>
@@ -25,6 +25,6 @@ messages-admin_stats_screen =
     • Скасовані: <b>{ $status_canceled }</b>
 
     <b>Виконані продукти</b>
-    • Stars: <b>{ $completed_stars_count }</b> зам. · <b>{ $completed_stars_units }</b> ⭐ · <b>{ $completed_stars_amount } USD</b>
+    • Stars: <b>{ $completed_stars_count }</b> зам. · <b>{ $completed_stars_units }</b> <tg-emoji emoji-id="5381819344462327797">⭐</tg-emoji> · <b>{ $completed_stars_amount } USD</b>
     • Premium: <b>{ $completed_premium_count }</b> зам. · <b>{ $completed_premium_amount } USD</b>
     • Поповнення: <b>{ $completed_topup_count }</b> зам. · <b>{ $completed_topup_amount } USD</b>

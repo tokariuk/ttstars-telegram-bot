@@ -16,6 +16,11 @@ from app.telegram.dialogs.common.premium_emoji import (
     PLUS_EMOJI_ID,
     RIGHT_CIRCLE_2_EMOJI_ID,
 )
+from app.telegram.dialogs.common.ttstars_interface_emoji import (
+    CLOSE_EMOJI_ID,
+    INFO_CIRCLE_EMOJI_ID,
+    TELEGRAM_STAR_EMOJI_ID,
+)
 
 from ..getters import (
     stars_sell_admin_details_getter,
@@ -70,10 +75,8 @@ from ..ids import (
     ADMIN_STARS_SELL_SEND_INVOICE_BUTTON_ID,
 )
 from ..states import AdminSG
-from .common import banner_preview
 
 stars_sell_menu_window: Window = Window(
-    banner_preview(),
     Format("{text}"),
     Button(
         Format("{create_request_button_text}"),
@@ -98,7 +101,6 @@ stars_sell_menu_window: Window = Window(
 )
 
 stars_sell_stars_window: Window = Window(
-    banner_preview(),
     Format("{text}"),
     MessageInput(handle_stars_sell_stars_input),
     Button(
@@ -112,7 +114,6 @@ stars_sell_stars_window: Window = Window(
 )
 
 stars_sell_wallet_window: Window = Window(
-    banner_preview(),
     Format("{text}"),
     MessageInput(handle_stars_sell_wallet_input),
     Button(
@@ -132,7 +133,6 @@ stars_sell_wallet_window: Window = Window(
 )
 
 stars_sell_payment_window: Window = Window(
-    banner_preview(),
     Format("{text}"),
     Button(
         Format("{send_invoice_button_text}"),
@@ -163,13 +163,13 @@ stars_sell_payment_window: Window = Window(
 )
 
 stars_sell_history_window: Window = Window(
-    banner_preview(),
     Format("{text}"),
     ListGroup(
         Button(
             Format("{item[button_text]}"),
             id=ADMIN_STARS_SELL_HISTORY_SELECT_ID,
             on_click=open_stars_sell_history_order,
+            style=Style(emoji_id=DOCUMENT_EMOJI_ID),
         ),
         id="ssh",
         item_id_getter=itemgetter("id"),
@@ -188,6 +188,7 @@ stars_sell_history_window: Window = Window(
             id=ADMIN_STARS_SELL_HISTORY_PAGE_BUTTON_ID,
             on_click=show_stars_sell_history_page_info,
             when="show_page_info",
+            style=Style(emoji_id=INFO_CIRCLE_EMOJI_ID),
         ),
         Button(
             Format("{next_button_text}"),
@@ -214,7 +215,6 @@ stars_sell_history_window: Window = Window(
 )
 
 stars_sell_history_details_window: Window = Window(
-    banner_preview(),
     Format("{text}"),
     Button(
         Format("{back_to_history_button_text}"),
@@ -239,6 +239,7 @@ stars_sell_admin_list_window: Window = Window(
             Format("{item[button_text]}"),
             id=ADMIN_STARS_SELL_ADMIN_SELECT_ID,
             on_click=open_stars_sell_admin_order,
+            style=Style(emoji_id=DOCUMENT_EMOJI_ID),
         ),
         id="ssal",
         item_id_getter=itemgetter("id"),
@@ -250,29 +251,34 @@ stars_sell_admin_list_window: Window = Window(
             id=ADMIN_STARS_SELL_ADMIN_PREV_BUTTON_ID,
             on_click=stars_sell_admin_prev_page,
             when="show_prev_page",
+            style=Style(emoji_id=LEFT_CIRCLE_2_EMOJI_ID),
         ),
         Button(
             Format("{page_button_text}"),
             id=ADMIN_STARS_SELL_ADMIN_PAGE_BUTTON_ID,
             on_click=show_stars_sell_admin_page_info,
             when="show_page_info",
+            style=Style(emoji_id=INFO_CIRCLE_EMOJI_ID),
         ),
         Button(
             Format("{next_button_text}"),
             id=ADMIN_STARS_SELL_ADMIN_NEXT_BUTTON_ID,
             on_click=stars_sell_admin_next_page,
             when="show_next_page",
+            style=Style(emoji_id=RIGHT_CIRCLE_2_EMOJI_ID),
         ),
     ),
     Button(
         Format("{back_to_menu_button_text}"),
         id=ADMIN_STARS_SELL_BACK_TO_SECTION_MENU_BUTTON_ID,
         on_click=show_stars_sell_menu,
+        style=Style(emoji_id=LEFT_SQUARE_EMOJI_ID),
     ),
     Button(
         Format("{back_button_text}"),
         id=ADMIN_STARS_SELL_BACK_TO_MENU_BUTTON_ID,
         on_click=show_menu,
+        style=Style(emoji_id=LEFT_SQUARE_EMOJI_ID),
     ),
     state=AdminSG.stars_sell_admin_list,
     getter=stars_sell_admin_list_getter,
@@ -285,24 +291,26 @@ stars_sell_admin_details_window: Window = Window(
         id=ADMIN_STARS_SELL_ADMIN_COMPLETE_BUTTON_ID,
         on_click=admin_mark_stars_sell_completed,
         when="show_complete_action",
-        style=Style(style=ButtonStyle.PRIMARY),
+        style=Style(style=ButtonStyle.SUCCESS, emoji_id=TELEGRAM_STAR_EMOJI_ID),
     ),
     Button(
         Format("{reject_button_text}"),
         id=ADMIN_STARS_SELL_ADMIN_REJECT_BUTTON_ID,
         on_click=admin_mark_stars_sell_rejected,
         when="show_reject_action",
-        style=Style(style=ButtonStyle.DANGER),
+        style=Style(style=ButtonStyle.DANGER, emoji_id=CLOSE_EMOJI_ID),
     ),
     Button(
         Format("{back_to_admin_list_button_text}"),
         id=ADMIN_STARS_SELL_ADMIN_BACK_TO_LIST_BUTTON_ID,
         on_click=show_stars_sell_admin_list,
+        style=Style(emoji_id=LEFT_SQUARE_EMOJI_ID),
     ),
     Button(
         Format("{back_button_text}"),
         id=ADMIN_STARS_SELL_BACK_TO_MENU_BUTTON_ID,
         on_click=show_menu,
+        style=Style(emoji_id=LEFT_SQUARE_EMOJI_ID),
     ),
     state=AdminSG.stars_sell_admin_details,
     getter=stars_sell_admin_details_getter,

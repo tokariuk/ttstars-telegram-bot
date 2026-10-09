@@ -348,6 +348,7 @@ async def stars_sell_history_details_getter(
         text_body = str(
             i18n_ctx.messages.admin_stars_sell_history_detail_screen(
                 order_id=order.id,
+                user_id=order.user_id,
                 status=_status_text_for_order(dialog_manager=dialog_manager, order=order),
                 stars_count=order.stars_count,
                 payout_amount=price_usd_for_cents(order.payout_amount_cents),

@@ -104,9 +104,16 @@ async def broadcast_confirm_getter(dialog_manager: DialogManager, **_: Any) -> d
         )
         preview_text = payload.text_html or "—"
         if payload.photo_file_id is not None:
-            preview_text = f"<i>[Photo]</i>\n{preview_text}"
+            preview_text = (
+                f"<i>[{i18n_ctx.messages.admin_broadcast_preview_photo()}]</i>\n{preview_text}"
+            )
         buttons_text = _render_buttons_preview(payload_buttons=payload.buttons)
-        base_text = f"{summary}\n\n<b>📝</b>\n{preview_text}\n\n<b>🔗</b>\n{buttons_text}"
+        content_title = i18n_ctx.messages.admin_broadcast_preview_content()
+        buttons_title = i18n_ctx.messages.admin_broadcast_preview_buttons()
+        base_text = (
+            f"{summary}\n\n<b>{content_title}</b>\n{preview_text}"
+            f"\n\n<b>{buttons_title}</b>\n{buttons_text}"
+        )
     text = with_notice(
         text=base_text,
         notice=consume_notice(dialog_manager),

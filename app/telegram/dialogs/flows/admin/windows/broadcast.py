@@ -5,6 +5,13 @@ from aiogram_dialog.widgets.kbd import Button, Row
 from aiogram_dialog.widgets.style import Style
 from aiogram_dialog.widgets.text import Format
 
+from app.telegram.dialogs.common.ttstars_interface_emoji import (
+    LEFT_SQUARE_EMOJI_ID,
+    RIGHT_CIRCLE_EMOJI_ID,
+    SEND_EMOJI_ID,
+    SWAP_EMOJI_ID,
+)
+
 from ..getters import (
     broadcast_buttons_getter,
     broadcast_confirm_getter,
@@ -37,6 +44,7 @@ broadcast_content_window: Window = Window(
         Format("{back_button_text}"),
         id=ADMIN_BROADCAST_BACK_TO_MENU_BUTTON_ID,
         on_click=show_menu,
+        style=Style(emoji_id=LEFT_SQUARE_EMOJI_ID),
     ),
     state=AdminSG.broadcast_content,
     getter=broadcast_content_getter,
@@ -50,12 +58,13 @@ broadcast_buttons_window: Window = Window(
             Format("{skip_button_text}"),
             id=ADMIN_BROADCAST_SKIP_BUTTONS_BUTTON_ID,
             on_click=broadcast_skip_buttons,
-            style=Style(style=ButtonStyle.PRIMARY),
+            style=Style(emoji_id=RIGHT_CIRCLE_EMOJI_ID),
         ),
         Button(
             Format("{back_button_text}"),
             id=ADMIN_BROADCAST_BACK_TO_MENU_BUTTON_ID,
             on_click=show_menu,
+            style=Style(emoji_id=LEFT_SQUARE_EMOJI_ID),
         ),
     ),
     state=AdminSG.broadcast_buttons,
@@ -70,12 +79,13 @@ broadcast_options_window: Window = Window(
             Format("{skip_button_text}"),
             id=ADMIN_BROADCAST_SKIP_OPTIONS_BUTTON_ID,
             on_click=broadcast_skip_options,
-            style=Style(style=ButtonStyle.PRIMARY),
+            style=Style(emoji_id=RIGHT_CIRCLE_EMOJI_ID),
         ),
         Button(
             Format("{back_button_text}"),
             id=ADMIN_BROADCAST_BACK_TO_MENU_BUTTON_ID,
             on_click=show_menu,
+            style=Style(emoji_id=LEFT_SQUARE_EMOJI_ID),
         ),
     ),
     state=AdminSG.broadcast_options,
@@ -89,18 +99,20 @@ broadcast_confirm_window: Window = Window(
             Format("{send_button_text}"),
             id=ADMIN_BROADCAST_CONFIRM_SEND_BUTTON_ID,
             on_click=broadcast_send,
-            style=Style(style=ButtonStyle.PRIMARY),
+            style=Style(style=ButtonStyle.SUCCESS, emoji_id=SEND_EMOJI_ID),
         ),
         Button(
             Format("{restart_button_text}"),
             id=ADMIN_BROADCAST_CONFIRM_RESTART_BUTTON_ID,
             on_click=show_broadcast_content,
+            style=Style(emoji_id=SWAP_EMOJI_ID),
         ),
     ),
     Button(
         Format("{back_button_text}"),
         id=ADMIN_BROADCAST_BACK_TO_MENU_BUTTON_ID,
         on_click=show_menu,
+        style=Style(emoji_id=LEFT_SQUARE_EMOJI_ID),
     ),
     state=AdminSG.broadcast_confirm,
     getter=broadcast_confirm_getter,

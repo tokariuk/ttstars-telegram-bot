@@ -1,13 +1,15 @@
 messages-admin_broadcast_content_prompt =
-    <blockquote><b>📣 Broadcast</b></blockquote>
+    <blockquote><b><tg-emoji emoji-id="5381969161511543757">🔔</tg-emoji> Broadcast · Step 1/4</b></blockquote>
 
     Send broadcast content:
     • text with HTML formatting and premium emojis
     • or photo with caption
 
-messages-admin_broadcast_content_invalid = <blockquote>❌ Send a text message or a photo with caption.</blockquote>
+messages-admin_broadcast_content_invalid = <blockquote><tg-emoji emoji-id="5381932538325404900">❌</tg-emoji> Send a text message or a photo with caption.</blockquote>
 
 messages-admin_broadcast_options_prompt =
+    <blockquote><b><tg-emoji emoji-id="5382107098681220386">👥</tg-emoji> Broadcast · Step 2/4</b></blockquote>
+
     Configure recipients and close button.
 
     Available locales: <code>{ $locales }</code>
@@ -21,30 +23,35 @@ messages-admin_broadcast_options_prompt =
 
     Or tap “Skip” to use defaults (all + without close button).
 
-messages-admin_broadcast_options_invalid = <blockquote>❌ Invalid broadcast options: { $error }</blockquote>
+messages-admin_broadcast_options_invalid = <blockquote><tg-emoji emoji-id="5381932538325404900">❌</tg-emoji> Invalid broadcast options: { $error }</blockquote>
 messages-admin_broadcast_option_enabled = enabled
 messages-admin_broadcast_option_disabled = disabled
 
 messages-admin_broadcast_buttons_prompt =
+    <blockquote><b><tg-emoji emoji-id="5382283505872967732">🔗</tg-emoji> Broadcast · Step 3/4</b></blockquote>
+
     Send link buttons (one per line):
     <code>Text | https://example.com</code>
 
     Or tap “Skip”.
 
-messages-admin_broadcast_buttons_invalid = <blockquote>❌ Invalid buttons: { $error }</blockquote>
+messages-admin_broadcast_buttons_invalid = <blockquote><tg-emoji emoji-id="5381932538325404900">❌</tg-emoji> Invalid buttons: { $error }</blockquote>
 
 messages-admin_broadcast_preview_ready =
-    <blockquote>✅ Broadcast preview is ready.</blockquote>
+    <blockquote><b><tg-emoji emoji-id="5382230286933205157">✅</tg-emoji> Broadcast · Step 4/4</b></blockquote>
 
     Recipients: <b>{ $recipients }</b>
     Locales: <b>{ $locales }</b>
     Close button: <b>{ $close_button }</b>
     Buttons: <b>{ $buttons }</b>
 
-messages-admin_broadcast_preview_failed = <blockquote>❌ Failed to build preview. Check message formatting.</blockquote>
-messages-admin_broadcast_started = <blockquote>⏳ Broadcast started, please wait...</blockquote>
+messages-admin_broadcast_preview_failed = <blockquote><tg-emoji emoji-id="5381932538325404900">❌</tg-emoji> Failed to build preview. Check message formatting.</blockquote>
+messages-admin_broadcast_preview_content = Content
+messages-admin_broadcast_preview_buttons = Buttons
+messages-admin_broadcast_preview_photo = Photo
+messages-admin_broadcast_started = <blockquote><tg-emoji emoji-id="5382080345329934499">⏳</tg-emoji> Broadcast started. The result will appear when delivery finishes.</blockquote>
 messages-admin_broadcast_done =
-    <blockquote>✅ Broadcast completed</blockquote>
+    <blockquote><b><tg-emoji emoji-id="5382230286933205157">✅</tg-emoji> Broadcast completed</b></blockquote>
 
     Total: <b>{ $total }</b>
     Delivered: <b>{ $sent }</b>

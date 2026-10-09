@@ -9,6 +9,7 @@ from typing import Any, cast
 from aiogram.enums.button_style import ButtonStyle
 from aiogram_dialog import Window
 from aiogram_dialog.widgets.kbd import Button, Group
+from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.style import Style
 from fluent.runtime import FluentBundle, FluentResource
 from fluent.syntax import FluentParser, ast
@@ -32,6 +33,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CUSTOM_EMOJI_RE = re.compile(
     r'<tg-emoji\s+emoji-id="(?P<emoji_id>\d+)">(?P<fallback>.*?)</tg-emoji>',
     re.DOTALL,
+)
+PLAIN_EMOJI_RE = re.compile(
+    "[\u2190-\u21ff\u2300-\u23ff\u2600-\u27bf\u2b00-\u2bff\U0001f000-\U0001faff]"
 )
 SUPPORTED_TELEGRAM_TAGS = {
     "a",
@@ -120,7 +124,46 @@ def _has_keyboard_action(widget: object) -> bool:
     return any(_has_keyboard_action(child) for child in children)
 
 
+def _buttons(widget: object) -> list[Button]:
+    if isinstance(widget, Button):
+        return [widget]
+    return [button for child in getattr(widget, "buttons", ()) for button in _buttons(child)]
+
+
 class TelegramUiContractTests(unittest.TestCase):
+    def test_admin_windows_do_not_render_banner_media(self) -> None:
+        for name, window in vars(admin_windows).items():
+            if not isinstance(window, Window):
+                continue
+            with self.subTest(window=name):
+                self.assertNotIsInstance(window.media, DynamicMedia)
+
+    def test_storefront_windows_keep_banner_media(self) -> None:
+        for name, window in vars(storefront_windows).items():
+            if not isinstance(window, Window):
+                continue
+            with self.subTest(window=name):
+                self.assertIsInstance(window.media, DynamicMedia)
+
+    def test_catalogs_do_not_use_plain_emoji_as_interface_icons(self) -> None:
+        for path in sorted((PROJECT_ROOT / "assets" / "messages").rglob("*.ftl")):
+            source = path.read_text(encoding="utf-8")
+            without_custom_emoji = CUSTOM_EMOJI_RE.sub("", source)
+            match = PLAIN_EMOJI_RE.search(without_custom_emoji)
+            with self.subTest(path=path):
+                self.assertIsNone(
+                    match,
+                    f"plain emoji {match.group(0)!r} must use tg-emoji markup" if match else "",
+                )
+
+    def test_admin_buttons_use_custom_emoji_icons(self) -> None:
+        for name, window in vars(admin_windows).items():
+            if not isinstance(window, Window):
+                continue
+            for button in _buttons(window.keyboard):
+                with self.subTest(window=name, button=button.widget_id):
+                    self.assertIsNotNone(cast(Style, button.style).emoji_id)
+
     def test_legacy_emoji_catalog_keeps_public_provider_and_gift_exports(self) -> None:
         expected_exports = {
             "CRYPTOBOT_PAY_EMOJI_ID",

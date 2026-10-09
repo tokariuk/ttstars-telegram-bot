@@ -5,6 +5,12 @@ from aiogram_dialog.widgets.kbd import Button
 from aiogram_dialog.widgets.style import Style
 from aiogram_dialog.widgets.text import Format
 
+from app.telegram.dialogs.common.ttstars_interface_emoji import (
+    DANGER_EMOJI_ID,
+    LEFT_SQUARE_EMOJI_ID,
+    SWAP_EMOJI_ID,
+)
+
 from ..getters import order_force_getter, order_retry_getter, orders_menu_getter
 from ..handlers import (
     handle_order_force_input,
@@ -27,17 +33,19 @@ orders_menu_window: Window = Window(
         Format("{retry_button_text}"),
         id=ADMIN_ORDERS_RETRY_BUTTON_ID,
         on_click=show_order_retry,
+        style=Style(emoji_id=SWAP_EMOJI_ID),
     ),
     Button(
         Format("{force_button_text}"),
         id=ADMIN_ORDERS_FORCE_BUTTON_ID,
         on_click=show_order_force,
-        style=Style(style=ButtonStyle.DANGER),
+        style=Style(style=ButtonStyle.DANGER, emoji_id=DANGER_EMOJI_ID),
     ),
     Button(
         Format("{back_button_text}"),
         id=ADMIN_ORDERS_BACK_TO_MENU_BUTTON_ID,
         on_click=show_menu,
+        style=Style(emoji_id=LEFT_SQUARE_EMOJI_ID),
     ),
     state=AdminSG.orders_menu,
     getter=orders_menu_getter,
@@ -50,6 +58,7 @@ order_retry_window: Window = Window(
         Format("{back_button_text}"),
         id=ADMIN_ORDERS_BACK_TO_MENU_BUTTON_ID,
         on_click=show_orders_menu,
+        style=Style(emoji_id=LEFT_SQUARE_EMOJI_ID),
     ),
     state=AdminSG.order_retry,
     getter=order_retry_getter,
@@ -62,6 +71,7 @@ order_force_window: Window = Window(
         Format("{back_button_text}"),
         id=ADMIN_ORDERS_BACK_TO_MENU_BUTTON_ID,
         on_click=show_orders_menu,
+        style=Style(emoji_id=LEFT_SQUARE_EMOJI_ID),
     ),
     state=AdminSG.order_force,
     getter=order_force_getter,

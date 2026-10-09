@@ -1,6 +1,6 @@
 messages-admin_menu =
-    <blockquote><b>🛠️ Адмін-панель</b></blockquote>
+    <blockquote><b><tg-emoji emoji-id="5382118858301676590">⚙️</tg-emoji> Адмін-панель</b></blockquote>
 
-    Обери дію нижче.
+    Керування замовленнями, користувачами та службовими інструментами.
 
-messages-admin_menu_hint = <blockquote>🔑 Використай кнопки адмін-панелі нижче.</blockquote>
+messages-admin_menu_hint = <blockquote><tg-emoji emoji-id="5382282191612978286">ℹ️</tg-emoji> Вибери потрібний розділ кнопками нижче.</blockquote>

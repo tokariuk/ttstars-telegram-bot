@@ -1,5 +1,5 @@
 messages-admin_stats_screen =
-    <blockquote><b>📊 Statistics</b></blockquote>
+    <blockquote><b><tg-emoji emoji-id="5381817355892465423">📊</tg-emoji> Statistics</b></blockquote>
 
     <b>Users</b>
     • Total: <b>{ $users_total }</b>
@@ -25,6 +25,6 @@ messages-admin_stats_screen =
     • canceled: <b>{ $status_canceled }</b>
 
     <b>Completed products</b>
-    • Stars: <b>{ $completed_stars_count }</b> orders · <b>{ $completed_stars_units }</b> ⭐ · <b>{ $completed_stars_amount } USD</b>
+    • Stars: <b>{ $completed_stars_count }</b> orders · <b>{ $completed_stars_units }</b> <tg-emoji emoji-id="5381819344462327797">⭐</tg-emoji> · <b>{ $completed_stars_amount } USD</b>
     • Premium: <b>{ $completed_premium_count }</b> orders · <b>{ $completed_premium_amount } USD</b>
     • Top-up: <b>{ $completed_topup_count }</b> orders · <b>{ $completed_topup_amount } USD</b>

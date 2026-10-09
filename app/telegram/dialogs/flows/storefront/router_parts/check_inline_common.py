@@ -21,6 +21,7 @@ from app.services.crud.check import CheckClaimOutcome, CheckService
 from app.services.crud.user import UserService
 from app.stars import price_usd_for_cents
 from app.telegram.dialogs.common import normalize_i18n_locale
+from app.telegram.dialogs.common.ttstars_interface_emoji import LOADING_EMOJI_ID
 from app.telegram.html import escape_attribute, escape_text, username
 from app.utils.key_builder import build_key
 
@@ -165,7 +166,8 @@ def pending_markup() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="⏳",
+                    text="…",
+                    icon_custom_emoji_id=LOADING_EMOJI_ID,
                     callback_data=CHECK_PENDING_NOOP_CALLBACK,
                 )
             ]

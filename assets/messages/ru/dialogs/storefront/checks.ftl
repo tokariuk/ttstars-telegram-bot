@@ -219,7 +219,7 @@ messages-check_inline_card_message = <a href="{ $image_url }">&#8205;</a><tg-emo
 
 messages-check_inline_card_message_any = <a href="{ $image_url }">&#8205;</a><tg-emoji emoji-id="5382212574488075316">🧾</tg-emoji> Чек на <b>{ $stars }</b> <tg-emoji emoji-id="5381819344462327797">⭐</tg-emoji> (<b>{ $amount } USD</b>).
 
-messages-check_inline_received_button = ✅ Получено
+messages-check_inline_received_button = Получено
 
 messages-check_inline_share_title = Поделиться чеком на { $stars } Stars
 

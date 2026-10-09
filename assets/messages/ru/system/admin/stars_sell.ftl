@@ -9,7 +9,7 @@ messages-admin_stars_sell_days =
 messages-admin_stars_sell_menu_screen =
     <blockquote><b><tg-emoji emoji-id="5381819344462327797">⭐</tg-emoji> Продажа звёзд</b></blockquote>
 
-    Создавайте заявки на продажу и просматривайте их историю.
+    Создавай заявки на продажу и просматривай их историю.
 
     <b>Сводка:</b>
     • Всего заявок: <code>{ $total_orders }</code>
@@ -20,7 +20,7 @@ messages-admin_stars_sell_menu_screen =
 messages-admin_stars_sell_stars_screen =
     <blockquote><b><tg-emoji emoji-id="5381819344462327797">⭐</tg-emoji> Продажа звёзд · Шаг 1/3</b></blockquote>
 
-    Введите количество звёзд для продажи.
+    Введи количество звёзд для продажи.
 
     • Минимум: <code>{ $min_stars }</code> <tg-emoji emoji-id="5381819344462327797">⭐</tg-emoji>
     • Максимум: <code>{ $max_stars }</code> <tg-emoji emoji-id="5381819344462327797">⭐</tg-emoji>
@@ -32,7 +32,7 @@ messages-admin_stars_sell_stars_screen =
 messages-admin_stars_sell_wallet_screen =
     <blockquote><b><tg-emoji emoji-id="5381819344462327797">⭐</tg-emoji> Продажа звёзд · Шаг 2/3</b></blockquote>
 
-    Введите TON-кошелёк (USDT) для выплаты.
+    Введи TON-кошелёк (USDT) для выплаты.
 
     • Количество: <code>{ $stars_count }</code> <tg-emoji emoji-id="5381819344462327797">⭐</tg-emoji>
     • К выплате: <code>{ $payout_amount } USD</code>
@@ -41,7 +41,7 @@ messages-admin_stars_sell_wallet_screen =
 messages-admin_stars_sell_payment_screen =
     <blockquote><b><tg-emoji emoji-id="5381819344462327797">⭐</tg-emoji> Продажа звёзд · Шаг 3/3</b></blockquote>
 
-    Проверьте параметры и отправьте инвойс на оплату звёздами.
+    Проверь параметры и отправь инвойс на оплату звёздами.
 
     • Количество: <code>{ $stars_count }</code> <tg-emoji emoji-id="5381819344462327797">⭐</tg-emoji>
     • К выплате: <code>{ $payout_amount } USD</code>
@@ -52,13 +52,13 @@ messages-admin_stars_sell_payment_screen =
 messages-admin_stars_sell_history_list_screen =
     <blockquote><b><tg-emoji emoji-id="5381819344462327797">⭐</tg-emoji> Продажа звёзд · История заявок</b></blockquote>
 
-    Выберите заявку, чтобы открыть детали.
+    Выбери заявку, чтобы открыть детали.
     • Страница: <code>{ $page }</code>
 
 messages-admin_stars_sell_history_list_empty_screen =
     <blockquote><b><tg-emoji emoji-id="5381819344462327797">⭐</tg-emoji> Продажа звёзд · История заявок</b></blockquote>
 
-    У вас пока нет заявок на продажу.
+    Заявок на продажу пока нет. Создай первую заявку в разделе продажи звёзд.
 
 messages-admin_stars_sell_history_detail_not_found =
     <blockquote><tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> Заявка не найдена.</blockquote>
@@ -78,34 +78,34 @@ messages-admin_stars_sell_history_detail_screen =
     • Доступно к выплате: { $payout_available_at }
     • Завершено: { $completed_at }
     • Отклонено: { $rejected_at }
-    • Рефанд: { $refunded_at }
+    • Возврат: { $refunded_at }
 
-    <b>Технические данные:</b>
-    • User ID: <code>{ $user_id }</code>
+    <blockquote expandable><b>Технические данные</b>
+    • ID пользователя: <code>{ $user_id }</code>
     • Данные инвойса: <code>{ $invoice_payload }</code>
     • Оплачено в Stars: <code>{ $paid_stars }</code>
     • Причина ошибки: <code>{ $failure_reason }</code>
-    • Причина резолюции: <code>{ $resolution_reason }</code>
-    • Комментарий резолюции: <code>{ $resolution_note }</code>
+    • Причина решения: <code>{ $resolution_reason }</code>
+    • Комментарий к решению: <code>{ $resolution_note }</code></blockquote>
 
 messages-admin_stars_sell_admin_list_screen =
-    <b>Продажа звёзд · Управление заявками</b>
+    <blockquote><b><tg-emoji emoji-id="5382118858301676590">⚙️</tg-emoji> Продажа звёзд · Управление заявками</b></blockquote>
 
-    Выберите заявку для управления.
+    Выбери заявку для управления.
     • Страница: <code>{ $page }</code>
 
 messages-admin_stars_sell_admin_list_empty_screen =
-    <b>Продажа звёзд · Управление заявками</b>
+    <blockquote><b><tg-emoji emoji-id="5382118858301676590">⚙️</tg-emoji> Продажа звёзд · Управление заявками</b></blockquote>
 
-    Заявок для управления пока нет.
+    Заявок, требующих управления, пока нет.
 
 messages-admin_stars_sell_admin_detail_not_found =
-    ⚠️ Заявка не найдена.
+    <blockquote><tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> Заявка не найдена.</blockquote>
 
 messages-admin_stars_sell_admin_detail_screen =
-    <b>Управление заявкой #{ $order_id }</b>
+    <blockquote><b><tg-emoji emoji-id="5382118858301676590">⚙️</tg-emoji> Управление заявкой #{ $order_id }</b></blockquote>
 
-    • User ID: <code>{ $user_id }</code>
+    • ID пользователя: <code>{ $user_id }</code>
     • Статус: <code>{ $status }</code>
     • Количество: <code>{ $stars_count }</code> <tg-emoji emoji-id="5381819344462327797">⭐</tg-emoji>
     • К выплате: <code>{ $payout_amount } USD</code>
@@ -118,14 +118,14 @@ messages-admin_stars_sell_admin_detail_screen =
     • Доступно к выплате: { $payout_available_at }
     • Завершено: { $completed_at }
     • Отклонено: { $rejected_at }
-    • Рефанд: { $refunded_at }
+    • Возврат: { $refunded_at }
 
-    <b>Технические данные:</b>
+    <blockquote expandable><b>Технические данные</b>
     • Данные инвойса: <code>{ $invoice_payload }</code>
     • Оплачено в Stars: <code>{ $paid_stars }</code>
     • Причина ошибки: <code>{ $failure_reason }</code>
-    • Причина резолюции: <code>{ $resolution_reason }</code>
-    • Комментарий резолюции: <code>{ $resolution_note }</code>
+    • Причина решения: <code>{ $resolution_reason }</code>
+    • Комментарий к решению: <code>{ $resolution_note }</code></blockquote>
 
 messages-admin_stars_sell_status_pending_payment = ожидает оплату
 messages-admin_stars_sell_status_paid_hold = оплачено (холд)
@@ -167,15 +167,15 @@ messages-admin_stars_sell_invoice_canceled = <blockquote><tg-emoji emoji-id="538
 messages-admin_stars_sell_invoice_cancel_unavailable = <blockquote><tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> Эту заявку уже нельзя отменить.</blockquote>
 messages-admin_stars_sell_invoice_cancel_not_found = <blockquote><tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> Заявка не найдена.</blockquote>
 
-messages-admin_stars_sell_admin_action_completed = ✅ Заявка <code>{ $order_id }</code> отмечена как завершённая.
-messages-admin_stars_sell_admin_action_rejected = ✅ Заявка <code>{ $order_id }</code> отклонена.
-messages-admin_stars_sell_admin_action_not_ready = ⚠️ Заявка <code>{ $order_id }</code> ещё на холде. Доступно после: <code>{ $payout_available_at }</code>.
-messages-admin_stars_sell_admin_action_conflict = ⚠️ Статус заявки <code>{ $order_id }</code> уже изменён. Обновите данные.
-messages-admin_stars_sell_admin_action_failed = ❌ Не удалось выполнить действие для заявки <code>{ $order_id }</code>.
+messages-admin_stars_sell_admin_action_completed = <tg-emoji emoji-id="5382230286933205157">✅</tg-emoji> Заявка <code>{ $order_id }</code> отмечена как завершённая.
+messages-admin_stars_sell_admin_action_rejected = <tg-emoji emoji-id="5382230286933205157">✅</tg-emoji> Заявка <code>{ $order_id }</code> отклонена.
+messages-admin_stars_sell_admin_action_not_ready = <tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> Заявка <code>{ $order_id }</code> ещё на холде. Доступно после: <code>{ $payout_available_at }</code>.
+messages-admin_stars_sell_admin_action_conflict = <tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> Статус заявки <code>{ $order_id }</code> уже изменён. Обнови данные.
+messages-admin_stars_sell_admin_action_failed = <tg-emoji emoji-id="5381932538325404900">❌</tg-emoji> Не удалось выполнить действие для заявки <code>{ $order_id }</code>.
 
 messages-admin_stars_sell_invoice_title = Продажа Telegram Stars
-messages-admin_stars_sell_invoice_description = Продажа { $stars_count } ⭐. После подтверждения оплаты выплата { $payout_amount } USD будет доступна через { $hold_days_text }.
-messages-admin_stars_sell_invoice_label = Продажа { $stars_count } ⭐
+messages-admin_stars_sell_invoice_description = Продажа { $stars_count } Stars. После подтверждения оплаты выплата { $payout_amount } USD будет доступна через { $hold_days_text }.
+messages-admin_stars_sell_invoice_label = Продажа { $stars_count } Stars
 
 messages-admin_stars_sell_payment_confirmed =
     <blockquote><b><tg-emoji emoji-id="5382230286933205157">✅</tg-emoji> Оплата звёздами подтверждена</b></blockquote>
