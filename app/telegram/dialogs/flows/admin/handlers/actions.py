@@ -7,6 +7,7 @@ from aiogram_dialog import DialogManager, ShowMode
 from aiogram_dialog.widgets.kbd import Button
 
 from app.services.promo_codes import PromoCodeService
+from app.telegram.html import escape_text
 
 from ..helpers import (
     deliver_broadcast,
@@ -130,7 +131,7 @@ async def promo_delete_selected(
     else:
         set_notice(
             dialog_manager,
-            str(i18n_ctx.messages.admin_promo_deleted(code=selected)),
+            str(i18n_ctx.messages.admin_promo_deleted(code=escape_text(selected))),
         )
     set_promo_selected_code(dialog_manager, None)
     await dialog_manager.switch_to(AdminSG.promo_menu, show_mode=ShowMode.EDIT)
@@ -172,7 +173,7 @@ async def promo_toggle_selected(
             dialog_manager,
             str(
                 i18n_ctx.messages.admin_promo_toggle_done(
-                    code=selected,
+                    code=escape_text(selected),
                     status=(
                         str(i18n_ctx.messages.admin_promo_status_disabled())
                         if code.is_enabled
@@ -285,7 +286,7 @@ async def _promo_set_selected_limit(
             dialog_manager,
             str(
                 i18n_ctx.messages.admin_promo_set_limit_done(
-                    code=updated.code,
+                    code=escape_text(updated.code),
                     max_activations=max_activations_text,
                 )
             ),

@@ -6,7 +6,7 @@ messages-history_list_screen =
 messages-history_list_empty_screen =
     <blockquote><b><tg-emoji emoji-id="5382065781095830261">📃</tg-emoji> Історія операцій</b></blockquote>
 
-    Операцій ще немає.
+    Операцій ще немає. Почни з купівлі Stars, Premium або поповнення балансу в головному меню.
 
 messages-history_operation_button = #{ $order_id } · { $product } · { $amount } USD
 
@@ -34,8 +34,8 @@ messages-history_detail_screen =
     <b>Оплачено:</b> { $paid }
     <b>Виконано:</b> { $fulfilled }
 
-    <b>Provider ref:</b> <code>{ $provider_ref }</code>
-    <b>TX:</b> <tg-spoiler><code>{ $tx_hash }</code></tg-spoiler></blockquote>
+    <b>ID у провайдера:</b> { $provider_ref }
+    <b>TX:</b> { $tx_hash }</blockquote>
 
 messages-history_detail_not_found =
     <blockquote><tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> Операцію не знайдено або вона недоступна.</blockquote>

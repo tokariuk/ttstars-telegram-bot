@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Final
 from uuid import uuid4
 
-from aiogram import Bot, html
+from aiogram import Bot
 from aiogram.types import (
     ChosenInlineResult,
     InlineKeyboardButton,
@@ -21,6 +21,7 @@ from app.services.crud.check import CheckClaimOutcome, CheckService
 from app.services.crud.user import UserService
 from app.stars import price_usd_for_cents
 from app.telegram.dialogs.common import normalize_i18n_locale
+from app.telegram.html import escape_attribute, escape_text, username
 from app.utils.key_builder import build_key
 
 from ..check_card import build_check_card_preview_url
@@ -181,17 +182,17 @@ def inline_check_message_text(
     if not check.claim_username:
         return str(
             i18n.messages.check_inline_card_message_any(
-                image_url=image_url,
+                image_url=escape_attribute(image_url),
                 stars=check.stars_count,
                 amount=price_usd_for_cents(check.amount_cents),
             )
         )
     return str(
         i18n.messages.check_inline_card_message(
-            image_url=image_url,
+            image_url=escape_attribute(image_url),
             stars=check.stars_count,
             amount=price_usd_for_cents(check.amount_cents),
-            target=f"@{check.claim_username}",
+            target=username(check.claim_username),
         )
     )
 
@@ -214,7 +215,11 @@ async def send_inline_fallback_message(
 
 
 def claim_notice(*, i18n: I18nContext, check: CheckDto | None, outcome: CheckClaimOutcome) -> str:
-    tx_hash = check.provider_tx_hash if check is not None and check.provider_tx_hash else "—"
+    tx_hash = (
+        escape_text(check.provider_tx_hash)
+        if check is not None and check.provider_tx_hash
+        else "—"
+    )
     stars_count = check.stars_count if check is not None else 0
     if outcome == CheckClaimOutcome.CLAIMED:
         return str(i18n.messages.check_claim_done_stars(stars=stars_count, tx_hash=tx_hash))
@@ -253,7 +258,7 @@ def creator_claim_text(
     with i18n.use_locale(normalize_i18n_locale(language)):
         return str(
             i18n.messages.check_creator_claimed(
-                claimer=html.quote(claimer),
+                claimer=escape_text(claimer),
                 stars=check.stars_count,
                 amount=amount_usd,
             )

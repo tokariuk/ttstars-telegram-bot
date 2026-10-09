@@ -1,6 +1,5 @@
 messages-greeting =
     <blockquote><b><tg-emoji emoji-id="5409300366288264833">🔫</tg-emoji> TTStars</b></blockquote>
 
-    Ласкаво просимо, <b>{ $name }</b>!
-
+    <b>{ $name }</b>, обери дію.
     <tg-emoji emoji-id="5381926933393085632">👛</tg-emoji> Баланс: <code>{ $balance } USD</code>

@@ -1,7 +1,7 @@
 from aiogram.enums.button_style import ButtonStyle
 from aiogram_dialog import Window
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Button
+from aiogram_dialog.widgets.kbd import Button, Row
 from aiogram_dialog.widgets.style import Style
 from aiogram_dialog.widgets.text import Format
 
@@ -239,12 +239,6 @@ gifts_message_window: Window = Window(
         style=Style(style=ButtonStyle.PRIMARY, emoji_id=CHECK_EMOJI_ID),
     ),
     Button(
-        Format("{back_recipient_text}"),
-        id=STOREFRONT_GIFT_BACK_TO_RECIPIENT_BUTTON_ID,
-        on_click=show_gifts,
-        style=Style(emoji_id=EDIT_2_EMOJI_ID),
-    ),
-    Button(
         Format("{back_catalog_text}"),
         id=STOREFRONT_GIFT_BACK_TO_CATALOG_BUTTON_ID,
         on_click=show_gifts_catalog,
@@ -274,18 +268,6 @@ gifts_sender_privacy_window: Window = Window(
         id=STOREFRONT_GIFT_SENDER_PRIVATE_BUTTON_ID,
         on_click=select_gift_sender_private,
         style=Style(style=ButtonStyle.PRIMARY, emoji_id=CLOSE_EMOJI_ID),
-    ),
-    Button(
-        Format("{back_recipient_text}"),
-        id=STOREFRONT_GIFT_BACK_TO_RECIPIENT_BUTTON_ID,
-        on_click=show_gifts,
-        style=Style(emoji_id=EDIT_2_EMOJI_ID),
-    ),
-    Button(
-        Format("{back_catalog_text}"),
-        id=STOREFRONT_GIFT_BACK_TO_CATALOG_BUTTON_ID,
-        on_click=show_gifts_catalog,
-        style=Style(emoji_id=EDIT_2_EMOJI_ID),
     ),
     Button(
         Format("{back_message_text}"),
@@ -318,7 +300,7 @@ gifts_payment_window: Window = Window(
         id=STOREFRONT_PAY_GIFT_CRYPTO_DANGER_BUTTON_ID,
         on_click=pay_gift_with_crypto,
         when="can_pay_crypto_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=CRYPTOBOT_PAY_EMOJI_ID),
+        style=Style(emoji_id=CRYPTOBOT_PAY_EMOJI_ID),
     ),
     Button(
         Format("{pay_ton_text}"),
@@ -332,7 +314,7 @@ gifts_payment_window: Window = Window(
         id=STOREFRONT_PAY_GIFT_TON_DANGER_BUTTON_ID,
         on_click=pay_gift_with_ton,
         when="can_pay_ton_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=TON_EMOJI_ID),
+        style=Style(emoji_id=TON_EMOJI_ID),
     ),
     Button(
         Format("{pay_platega_text}"),
@@ -346,7 +328,7 @@ gifts_payment_window: Window = Window(
         id=STOREFRONT_PAY_GIFT_PLATEGA_DANGER_BUTTON_ID,
         on_click=pay_gift_with_platega,
         when="can_pay_platega_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=SPB_PAY_EMOJI_ID),
+        style=Style(emoji_id=SPB_PAY_EMOJI_ID),
     ),
     Button(
         Format("{pay_lzt_text}"),
@@ -360,7 +342,7 @@ gifts_payment_window: Window = Window(
         id=STOREFRONT_PAY_GIFT_LZT_DANGER_BUTTON_ID,
         on_click=pay_gift_with_lzt,
         when="can_pay_lzt_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=LZT_PAY_EMOJI_ID),
+        style=Style(emoji_id=LZT_PAY_EMOJI_ID),
     ),
     Button(
         Format("{pay_nicepay_ru_text}"),
@@ -374,7 +356,7 @@ gifts_payment_window: Window = Window(
         id=STOREFRONT_PAY_GIFT_NICEPAY_RU_DANGER_BUTTON_ID,
         on_click=pay_gift_with_nicepay_ru,
         when="can_pay_nicepay_ru_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=NICEPAY_EMOJI_ID),
+        style=Style(emoji_id=NICEPAY_EMOJI_ID),
     ),
     Button(
         Format("{pay_nicepay_kz_text}"),
@@ -388,7 +370,7 @@ gifts_payment_window: Window = Window(
         id=STOREFRONT_PAY_GIFT_NICEPAY_KZ_DANGER_BUTTON_ID,
         on_click=pay_gift_with_nicepay_kz,
         when="can_pay_nicepay_kz_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=NICEPAY_EMOJI_ID),
+        style=Style(emoji_id=NICEPAY_EMOJI_ID),
     ),
     Button(
         Format("{pay_heleket_text}"),
@@ -402,7 +384,7 @@ gifts_payment_window: Window = Window(
         id=STOREFRONT_PAY_GIFT_HELEKET_DANGER_BUTTON_ID,
         on_click=pay_gift_with_heleket,
         when="can_pay_heleket_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=HELEKET_PAY_EMOJI_ID),
+        style=Style(emoji_id=HELEKET_PAY_EMOJI_ID),
     ),
     Button(
         Format("{pay_xrocket_text}"),
@@ -416,7 +398,7 @@ gifts_payment_window: Window = Window(
         id=STOREFRONT_PAY_GIFT_XROCKET_DANGER_BUTTON_ID,
         on_click=pay_gift_with_xrocket,
         when="can_pay_xrocket_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=XROCKET_EMOJI_ID),
+        style=Style(emoji_id=XROCKET_EMOJI_ID),
     ),
     Button(
         Format("{pay_balance_text}"),
@@ -425,29 +407,33 @@ gifts_payment_window: Window = Window(
         when="can_pay_balance",
         style=Style(style=ButtonStyle.SUCCESS, emoji_id=WALLET_EMOJI_ID),
     ),
-    Button(
-        Format("{back_recipient_text}"),
-        id=STOREFRONT_GIFT_BACK_TO_RECIPIENT_BUTTON_ID,
-        on_click=show_gifts,
-        style=Style(emoji_id=EDIT_2_EMOJI_ID),
+    Row(
+        Button(
+            Format("{back_recipient_text}"),
+            id=STOREFRONT_GIFT_BACK_TO_RECIPIENT_BUTTON_ID,
+            on_click=show_gifts,
+            style=Style(emoji_id=EDIT_2_EMOJI_ID),
+        ),
+        Button(
+            Format("{back_catalog_text}"),
+            id=STOREFRONT_GIFT_BACK_TO_CATALOG_BUTTON_ID,
+            on_click=show_gifts_catalog,
+            style=Style(emoji_id=EDIT_2_EMOJI_ID),
+        ),
     ),
-    Button(
-        Format("{back_catalog_text}"),
-        id=STOREFRONT_GIFT_BACK_TO_CATALOG_BUTTON_ID,
-        on_click=show_gifts_catalog,
-        style=Style(emoji_id=EDIT_2_EMOJI_ID),
-    ),
-    Button(
-        Format("{back_message_text}"),
-        id=STOREFRONT_GIFT_BACK_TO_MESSAGE_BUTTON_ID,
-        on_click=show_gifts_message,
-        style=Style(emoji_id=EDIT_2_EMOJI_ID),
-    ),
-    Button(
-        Format("{back_sender_visibility_text}"),
-        id=STOREFRONT_GIFT_BACK_TO_SENDER_VISIBILITY_BUTTON_ID,
-        on_click=show_gifts_sender_privacy,
-        style=Style(emoji_id=EDIT_2_EMOJI_ID),
+    Row(
+        Button(
+            Format("{back_message_text}"),
+            id=STOREFRONT_GIFT_BACK_TO_MESSAGE_BUTTON_ID,
+            on_click=show_gifts_message,
+            style=Style(emoji_id=EDIT_2_EMOJI_ID),
+        ),
+        Button(
+            Format("{back_sender_visibility_text}"),
+            id=STOREFRONT_GIFT_BACK_TO_SENDER_VISIBILITY_BUTTON_ID,
+            on_click=show_gifts_sender_privacy,
+            style=Style(emoji_id=EDIT_2_EMOJI_ID),
+        ),
     ),
     Button(
         Format("{back_button_text}"),

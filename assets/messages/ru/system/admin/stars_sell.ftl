@@ -82,7 +82,7 @@ messages-admin_stars_sell_history_detail_screen =
 
     <b>Технические данные:</b>
     • User ID: <code>{ $user_id }</code>
-    • Invoice payload: <code>{ $invoice_payload }</code>
+    • Данные инвойса: <code>{ $invoice_payload }</code>
     • Оплачено в Stars: <code>{ $paid_stars }</code>
     • Причина ошибки: <code>{ $failure_reason }</code>
     • Причина резолюции: <code>{ $resolution_reason }</code>
@@ -121,7 +121,7 @@ messages-admin_stars_sell_admin_detail_screen =
     • Рефанд: { $refunded_at }
 
     <b>Технические данные:</b>
-    • Invoice payload: <code>{ $invoice_payload }</code>
+    • Данные инвойса: <code>{ $invoice_payload }</code>
     • Оплачено в Stars: <code>{ $paid_stars }</code>
     • Причина ошибки: <code>{ $failure_reason }</code>
     • Причина резолюции: <code>{ $resolution_reason }</code>

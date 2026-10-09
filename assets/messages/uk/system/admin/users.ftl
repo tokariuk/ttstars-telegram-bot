@@ -31,7 +31,7 @@ messages-admin_users_lookup_done =
     • Баланс: <code>{ $balance } USD</code>
     • Реферальний баланс: <code>{ $referral_balance } USD</code>
     • Зароблено по рефералах: <code>{ $referral_earned } USD</code>
-    • Referrer ID: <code>{ $referrer_id }</code>
+    • ID запрошувача: <code>{ $referrer_id }</code>
     • Заблокував бота: <code>{ $blocked }</code>
     • Заблоковано з: <code>{ $blocked_at }</code>
 messages-admin_users_not_found = <blockquote>❌ Користувача <code>{ $user_id }</code> не знайдено.</blockquote>

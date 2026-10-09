@@ -1,6 +1,8 @@
+from aiogram.enums.button_style import ButtonStyle
 from aiogram_dialog import Window
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button
+from aiogram_dialog.widgets.style import Style
 from aiogram_dialog.widgets.text import Format
 
 from ..getters import order_force_getter, order_retry_getter, orders_menu_getter
@@ -30,6 +32,7 @@ orders_menu_window: Window = Window(
         Format("{force_button_text}"),
         id=ADMIN_ORDERS_FORCE_BUTTON_ID,
         on_click=show_order_force,
+        style=Style(style=ButtonStyle.DANGER),
     ),
     Button(
         Format("{back_button_text}"),

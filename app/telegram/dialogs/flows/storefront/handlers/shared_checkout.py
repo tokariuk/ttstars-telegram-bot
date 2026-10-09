@@ -18,6 +18,7 @@ from app.services.crud.stars_order import CheckoutPricing
 from app.stars import normalize_recipient_username, price_usd_for_cents
 from app.telegram.dialogs.common import get_i18n, get_user
 from app.telegram.dialogs.common.premium_emoji import CLOSE_EMOJI_ID, WALLET_EMOJI_ID
+from app.telegram.html import escape_text, username
 from app.telegram.keyboards.callback_data.order import CDOrderCheckoutCancel
 
 from .shared_constants import GIFT_NAME_MESSAGE_BY_KEY
@@ -59,7 +60,7 @@ def order_checkout_message_text(
             _localized_gift_name(i18n=i18n, gift_id=order.gift_id) if order.gift_id else "—"
         )
         recipient_display = (
-            f"@{order.recipient_username}"
+            username(order.recipient_username)
             if normalize_recipient_username(order.recipient_username) is not None
             else str(order.recipient_user_id or 0)
         )
@@ -75,7 +76,7 @@ def order_checkout_message_text(
                 amount=amount,
                 fee_text=fee_text,
                 pay_amount=total_with_fee,
-                message=order.gift_message or "—",
+                message=escape_text(order.gift_message) if order.gift_message else "—",
                 sender_visibility=visibility,
             )
         )
@@ -83,7 +84,7 @@ def order_checkout_message_text(
         return str(
             i18n.messages.order_checkout_message_premium(
                 months=order.premium_months or 0,
-                recipient=order.recipient_username,
+                recipient=escape_text(order.recipient_username),
                 amount=amount,
                 fee_text=fee_text,
                 pay_amount=total_with_fee,
@@ -92,7 +93,7 @@ def order_checkout_message_text(
     return str(
         i18n.messages.order_checkout_message_stars(
             stars=order.stars_count,
-            recipient=order.recipient_username,
+            recipient=escape_text(order.recipient_username),
             amount=amount,
             fee_text=fee_text,
             pay_amount=total_with_fee,

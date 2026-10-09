@@ -6,7 +6,7 @@ messages-history_list_screen =
 messages-history_list_empty_screen =
     <blockquote><b><tg-emoji emoji-id="5382065781095830261">📃</tg-emoji> Operation History</b></blockquote>
 
-    No operations yet.
+    No operations yet. Start with Stars, Premium, or a balance top-up from the main menu.
 
 messages-history_operation_button = #{ $order_id } · { $product } · { $amount } USD
 
@@ -34,8 +34,8 @@ messages-history_detail_screen =
     <b>Paid:</b> { $paid }
     <b>Fulfilled:</b> { $fulfilled }
 
-    <b>Provider ref:</b> <code>{ $provider_ref }</code>
-    <b>TX:</b> <tg-spoiler><code>{ $tx_hash }</code></tg-spoiler></blockquote>
+    <b>Provider ref:</b> { $provider_ref }
+    <b>TX:</b> { $tx_hash }</blockquote>
 
 messages-history_detail_not_found =
     <blockquote><tg-emoji emoji-id="5381889309479574958">⚠️</tg-emoji> Operation not found or unavailable.</blockquote>

@@ -141,7 +141,7 @@ premium_payment_window: Window = Window(
         id=STOREFRONT_PAY_PREMIUM_CRYPTO_DANGER_BUTTON_ID,
         on_click=pay_premium_with_crypto,
         when="can_pay_crypto_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=CRYPTOBOT_PAY_EMOJI_ID),
+        style=Style(emoji_id=CRYPTOBOT_PAY_EMOJI_ID),
     ),
     Button(
         Format("{pay_ton_text}"),
@@ -155,7 +155,7 @@ premium_payment_window: Window = Window(
         id=STOREFRONT_PAY_PREMIUM_TON_DANGER_BUTTON_ID,
         on_click=pay_premium_with_ton,
         when="can_pay_ton_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=TON_EMOJI_ID),
+        style=Style(emoji_id=TON_EMOJI_ID),
     ),
     Button(
         Format("{pay_platega_text}"),
@@ -169,7 +169,7 @@ premium_payment_window: Window = Window(
         id=STOREFRONT_PAY_PREMIUM_PLATEGA_DANGER_BUTTON_ID,
         on_click=pay_premium_with_platega,
         when="can_pay_platega_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=SPB_PAY_EMOJI_ID),
+        style=Style(emoji_id=SPB_PAY_EMOJI_ID),
     ),
     Button(
         Format("{pay_lzt_text}"),
@@ -183,7 +183,7 @@ premium_payment_window: Window = Window(
         id=STOREFRONT_PAY_PREMIUM_LZT_DANGER_BUTTON_ID,
         on_click=pay_premium_with_lzt,
         when="can_pay_lzt_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=LZT_PAY_EMOJI_ID),
+        style=Style(emoji_id=LZT_PAY_EMOJI_ID),
     ),
     Button(
         Format("{pay_nicepay_ru_text}"),
@@ -197,7 +197,7 @@ premium_payment_window: Window = Window(
         id=STOREFRONT_PAY_PREMIUM_NICEPAY_RU_DANGER_BUTTON_ID,
         on_click=pay_premium_with_nicepay_ru,
         when="can_pay_nicepay_ru_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=NICEPAY_EMOJI_ID),
+        style=Style(emoji_id=NICEPAY_EMOJI_ID),
     ),
     Button(
         Format("{pay_nicepay_kz_text}"),
@@ -211,7 +211,7 @@ premium_payment_window: Window = Window(
         id=STOREFRONT_PAY_PREMIUM_NICEPAY_KZ_DANGER_BUTTON_ID,
         on_click=pay_premium_with_nicepay_kz,
         when="can_pay_nicepay_kz_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=NICEPAY_EMOJI_ID),
+        style=Style(emoji_id=NICEPAY_EMOJI_ID),
     ),
     Button(
         Format("{pay_heleket_text}"),
@@ -225,7 +225,7 @@ premium_payment_window: Window = Window(
         id=STOREFRONT_PAY_PREMIUM_HELEKET_DANGER_BUTTON_ID,
         on_click=pay_premium_with_heleket,
         when="can_pay_heleket_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=HELEKET_PAY_EMOJI_ID),
+        style=Style(emoji_id=HELEKET_PAY_EMOJI_ID),
     ),
     Button(
         Format("{pay_xrocket_text}"),
@@ -239,7 +239,7 @@ premium_payment_window: Window = Window(
         id=STOREFRONT_PAY_PREMIUM_XROCKET_DANGER_BUTTON_ID,
         on_click=pay_premium_with_xrocket,
         when="can_pay_xrocket_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=XROCKET_EMOJI_ID),
+        style=Style(emoji_id=XROCKET_EMOJI_ID),
     ),
     Button(
         Format("{pay_balance_text}"),

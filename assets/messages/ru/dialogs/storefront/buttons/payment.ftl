@@ -15,5 +15,5 @@ buttons-pay_nicepay_kz = NicePay (KZ карты)
 buttons-pay_heleket = Heleket (крипта)
 buttons-pay_xrocket = xRocket
 buttons-cancel_order = Отменить заказ
-buttons-open_checkout = Открыть checkout
+buttons-open_checkout = Открыть оплату
 buttons-change_topup_amount = Изменить сумму

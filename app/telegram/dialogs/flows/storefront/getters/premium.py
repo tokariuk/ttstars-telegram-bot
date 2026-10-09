@@ -6,6 +6,7 @@ from aiogram_dialog import DialogManager
 
 from app.enums.stars_order import StarsPaymentProvider
 from app.stars import get_premium_pack
+from app.telegram.html import username
 
 from .common import (
     PREMIUM_RECIPIENT_USERNAME_KEY,
@@ -42,7 +43,7 @@ async def premium_plans_getter(dialog_manager: DialogManager, **_: Any) -> dict[
             amount_3=pack_3.price_usd,
             amount_6=pack_6.price_usd,
             amount_12=pack_12.price_usd,
-            recipient=(f"@{recipient}" if recipient else "—"),
+            recipient=username(recipient),
         )
     )
     notice = consume_notice(dialog_manager)
@@ -69,7 +70,7 @@ async def premium_recipient_getter(dialog_manager: DialogManager, **_: Any) -> d
         i18n.messages.premium_recipient_screen(
             months=pack.months,
             amount=pack.price_usd,
-            recipient=(f"@{recipient}" if recipient else "—"),
+            recipient=username(recipient),
         )
     )
     notice = consume_notice(dialog_manager)
@@ -97,7 +98,7 @@ async def premium_payment_getter(dialog_manager: DialogManager, **_: Any) -> dic
         i18n.messages.premium_payment_screen(
             months=pack.months,
             amount=pack.price_usd,
-            recipient=(f"@{recipient}" if recipient else "—"),
+            recipient=username(recipient),
             balance=price_usd_for_cents(user.balance_cents),
         )
     )

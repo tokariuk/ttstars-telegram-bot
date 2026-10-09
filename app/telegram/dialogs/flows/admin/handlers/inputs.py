@@ -10,6 +10,7 @@ from aiogram_dialog.widgets.input import MessageInput
 
 from app.services.promo_codes import PromoCodeService
 from app.stars import price_usd_for_cents
+from app.telegram.html import escape_text, link, safe_diagnostic
 
 from ..helpers import (
     extract_broadcast_payload,
@@ -81,7 +82,11 @@ async def handle_broadcast_options_input(
     except ValueError as error:
         set_notice(
             dialog_manager,
-            str(i18n_ctx.messages.admin_broadcast_options_invalid(error=str(error))),
+            str(
+                i18n_ctx.messages.admin_broadcast_options_invalid(
+                    error=safe_diagnostic(str(error))
+                )
+            ),
         )
         await dialog_manager.switch_to(AdminSG.broadcast_options, show_mode=ShowMode.EDIT)
         with contextlib.suppress(Exception):
@@ -122,7 +127,11 @@ async def handle_broadcast_buttons_input(
         except ValueError as error:
             set_notice(
                 dialog_manager,
-                str(i18n_ctx.messages.admin_broadcast_buttons_invalid(error=str(error))),
+                str(
+                    i18n_ctx.messages.admin_broadcast_buttons_invalid(
+                        error=safe_diagnostic(str(error))
+                    )
+                ),
             )
             await dialog_manager.switch_to(AdminSG.broadcast_buttons, show_mode=ShowMode.EDIT)
             with contextlib.suppress(Exception):
@@ -161,7 +170,7 @@ async def handle_promo_create_input(
     except (PromoCodeService.InvalidCodeError, PromoCodeService.CodeAlreadyExistsError) as error:
         set_notice(
             dialog_manager,
-            str(i18n_ctx.messages.admin_promo_create_failed(error=str(error))),
+            str(i18n_ctx.messages.admin_promo_create_failed(error=safe_diagnostic(str(error)))),
         )
         await dialog_manager.switch_to(AdminSG.promo_create, show_mode=ShowMode.EDIT)
     else:
@@ -174,7 +183,7 @@ async def handle_promo_create_input(
             dialog_manager,
             str(
                 i18n_ctx.messages.admin_promo_created(
-                    code=created.code,
+                    code=escape_text(created.code),
                     amount=price_usd_for_cents(created.amount_cents),
                     max_activations=max_activations_text,
                 )
@@ -210,7 +219,7 @@ async def handle_promo_quick_input(
     except PromoCodeService.Error as error:
         set_notice(
             dialog_manager,
-            str(i18n_ctx.messages.admin_promo_quick_failed(error=str(error))),
+            str(i18n_ctx.messages.admin_promo_quick_failed(error=safe_diagnostic(str(error)))),
         )
         await dialog_manager.switch_to(AdminSG.promo_quick, show_mode=ShowMode.EDIT)
     else:
@@ -219,7 +228,7 @@ async def handle_promo_quick_input(
             dialog_manager,
             str(
                 i18n_ctx.messages.admin_promo_quick_done(
-                    code=created.code,
+                    code=escape_text(created.code),
                     amount=price_usd_for_cents(amount_cents),
                 )
             ),
@@ -254,11 +263,11 @@ async def handle_promo_bulk_input(
     except PromoCodeService.Error as error:
         set_notice(
             dialog_manager,
-            str(i18n_ctx.messages.admin_promo_bulk_failed(error=str(error))),
+            str(i18n_ctx.messages.admin_promo_bulk_failed(error=safe_diagnostic(str(error)))),
         )
         await dialog_manager.switch_to(AdminSG.promo_bulk, show_mode=ShowMode.EDIT)
     else:
-        codes_preview = "\n".join(code.code for code in created_codes[:40])
+        codes_preview = escape_text("\n".join(code.code for code in created_codes[:40]))
         set_notice(
             dialog_manager,
             str(
@@ -308,7 +317,7 @@ async def handle_promo_set_limit_input(
     except PromoCodeService.Error as error:
         set_notice(
             dialog_manager,
-            str(i18n_ctx.messages.admin_promo_set_limit_failed(error=str(error))),
+            str(i18n_ctx.messages.admin_promo_set_limit_failed(error=safe_diagnostic(str(error)))),
         )
         await dialog_manager.switch_to(AdminSG.promo_set_limit, show_mode=ShowMode.EDIT)
     else:
@@ -321,7 +330,7 @@ async def handle_promo_set_limit_input(
             dialog_manager,
             str(
                 i18n_ctx.messages.admin_promo_set_limit_done(
-                    code=updated.code,
+                    code=escape_text(updated.code),
                     max_activations=max_activations_text,
                 )
             ),
@@ -448,10 +457,10 @@ async def handle_user_lookup_input(
         str(
             i18n_ctx.messages.admin_users_lookup_done(
                 user_id=found_user.id,
-                mention=found_user.mention,
-                user_url=found_user.url,
-                language=found_user.language,
-                language_code=language_code,
+                mention=link(found_user.name, found_user.url),
+                user_url=escape_text(found_user.url),
+                language=escape_text(found_user.language),
+                language_code=escape_text(language_code),
                 balance=price_usd_for_cents(found_user.balance_cents),
                 referral_balance=price_usd_for_cents(found_user.referral_balance_cents),
                 referral_earned=price_usd_for_cents(found_user.referral_earned_cents),
@@ -520,9 +529,13 @@ async def handle_order_retry_input(
                 order_id=result.order.id,
                 outcome=_order_outcome_label(i18n_ctx=i18n_ctx, outcome=result.outcome),
                 status=result.order.status.value,
-                provider_status=result.order.provider_status or "—",
-                tx_hash=result.order.fragment_tx_hash or "—",
-                error=result.order.fragment_error or "—",
+                provider_status=safe_diagnostic(result.order.provider_status),
+                tx_hash=(
+                    escape_text(result.order.fragment_tx_hash)
+                    if result.order.fragment_tx_hash
+                    else "—"
+                ),
+                error=safe_diagnostic(result.order.fragment_error),
             )
         ),
     )
@@ -581,9 +594,13 @@ async def handle_order_force_input(
                 order_id=result.order.id,
                 outcome=_order_outcome_label(i18n_ctx=i18n_ctx, outcome=result.outcome),
                 status=result.order.status.value,
-                provider_status=result.order.provider_status or "—",
-                tx_hash=result.order.fragment_tx_hash or "—",
-                error=result.order.fragment_error or "—",
+                provider_status=safe_diagnostic(result.order.provider_status),
+                tx_hash=(
+                    escape_text(result.order.fragment_tx_hash)
+                    if result.order.fragment_tx_hash
+                    else "—"
+                ),
+                error=safe_diagnostic(result.order.fragment_error),
             )
         ),
     )

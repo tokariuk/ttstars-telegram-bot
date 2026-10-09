@@ -9,6 +9,7 @@ from aiogram_dialog import DialogManager
 from app.enums.stars_sell_order import StarsSellOrderResolutionReason, StarsSellOrderStatus
 from app.stars import price_usd_for_cents
 from app.telegram.dialogs.common import get_user
+from app.telegram.html import escape_text, safe_diagnostic
 from app.utils.time import datetime_now
 
 from ..handlers.shared import (
@@ -210,7 +211,8 @@ async def stars_sell_wallet_getter(
         if selected_count is not None
         else service.build_quote(stars_count=service.min_stars)
     )
-    current_wallet = stars_sell_wallet(dialog_manager) or "—"
+    selected_wallet = stars_sell_wallet(dialog_manager)
+    current_wallet = escape_text(selected_wallet) if selected_wallet else "—"
     text = with_notice(
         text=str(
             i18n_ctx.messages.admin_stars_sell_wallet_screen(
@@ -242,7 +244,7 @@ async def stars_sell_payment_getter(
         if selected_count is not None
         else service.build_quote(stars_count=service.min_stars)
     )
-    wallet_text = wallet or "—"
+    wallet_text = escape_text(wallet) if wallet else "—"
     hold_days_text = str(i18n_ctx.messages.admin_stars_sell_days(count=quote.hold_days))
 
     text = with_notice(
@@ -349,9 +351,9 @@ async def stars_sell_history_details_getter(
                 status=_status_text_for_order(dialog_manager=dialog_manager, order=order),
                 stars_count=order.stars_count,
                 payout_amount=price_usd_for_cents(order.payout_amount_cents),
-                wallet=order.payout_wallet,
+                wallet=escape_text(order.payout_wallet),
                 invoice_stars=order.invoice_total_amount,
-                invoice_payload=order.invoice_payload,
+                invoice_payload=safe_diagnostic(order.invoice_payload),
                 paid_stars=paid_stars,
                 created_at=_format_tg_time(order.created_at),
                 paid_at=_format_tg_time(order.paid_at),
@@ -359,12 +361,12 @@ async def stars_sell_history_details_getter(
                 completed_at=_format_tg_time(order.completed_at),
                 rejected_at=_format_tg_time(order.rejected_at),
                 refunded_at=_format_tg_time(order.refunded_at),
-                failure_reason=order.failure_reason or "—",
+                failure_reason=safe_diagnostic(order.failure_reason),
                 resolution_reason=_resolution_reason_text(
                     dialog_manager=dialog_manager,
                     reason=order.resolution_reason,
                 ),
-                resolution_note=order.resolution_note or "—",
+                resolution_note=safe_diagnostic(order.resolution_note),
             )
         )
 
@@ -456,9 +458,9 @@ async def stars_sell_admin_details_getter(
                 status=_status_text_for_order(dialog_manager=dialog_manager, order=order),
                 stars_count=order.stars_count,
                 payout_amount=price_usd_for_cents(order.payout_amount_cents),
-                wallet=order.payout_wallet,
+                wallet=escape_text(order.payout_wallet),
                 invoice_stars=order.invoice_total_amount,
-                invoice_payload=order.invoice_payload,
+                invoice_payload=safe_diagnostic(order.invoice_payload),
                 paid_stars=paid_stars,
                 created_at=_format_tg_time(order.created_at),
                 paid_at=_format_tg_time(order.paid_at),
@@ -466,12 +468,12 @@ async def stars_sell_admin_details_getter(
                 completed_at=_format_tg_time(order.completed_at),
                 rejected_at=_format_tg_time(order.rejected_at),
                 refunded_at=_format_tg_time(order.refunded_at),
-                failure_reason=order.failure_reason or "—",
+                failure_reason=safe_diagnostic(order.failure_reason),
                 resolution_reason=_resolution_reason_text(
                     dialog_manager=dialog_manager,
                     reason=order.resolution_reason,
                 ),
-                resolution_note=order.resolution_note or "—",
+                resolution_note=safe_diagnostic(order.resolution_note),
             )
         )
         show_complete_action = order.status == StarsSellOrderStatus.PAID_HOLD

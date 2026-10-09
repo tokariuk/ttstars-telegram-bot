@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import html
 import os
 import re
 from functools import lru_cache
@@ -25,6 +24,7 @@ from app.stars import (
     price_usd_for_cents,
 )
 from app.telegram.dialogs.common import get_i18n, get_user
+from app.telegram.html import spoiler_code
 
 from ..handlers import (
     DEFAULT_TOPUP_CENTS,
@@ -318,13 +318,7 @@ def secret_code_view(value: str | None, *, placeholder: str = "—") -> str:
     placeholder (never wrapped in a spoiler, so users do not tap blurred dashes).
     """
 
-    if value is None:
-        return placeholder
-    normalized = value.strip()
-    if not normalized or normalized == placeholder:
-        return placeholder
-    escaped = html.escape(normalized)
-    return f"<code><tg-spoiler>{escaped}</tg-spoiler></code>"
+    return spoiler_code(value, placeholder=placeholder)
 
 
 def provider_label(i18n: Any, provider: StarsPaymentProvider) -> str:
@@ -426,6 +420,19 @@ def payment_button_text(
     base_text: str,
     net_amount_cents: int | None = None,
 ) -> str:
+    service_raw = dialog_manager.middleware_data.get("stars_order_service")
+    if (
+        isinstance(service_raw, StarsOrderService)
+        and net_amount_cents is not None
+        and net_amount_cents > 0
+        and not service_raw.provider_supports_payment_amount(
+            provider=provider,
+            amount_cents=net_amount_cents,
+        )
+    ):
+        minimum_cents = max(1, service_raw.min_payment_amount_cents.get(provider, 100))
+        return f"{base_text} · ≥ {price_usd_for_cents(minimum_cents)} USD"
+
     fee = provider_fee_percent_text(
         dialog_manager,
         provider=provider,

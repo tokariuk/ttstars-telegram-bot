@@ -4,6 +4,7 @@ messages-gifts_recipient_screen =
     Вкажи username акаунта, на який потрібно надіслати подарунок.
 
     <b>Формат:</b> <code>@username</code>
+    <b>Поточний отримувач:</b> <code>{ $recipient }</code>
 
 
 messages-gifts_catalog_screen =
@@ -11,12 +12,18 @@ messages-gifts_catalog_screen =
 
     Обери подарунок зі списку нижче.
 
+    <b>Отримувач:</b> <code>{ $recipient }</code>
+    <b>Обрано:</b> <code>{ $selected }</code>
 
 messages-gifts_message_screen =
     <blockquote><b><tg-emoji emoji-id="5379759198974289129">🎁</tg-emoji> Купівля Telegram подарунка · Крок 3/5</b></blockquote>
 
     Введи підпис до подарунка або пропусти крок.
 
+    <b>Отримувач:</b> <code>{ $recipient }</code>
+    <b>Подарунок:</b> <code>{ $gift }</code>
+    <b>Сума:</b> <code>{ $amount } USD</code>
+    <b>Поточний підпис:</b> <code>{ $current_message }</code>
 
 messages-gifts_sender_privacy_screen =
     <blockquote><b><tg-emoji emoji-id="5379759198974289129">🎁</tg-emoji> Купівля Telegram подарунка · Крок 4/5</b></blockquote>
@@ -25,6 +32,10 @@ messages-gifts_sender_privacy_screen =
 
     <b>Важливо:</b> відправник у цьому сценарії — <b>сервісний акаунт TTStars</b>, а не ти.
 
+    <b>Отримувач:</b> <code>{ $recipient }</code>
+    <b>Подарунок:</b> <code>{ $gift }</code>
+    <b>Сума:</b> <code>{ $amount } USD</code>
+    <b>Підпис:</b> <code>{ $message }</code>
 
 messages-gifts_payment_screen =
     <blockquote><b><tg-emoji emoji-id="5379759198974289129">🎁</tg-emoji> Купівля Telegram подарунка · Крок 5/5</b></blockquote>

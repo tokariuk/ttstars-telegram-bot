@@ -1,21 +1,22 @@
 messages-admin_orders_menu =
     <blockquote><b>📦 Order Management</b></blockquote>
 
-    Manual order fulfillment actions:
-    • <b>Retry fulfill</b> — safe retry with regular checks
-    • <b>Force fulfill</b> — forced delivery (use carefully)
+    Manual delivery actions:
+    • <b>Retry delivery</b> — runs the normal checks again
+    • <b>Force delivery</b> — bypasses some safeguards; use only after verifying payment
 
 messages-admin_orders_retry_prompt =
-    Send order ID for <b>Retry fulfill</b>.
+    Send the order ID to retry delivery.
     Example: <code>12345</code>
 
 messages-admin_orders_force_prompt =
-    Send order ID for <b>Force fulfill</b>.
+    Send the order ID to force delivery.
+    <b>Warning:</b> this can deliver the product without another provider check.
     Example: <code>12345</code>
 
 messages-admin_orders_input_invalid = <blockquote>❌ Send a valid numeric order ID. Example: <code>12345</code>.</blockquote>
 messages-admin_orders_not_found = <blockquote>❌ Order <code>{ $order_id }</code> not found.</blockquote>
-messages-admin_orders_force_debit_failed = <blockquote>❌ Force fulfill failed for order <code>{ $order_id }</code>: refunded <b>{ $amount } USD</b> was already spent from balance.</blockquote>
+messages-admin_orders_force_debit_failed = <blockquote>❌ Force delivery stopped for order <code>{ $order_id }</code>: the refunded <b>{ $amount } USD</b> was already spent. The product was not delivered.</blockquote>
 messages-admin_orders_action_done =
     <blockquote>✅ { $action }</blockquote>
 
@@ -26,8 +27,8 @@ messages-admin_orders_action_done =
     • TX: <code>{ $tx_hash }</code>
     • Error: <code>{ $error }</code>
 
-messages-admin_orders_action_retry = Retry fulfill executed
-messages-admin_orders_action_force = Force fulfill executed
+messages-admin_orders_action_retry = Delivery retry completed
+messages-admin_orders_action_force = Forced delivery completed
 messages-admin_orders_outcome_pending = pending payment
 messages-admin_orders_outcome_processing = processing
 messages-admin_orders_outcome_completed = completed

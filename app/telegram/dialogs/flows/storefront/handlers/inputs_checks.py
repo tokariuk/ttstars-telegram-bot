@@ -3,7 +3,7 @@ from __future__ import annotations
 import contextlib
 from typing import Any
 
-from aiogram import Bot, html
+from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import (
     CallbackQuery,
@@ -22,6 +22,7 @@ from app.services.crud.check import InsufficientBalanceError as CheckInsufficien
 from app.services.crud.check import ValidationError as CheckValidationError
 from app.stars import normalize_recipient_username, parse_stars_count, price_usd_for_cents
 from app.telegram.dialogs.common import get_i18n, get_user, normalize_i18n_locale
+from app.telegram.html import escape_text
 
 from ..states import StorefrontSG
 from .shared import (
@@ -68,7 +69,12 @@ def _check_claim_notice(
     tx_hash: str,
 ) -> str:
     if outcome == CheckClaimOutcome.CLAIMED:
-        return str(i18n.messages.check_claim_done_stars(stars=stars_count, tx_hash=tx_hash))
+        return str(
+            i18n.messages.check_claim_done_stars(
+                stars=stars_count,
+                tx_hash=escape_text(tx_hash),
+            )
+        )
 
     static_notices: dict[CheckClaimOutcome, str] = {
         CheckClaimOutcome.ALREADY_REDEEMED: str(i18n.messages.check_claim_already_redeemed()),
@@ -104,7 +110,7 @@ def _creator_claim_text(
     with i18n.use_locale(normalize_i18n_locale(language)):
         return str(
             i18n.messages.check_creator_claimed(
-                claimer=html.quote(claimer),
+                claimer=escape_text(claimer),
                 stars=stars_count,
                 amount=amount_usd,
             )

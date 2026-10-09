@@ -14,7 +14,7 @@ messages-checks_list_screen =
 messages-checks_list_empty_screen =
     <blockquote><b><tg-emoji emoji-id="5382212574488075316">🧾</tg-emoji> Чеки</b></blockquote>
 
-    Активних чеків немає.
+    Активних чеків немає. Створи чек на Stars кнопкою нижче.
 
 messages-checks_page_indicator = { $current }/{ $total }
 
@@ -24,7 +24,7 @@ messages-checks_history_list_screen =
 messages-checks_history_list_empty_screen =
     <blockquote><b><tg-emoji emoji-id="5382065781095830261">📄</tg-emoji> Історія чеків</b></blockquote>
 
-    Історія чеків порожня.
+    Історія чеків порожня. Тут з’являться активовані та закриті чеки.
 
 messages-checks_history_page_indicator = { $current }/{ $total }
 
@@ -78,7 +78,7 @@ messages-check_history_detail_screen =
 
     <blockquote expandable><b>Технічні деталі</b>
     <b>ID активатора:</b> <code>{ $recipient_id }</code>
-    <b>TX:</b> <tg-spoiler><code>{ $tx_hash }</code></tg-spoiler>
+    <b>TX:</b> { $tx_hash }
     <b>Помилка:</b> <code>{ $last_error }</code>
     <b>Створено:</b> { $created }
     <b>Активовано:</b> { $redeemed }

@@ -11,6 +11,7 @@ from app.stars import (
     affordable_stars_for_balance_cents,
     get_stars_pack,
 )
+from app.telegram.html import username
 
 from .common import (
     STARS_RECIPIENT_USERNAME_KEY,
@@ -82,7 +83,7 @@ async def stars_payment_getter(dialog_manager: DialogManager, **_: Any) -> dict[
         i18n.messages.stars_payment_screen(
             stars=pack.stars_count,
             amount=pack.price_usd,
-            recipient=(f"@{recipient}" if recipient else "—"),
+            recipient=username(recipient),
             balance=price_usd_for_cents(user.balance_cents),
         )
     )

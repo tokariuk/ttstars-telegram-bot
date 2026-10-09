@@ -14,7 +14,7 @@ messages-checks_list_screen =
 messages-checks_list_empty_screen =
     <blockquote><b><tg-emoji emoji-id="5382212574488075316">🧾</tg-emoji> Checks</b></blockquote>
 
-    No active checks.
+    No active checks. Create a Stars check with the button below.
 
 messages-checks_page_indicator = { $current }/{ $total }
 
@@ -24,7 +24,7 @@ messages-checks_history_list_screen =
 messages-checks_history_list_empty_screen =
     <blockquote><b><tg-emoji emoji-id="5382065781095830261">📄</tg-emoji> Checks History</b></blockquote>
 
-    Checks history is empty.
+    Checks history is empty. Redeemed and closed checks will appear here.
 
 messages-checks_history_page_indicator = { $current }/{ $total }
 
@@ -78,7 +78,7 @@ messages-check_history_detail_screen =
 
     <blockquote expandable><b>Technical details</b>
     <b>Claimer ID:</b> <code>{ $recipient_id }</code>
-    <b>TX:</b> <tg-spoiler><code>{ $tx_hash }</code></tg-spoiler>
+    <b>TX:</b> { $tx_hash }
     <b>Error:</b> <code>{ $last_error }</code>
     <b>Created:</b> { $created }
     <b>Redeemed:</b> { $redeemed }

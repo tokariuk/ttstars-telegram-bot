@@ -6,6 +6,7 @@ from aiogram_dialog import DialogManager
 
 from app.enums.stars_order import StarsPaymentProvider
 from app.gifts import TelegramGiftPack, get_gift_pack, list_gift_packs
+from app.telegram.html import escape_text, username
 
 from .common import (
     banner_url,
@@ -88,7 +89,7 @@ def _gift_recipient_text(
     recipient_username: str | None,
 ) -> str:
     if recipient_username:
-        return f"@{recipient_username}"
+        return username(recipient_username)
     if recipient_user_id is not None:
         return str(recipient_user_id)
     return "—"
@@ -188,7 +189,7 @@ async def gifts_message_getter(dialog_manager: DialogManager, **_: Any) -> dict[
                 recipient=recipient,
                 gift=_gift_label(i18n=i18n, gift_key=selected_pack.key),
                 amount=selected_pack.price_usd,
-                current_message=current_message or "—",
+                current_message=escape_text(current_message) if current_message else "—",
             )
         )
     notice = consume_notice(dialog_manager)
@@ -225,7 +226,7 @@ async def gifts_sender_privacy_getter(dialog_manager: DialogManager, **_: Any) -
                 recipient=recipient,
                 gift=_gift_label(i18n=i18n, gift_key=selected_pack.key),
                 amount=selected_pack.price_usd,
-                message=current_message or "—",
+                message=escape_text(current_message) if current_message else "—",
             )
         )
     notice = consume_notice(dialog_manager)
@@ -268,7 +269,7 @@ async def gifts_payment_getter(dialog_manager: DialogManager, **_: Any) -> dict[
                 recipient=recipient,
                 gift=_gift_label(i18n=i18n, gift_key=selected_pack.key),
                 amount=selected_pack.price_usd,
-                message=gift_message or "—",
+                message=escape_text(gift_message) if gift_message else "—",
                 sender_visibility=_gift_sender_visibility_text(
                     i18n=i18n,
                     sender_private=sender_private,

@@ -22,6 +22,8 @@ from app.telegram.dialogs.flows.storefront.handlers.shared import (
     set_checks_history_page,
     set_checks_page,
 )
+from app.telegram.html import safe_diagnostic
+from app.telegram.html import username as username_view
 
 from .common import (
     banner_url,
@@ -74,7 +76,7 @@ def _check_history_item_button_text(i18n: Any, *, check: CheckDto) -> str:
 def _claim_username_view(i18n: Any, *, username: str | None) -> str:
     if username is None:
         return str(i18n.messages.check_claim_username_any())
-    return f"@{username}"
+    return username_view(username)
 
 
 def _password_view(i18n: Any, *, has_password: bool) -> str:
@@ -322,7 +324,7 @@ async def checks_history_details_getter(dialog_manager: DialogManager, **_: Any)
                 ),
                 recipient_id=check.recipient_id if check.recipient_id is not None else "—",
                 tx_hash=secret_code_view(check.provider_tx_hash),
-                last_error=check.last_error or "—",
+                last_error=safe_diagnostic(check.last_error),
                 created=_format_tg_time(check.created_at),
                 redeemed=_format_tg_time(check.redeemed_at),
                 closed=_format_tg_time(check.closed_at),

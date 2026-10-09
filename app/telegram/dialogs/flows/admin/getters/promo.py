@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from datetime import timezone
-from html import escape
 from typing import Any, Final
 
 from aiogram_dialog import DialogManager
 
 from app.services.promo_codes import PromoCodeInfo
 from app.stars import price_usd_for_cents
+from app.telegram.html import escape_text
 
 from ..handlers.shared import (
     clear_promo_bulk_selected_codes,
@@ -175,13 +175,14 @@ async def promo_details_getter(dialog_manager: DialogManager, **_: Any) -> dict[
         )
         activation_list = (
             "\n".join(
-                f"• {escape(item.user_name)} (<code>{item.user_id}</code>)" for item in activations
+                f"• {escape_text(item.user_name)} (<code>{item.user_id}</code>)"
+                for item in activations
             )
             or "—"
         )
         text_body = str(
             i18n_ctx.messages.admin_promo_details(
-                code=code.code,
+                code=escape_text(code.code),
                 amount=price_usd_for_cents(code.amount_cents),
                 activations=code.activations,
                 max_activations=_max_activations_text(code=code, i18n_ctx=i18n_ctx),
@@ -261,7 +262,7 @@ async def promo_set_limit_getter(dialog_manager: DialogManager, **_: Any) -> dic
     i18n_ctx = i18n(dialog_manager)
     selected_code = promo_selected_code(dialog_manager) or "CODE"
     text = with_notice(
-        text=str(i18n_ctx.messages.admin_promo_set_limit_prompt(code=selected_code)),
+        text=str(i18n_ctx.messages.admin_promo_set_limit_prompt(code=escape_text(selected_code))),
         notice=consume_notice(dialog_manager),
     )
     return {

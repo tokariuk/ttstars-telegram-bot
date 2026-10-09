@@ -12,6 +12,7 @@ from app.telegram.dialogs.flows.storefront.handlers.shared import (
     history_selected_order_id,
     set_history_page,
 )
+from app.telegram.html import username
 
 from .common import (
     banner_url,
@@ -141,7 +142,7 @@ async def history_details_getter(dialog_manager: DialogManager, **_: Any) -> dic
             else (
                 f"<code>{order.recipient_user_id}</code>"
                 if order.product_type == StarsOrderProductType.GIFT
-                else f"@{order.recipient_username}"
+                else username(order.recipient_username)
             )
         )
         tx_hash = secret_code_view(order.fragment_tx_hash)

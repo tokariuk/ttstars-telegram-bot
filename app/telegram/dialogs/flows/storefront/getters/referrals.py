@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Final
 
-from aiogram import Bot, html
+from aiogram import Bot
 from aiogram_dialog import DialogManager
 
 from app.services.crud.stars_order import StarsOrderService
@@ -13,6 +13,7 @@ from app.telegram.dialogs.flows.storefront.handlers.shared import (
     referrals_selected_user_id,
     set_referrals_page,
 )
+from app.telegram.html import escape_text
 
 from .common import (
     banner_url,
@@ -100,7 +101,7 @@ async def referral_getter(dialog_manager: DialogManager, **_: Any) -> dict[str, 
         total_referrals = overview.level1_count + overview.level2_count + overview.level3_count
         text = str(
             i18n.messages.referral_screen(
-                link=overview.referral_link,
+                link=escape_text(overview.referral_link),
                 balance=price_usd_for_cents(overview.referral_balance_cents),
                 earned=price_usd_for_cents(overview.referral_earned_cents),
                 total=total_referrals,
@@ -247,7 +248,7 @@ async def referral_details_getter(dialog_manager: DialogManager, **_: Any) -> di
             text = str(
                 i18n.messages.referral_detail_screen(
                     user_id=member.user_id,
-                    name=html.quote(member.name),
+                    name=escape_text(member.name),
                     level=member.level,
                     percent=_referral_level_percent(
                         member.level,

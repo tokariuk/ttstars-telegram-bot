@@ -474,7 +474,7 @@ async def handle_stars_sell_successful_payment(
                         order_id=order.id,
                         stars_count=order.stars_count,
                         payout_amount=price_usd_for_cents(order.payout_amount_cents),
-                        wallet=order.payout_wallet,
+                        wallet=html.escape(order.payout_wallet),
                         payout_available_at=payout_available_at,
                         hold_days_text=str(
                             i18n.messages.stars_sell_days(count=stars_sell_order_service.hold_days)

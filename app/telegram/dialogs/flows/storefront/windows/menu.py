@@ -69,29 +69,33 @@ menu_window: Window = Window(
         on_click=show_gifts,
         style=Style(style=ButtonStyle.PRIMARY, emoji_id=GIFT_EMOJI_ID),
     ),
-    Button(
-        Format("{sell_stars_button_text}"),
-        id=STOREFRONT_OPEN_STARS_SELL_BUTTON_ID,
-        on_click=show_stars_sell,
-        style=Style(style=ButtonStyle.PRIMARY, emoji_id=TELEGRAM_STAR_EMOJI_ID),
+    Row(
+        Button(
+            Format("{sell_stars_button_text}"),
+            id=STOREFRONT_OPEN_STARS_SELL_BUTTON_ID,
+            on_click=show_stars_sell,
+            style=Style(style=ButtonStyle.PRIMARY, emoji_id=TELEGRAM_STAR_EMOJI_ID),
+        ),
+        Button(
+            Format("{topup_button_text}"),
+            id=STOREFRONT_OPEN_TOPUP_BUTTON_ID,
+            on_click=show_topup_amount,
+            style=Style(style=ButtonStyle.PRIMARY, emoji_id=PLUS_EMOJI_ID),
+        ),
     ),
-    Button(
-        Format("{topup_button_text}"),
-        id=STOREFRONT_OPEN_TOPUP_BUTTON_ID,
-        on_click=show_topup_amount,
-        style=Style(style=ButtonStyle.PRIMARY, emoji_id=PLUS_EMOJI_ID),
-    ),
-    Button(
-        Format("{profile_button_text}"),
-        id=STOREFRONT_OPEN_PROFILE_BUTTON_ID,
-        on_click=show_profile,
-        style=Style(emoji_id=USER_EMOJI_ID),
-    ),
-    Button(
-        Format("{calculator_button_text}"),
-        id=STOREFRONT_OPEN_CALCULATOR_BUTTON_ID,
-        on_click=show_calculator,
-        style=Style(emoji_id=CALCULATOR_EMOJI_ID),
+    Row(
+        Button(
+            Format("{profile_button_text}"),
+            id=STOREFRONT_OPEN_PROFILE_BUTTON_ID,
+            on_click=show_profile,
+            style=Style(emoji_id=USER_EMOJI_ID),
+        ),
+        Button(
+            Format("{calculator_button_text}"),
+            id=STOREFRONT_OPEN_CALCULATOR_BUTTON_ID,
+            on_click=show_calculator,
+            style=Style(emoji_id=CALCULATOR_EMOJI_ID),
+        ),
     ),
     Button(
         Format("{faq_button_text}"),

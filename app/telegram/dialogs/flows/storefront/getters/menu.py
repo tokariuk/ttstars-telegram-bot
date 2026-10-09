@@ -4,6 +4,8 @@ from typing import Any
 
 from aiogram_dialog import DialogManager
 
+from app.telegram.html import link
+
 from .common import (
     banner_url,
     consume_notice,
@@ -18,7 +20,7 @@ async def menu_getter(dialog_manager: DialogManager, **_: Any) -> dict[str, Any]
     user = await current_user(dialog_manager=dialog_manager)
     text = str(
         i18n.messages.greeting(
-            name=user.mention,
+            name=link(user.name, user.url),
             balance=price_usd_for_cents(user.balance_cents),
         )
     )

@@ -93,7 +93,7 @@ topup_payment_window: Window = Window(
         id=STOREFRONT_PAY_TOPUP_CRYPTO_DANGER_BUTTON_ID,
         on_click=pay_topup_with_crypto,
         when="can_pay_crypto_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=CRYPTOBOT_PAY_EMOJI_ID),
+        style=Style(emoji_id=CRYPTOBOT_PAY_EMOJI_ID),
     ),
     Button(
         Format("{pay_ton_text}"),
@@ -107,7 +107,7 @@ topup_payment_window: Window = Window(
         id=STOREFRONT_PAY_TOPUP_TON_DANGER_BUTTON_ID,
         on_click=pay_topup_with_ton,
         when="can_pay_ton_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=TON_EMOJI_ID),
+        style=Style(emoji_id=TON_EMOJI_ID),
     ),
     Button(
         Format("{pay_platega_text}"),
@@ -121,7 +121,7 @@ topup_payment_window: Window = Window(
         id=STOREFRONT_PAY_TOPUP_PLATEGA_DANGER_BUTTON_ID,
         on_click=pay_topup_with_platega,
         when="can_pay_platega_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=SPB_PAY_EMOJI_ID),
+        style=Style(emoji_id=SPB_PAY_EMOJI_ID),
     ),
     Button(
         Format("{pay_lzt_text}"),
@@ -135,7 +135,7 @@ topup_payment_window: Window = Window(
         id=STOREFRONT_PAY_TOPUP_LZT_DANGER_BUTTON_ID,
         on_click=pay_topup_with_lzt,
         when="can_pay_lzt_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=LZT_PAY_EMOJI_ID),
+        style=Style(emoji_id=LZT_PAY_EMOJI_ID),
     ),
     Button(
         Format("{pay_nicepay_ru_text}"),
@@ -149,7 +149,7 @@ topup_payment_window: Window = Window(
         id=STOREFRONT_PAY_TOPUP_NICEPAY_RU_DANGER_BUTTON_ID,
         on_click=pay_topup_with_nicepay_ru,
         when="can_pay_nicepay_ru_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=NICEPAY_EMOJI_ID),
+        style=Style(emoji_id=NICEPAY_EMOJI_ID),
     ),
     Button(
         Format("{pay_nicepay_kz_text}"),
@@ -163,7 +163,7 @@ topup_payment_window: Window = Window(
         id=STOREFRONT_PAY_TOPUP_NICEPAY_KZ_DANGER_BUTTON_ID,
         on_click=pay_topup_with_nicepay_kz,
         when="can_pay_nicepay_kz_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=NICEPAY_EMOJI_ID),
+        style=Style(emoji_id=NICEPAY_EMOJI_ID),
     ),
     Button(
         Format("{pay_heleket_text}"),
@@ -177,7 +177,7 @@ topup_payment_window: Window = Window(
         id=STOREFRONT_PAY_TOPUP_HELEKET_DANGER_BUTTON_ID,
         on_click=pay_topup_with_heleket,
         when="can_pay_heleket_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=HELEKET_PAY_EMOJI_ID),
+        style=Style(emoji_id=HELEKET_PAY_EMOJI_ID),
     ),
     Button(
         Format("{pay_xrocket_text}"),
@@ -191,7 +191,7 @@ topup_payment_window: Window = Window(
         id=STOREFRONT_PAY_TOPUP_XROCKET_DANGER_BUTTON_ID,
         on_click=pay_topup_with_xrocket,
         when="can_pay_xrocket_danger",
-        style=Style(style=ButtonStyle.DANGER, emoji_id=XROCKET_EMOJI_ID),
+        style=Style(emoji_id=XROCKET_EMOJI_ID),
     ),
     Button(
         Format("{change_amount_text}"),

@@ -45,7 +45,7 @@ messages-order_checkout_message_gift =
 messages-order_checkout_send_failed =
     <blockquote><b><tg-emoji emoji-id="5381932538325404900">⭐</tg-emoji> Требуется проверка</b></blockquote>
 
-    Инвойс создан, но checkout-сообщение не отправлено.
+    Инвойс создан, но сообщение со ссылкой на оплату не отправлено. Открой историю операций или попробуй снова.
 
 messages-payment_provider_unavailable =
     <blockquote><b><tg-emoji emoji-id="5381932538325404900">⭐</tg-emoji> Требуется проверка</b></blockquote>
