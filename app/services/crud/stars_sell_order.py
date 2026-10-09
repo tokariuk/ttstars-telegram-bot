@@ -554,7 +554,6 @@ class StarsSellOrderService(CrudService):
         now = datetime_now()
         allowed_statuses = [
             StarsSellOrderStatus.PAID_HOLD,
-            StarsSellOrderStatus.COMPLETED,
         ]
         async with SQLSessionContext(session_pool=self.session_pool) as (repository, _uow):
             order = await repository.stars_sell_orders.get(order_id=order_id)

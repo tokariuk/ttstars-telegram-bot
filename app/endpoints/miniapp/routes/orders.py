@@ -46,6 +46,7 @@ async def quote_order(
         stars_count=payload.stars_count,
         months=payload.months,
         amount_usd=payload.amount_usd,
+        gift_key=payload.gift_key,
     )
     try:
         pricing = stars_order_service.preview_checkout_pricing(

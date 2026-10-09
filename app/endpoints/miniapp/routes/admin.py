@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from typing import Annotated, Optional
+from typing import Annotated, Any, Awaitable, Optional, cast
+from uuid import uuid4
 
+from aiogram import Bot
 from fastapi import APIRouter, Query, Request
 
 from app.enums.check import CheckStatus
@@ -41,6 +43,8 @@ from app.models.dto.miniapp import (
     ProfileStatsResponse,
     SellOrderResponse,
 )
+from app.models.dto.stars_sell_order import StarsSellOrderDto
+from app.services.crud import StarsSellOrderService
 from app.services.crud.stars_sell_order import (
     NotReadyForPayoutError,
     OrderNotFoundError,
@@ -51,9 +55,11 @@ from app.stars import price_usd_for_cents
 from app.utils.time import datetime_now
 
 from ..deps import (
+    BotDep,
     CheckServiceDep,
     CurrentAdmin,
     PromoCodeServiceDep,
+    RedisDep,
     StarsOrderServiceDep,
     StarsSellOrderServiceDep,
     UserServiceDep,
@@ -72,6 +78,45 @@ from ..serializers import (
 )
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+
+_SELL_REFUND_LOCK_TTL_SECONDS = 60
+
+
+async def execute_sell_stars_refund(
+    *,
+    order: StarsSellOrderDto,
+    bot: Bot,
+    service: StarsSellOrderService,
+    note: str | None,
+) -> StarsSellOrderDto:
+    if order.status == StarsSellOrderStatus.REFUNDED:
+        return order
+    if order.status != StarsSellOrderStatus.PAID_HOLD:
+        raise StatusConflictError(
+            f"Sell order {order.id} status is {order.status.value}, cannot refund Stars."
+        )
+    if not order.telegram_payment_charge_id:
+        raise StatusConflictError(
+            "Telegram payment charge ID is missing; refund cannot be verified."
+        )
+    refunded = await bot.refund_star_payment(
+        user_id=order.user_id,
+        telegram_payment_charge_id=order.telegram_payment_charge_id,
+    )
+    if not refunded:
+        raise StatusConflictError("Telegram did not confirm the Stars refund.")
+    return await service.mark_refunded(order_id=order.id, note=note)
+
+
+async def _release_refund_lock(redis: Any, *, key: str, token: str) -> None:
+    script = """
+if redis.call('get', KEYS[1]) == ARGV[1] then
+    return redis.call('del', KEYS[1])
+else
+    return 0
+end
+"""
+    await cast(Awaitable[Any], redis.eval(script, 1, key, token))
 
 
 # --------------------------------------------------------------------------- #
@@ -378,17 +423,39 @@ async def admin_refund_sell_order(
     order_id: int,
     payload: AdminSellResolveRequest,
     _admin: CurrentAdmin,
+    bot: BotDep,
+    redis: RedisDep,
     stars_sell_order_service: StarsSellOrderServiceDep,
 ) -> SellOrderResponse:
+    lock_key = f"miniapp:admin:sell_refund:{order_id}"
+    lock_token = uuid4().hex
+    acquired = await redis.set(
+        lock_key,
+        lock_token,
+        ex=_SELL_REFUND_LOCK_TTL_SECONDS,
+        nx=True,
+    )
+    if not acquired:
+        conflict("This refund is already being processed.", code=ErrorCode.DUPLICATE_REQUEST)
     try:
-        order = await stars_sell_order_service.mark_refunded(
-            order_id=order_id,
+        current = await stars_sell_order_service.get(order_id=order_id)
+        if current is None:
+            not_found("Sell order was not found.")
+        order = await execute_sell_stars_refund(
+            order=current,
+            bot=bot,
+            service=stars_sell_order_service,
             note=payload.note,
         )
     except OrderNotFoundError:
         not_found("Sell order was not found.")
     except StatusConflictError as error:
         conflict(str(error), code=ErrorCode.VALIDATION_ERROR)
+    finally:
+        try:
+            await _release_refund_lock(redis, key=lock_key, token=lock_token)
+        except Exception:
+            pass
     return build_sell_order_response(order=order)
 
 
