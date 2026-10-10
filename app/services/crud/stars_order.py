@@ -2102,6 +2102,16 @@ end
         *,
         recipient_username: str,
     ) -> str | None:
+        resolved = await self.resolve_gift_recipient_username(
+            recipient_username=recipient_username,
+        )
+        return resolved[0] if resolved is not None else None
+
+    async def resolve_gift_recipient_username(
+        self,
+        *,
+        recipient_username: str,
+    ) -> tuple[str, int] | None:
         normalized = normalize_recipient_username(recipient_username)
         if normalized is None:
             return None
@@ -2112,7 +2122,9 @@ end
             )
         except ValidationError:
             return None
-        return normalized if resolved_user_id is not None and resolved_user_id > 0 else None
+        if resolved_user_id is None or resolved_user_id <= 0:
+            return None
+        return normalized, resolved_user_id
 
     @staticmethod
     def _normalize_gift_message(value: str | None) -> str | None:

@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Header, Query
+from redis.asyncio import Redis
 
 from app.enums.stars_order import StarsOrderProductType
 from app.models.dto.miniapp import (
@@ -19,6 +20,7 @@ from app.models.dto.miniapp import (
     RecipientValidateResponse,
 )
 from app.stars import normalize_recipient_username, price_usd_for_cents
+from app.utils.key_builder import build_key
 
 from ..deps import (
     CurrentUser,
@@ -34,6 +36,35 @@ from ..serializers import build_order_response, build_payment_check_response
 router = APIRouter(prefix="/orders", tags=["orders"])
 
 IdempotencyKey = Annotated[Optional[str], Header(alias="Idempotency-Key")]
+
+_GIFT_RECIPIENT_CACHE_PREFIX = "miniapp_gift_recipient"
+_GIFT_RECIPIENT_CACHE_TTL_SECONDS = 5 * 60
+
+
+def _gift_recipient_cache_key(*, user_id: int, recipient_username: str) -> str:
+    return build_key(
+        _GIFT_RECIPIENT_CACHE_PREFIX,
+        user_id,
+        recipient_username.casefold(),
+    )
+
+
+async def cached_gift_recipient_id(
+    *,
+    redis: Redis,
+    user_id: int,
+    recipient_username: str,
+) -> int | None:
+    value = await redis.get(
+        _gift_recipient_cache_key(
+            user_id=user_id,
+            recipient_username=recipient_username,
+        )
+    )
+    if isinstance(value, bytes):
+        value = value.decode("utf-8", errors="ignore")
+    text = str(value) if value is not None else ""
+    return int(text) if text.isdigit() and int(text) > 0 else None
 
 
 @router.post("/quote", summary="Preview the checkout total (incl. fees) without creating an order")
@@ -139,6 +170,16 @@ async def create_gift_order(
     stars_order_service: StarsOrderServiceDep,
     idempotency_key: IdempotencyKey = None,
 ) -> OrderResponse:
+    normalized_recipient = normalize_recipient_username(payload.recipient_username)
+    recipient_user_id = (
+        await cached_gift_recipient_id(
+            redis=redis,
+            user_id=auth.user.id,
+            recipient_username=normalized_recipient,
+        )
+        if normalized_recipient is not None
+        else None
+    )
     try:
         order = await run_idempotent_order_create(
             redis=redis,
@@ -150,7 +191,7 @@ async def create_gift_order(
                 provider=payload.provider,
                 user_id=auth.user.id,
                 recipient_username=payload.recipient_username,
-                recipient_user_id=None,
+                recipient_user_id=recipient_user_id,
                 gift_key=payload.gift_key,
                 gift_message=payload.gift_message,
                 gift_sender_private=payload.sender_private,
@@ -197,15 +238,27 @@ async def create_topup_order(
 @router.post("/validate-recipient", summary="Validate a recipient @username")
 async def validate_recipient(
     payload: RecipientValidateRequest,
-    _auth: CurrentUser,
+    auth: CurrentUser,
+    redis: RedisDep,
     stars_order_service: StarsOrderServiceDep,
 ) -> RecipientValidateResponse:
     normalized = normalize_recipient_username(payload.username)
     if normalized is None:
         return RecipientValidateResponse(valid=False, normalized=None)
     if payload.product_type == StarsOrderProductType.GIFT:
-        normalized = await stars_order_service.validate_gift_recipient_username(
+        resolved = await stars_order_service.resolve_gift_recipient_username(
             recipient_username=normalized,
+        )
+        if resolved is None:
+            return RecipientValidateResponse(valid=False, normalized=None)
+        normalized, recipient_user_id = resolved
+        await redis.set(
+            _gift_recipient_cache_key(
+                user_id=auth.user.id,
+                recipient_username=normalized,
+            ),
+            str(recipient_user_id),
+            ex=_GIFT_RECIPIENT_CACHE_TTL_SECONDS,
         )
     return RecipientValidateResponse(valid=normalized is not None, normalized=normalized)
 
