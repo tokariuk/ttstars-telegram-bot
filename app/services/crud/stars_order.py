@@ -187,7 +187,7 @@ from app.services.postgres import SQLSessionContext
 from app.services.telegram_gifts import TelegramGiftService
 from app.services.ton_pay import TonPayService
 from app.services.xrocket_pay import XRocketPayService
-from app.stars import get_premium_pack, price_usd_for_cents
+from app.stars import get_premium_pack, normalize_recipient_username, price_usd_for_cents
 from app.utils.key_builder import build_key
 from app.utils.time import datetime_now
 
@@ -2096,6 +2096,23 @@ end
             )
         except RuntimeError as error:
             raise ValidationError(str(error)) from error
+
+    async def validate_gift_recipient_username(
+        self,
+        *,
+        recipient_username: str,
+    ) -> str | None:
+        normalized = normalize_recipient_username(recipient_username)
+        if normalized is None:
+            return None
+        try:
+            resolved_user_id = await self._resolve_gift_recipient_user_id(
+                recipient_username=normalized,
+                recipient_user_id=None,
+            )
+        except ValidationError:
+            return None
+        return normalized if resolved_user_id is not None and resolved_user_id > 0 else None
 
     @staticmethod
     def _normalize_gift_message(value: str | None) -> str | None:

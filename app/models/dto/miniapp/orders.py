@@ -88,6 +88,7 @@ class PaymentCheckResponse(PydanticModel):
 
 class RecipientValidateRequest(PydanticModel):
     username: str = Field(min_length=1, max_length=64)
+    product_type: Optional[StarsOrderProductType] = None
 
 
 class RecipientValidateResponse(PydanticModel):

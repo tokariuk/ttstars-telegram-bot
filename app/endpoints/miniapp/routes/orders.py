@@ -4,6 +4,7 @@ from typing import Annotated, Optional
 
 from fastapi import APIRouter, Header, Query
 
+from app.enums.stars_order import StarsOrderProductType
 from app.models.dto.miniapp import (
     CreateGiftOrderRequest,
     CreatePremiumOrderRequest,
@@ -193,12 +194,19 @@ async def create_topup_order(
     return build_order_response(stars_order_service=stars_order_service, order=order)
 
 
-@router.post("/validate-recipient", summary="Check that a recipient @username is well-formed")
+@router.post("/validate-recipient", summary="Validate a recipient @username")
 async def validate_recipient(
     payload: RecipientValidateRequest,
     _auth: CurrentUser,
+    stars_order_service: StarsOrderServiceDep,
 ) -> RecipientValidateResponse:
     normalized = normalize_recipient_username(payload.username)
+    if normalized is None:
+        return RecipientValidateResponse(valid=False, normalized=None)
+    if payload.product_type == StarsOrderProductType.GIFT:
+        normalized = await stars_order_service.validate_gift_recipient_username(
+            recipient_username=normalized,
+        )
     return RecipientValidateResponse(valid=normalized is not None, normalized=normalized)
 
 
