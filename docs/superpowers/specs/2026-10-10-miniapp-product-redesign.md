@@ -13,6 +13,9 @@ precise.
 - Home gives balanced access to Stars, Premium, Gifts, and selling Stars. Stars
   receive slightly more space because they are the most common purchase, not a
   different visual identity.
+- Home is a catalog, not a checkout surface. Stars, Premium, Gifts, and selling
+  Stars each open a dedicated route with the same header, navigation, and
+  responsive workspace rules.
 - Balance and the latest operation are secondary context, not the hero.
 - Promotions appear only when backed by real product data. Evergreen product
   guidance must not be presented as a discount.
@@ -52,5 +55,8 @@ precise.
 - Existing API routes, financial rules, callback contracts, and data models stay
   unchanged unless a diagnosed backend defect requires a compatible fix.
 - New behavior is introduced through failing tests first.
+- Client-generated idempotency keys must satisfy the backend's
+  `[A-Za-z0-9._-]{8,128}` contract so order creation is not rejected before
+  reaching the product service.
 - Validate at 375, 768, 1024, and 1440 CSS pixels; preserve keyboard focus,
   44-pixel touch targets, reduced motion, and safe-area behavior.
