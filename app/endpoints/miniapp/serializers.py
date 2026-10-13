@@ -45,6 +45,7 @@ def build_order_response(
     pricing = stars_order_service.checkout_pricing_for_order(order=order)
     return OrderResponse(
         id=order.id,
+        user_id=order.user_id,
         product_type=order.product_type,
         status=order.status,
         is_open=order.is_open,

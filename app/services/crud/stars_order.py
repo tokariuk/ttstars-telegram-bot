@@ -621,27 +621,27 @@ class StarsOrderService(CrudService):
                 since=since_7d,
                 include_linked=False,
             )
-            paid_last_24h = await repository.stars_orders.count_paid_since(
+            paid_last_24h = await repository.stars_orders.count_completed_since(
                 since=since_24h
-            ) + await repository.balance_topups.count_paid_since(
+            ) + await repository.balance_topups.count_completed_since(
                 since=since_24h,
                 include_linked=False,
             )
-            paid_last_7d = await repository.stars_orders.count_paid_since(
+            paid_last_7d = await repository.stars_orders.count_completed_since(
                 since=since_7d
-            ) + await repository.balance_topups.count_paid_since(
+            ) + await repository.balance_topups.count_completed_since(
                 since=since_7d,
                 include_linked=False,
             )
-            paid_amount_last_24h_cents = await repository.stars_orders.sum_paid_amount_since(
+            paid_amount_last_24h_cents = await repository.stars_orders.sum_completed_amount_since(
                 since=since_24h
-            ) + await repository.balance_topups.sum_paid_amount_since(
+            ) + await repository.balance_topups.sum_completed_amount_since(
                 since=since_24h,
                 include_linked=False,
             )
-            paid_amount_last_7d_cents = await repository.stars_orders.sum_paid_amount_since(
+            paid_amount_last_7d_cents = await repository.stars_orders.sum_completed_amount_since(
                 since=since_7d
-            ) + await repository.balance_topups.sum_paid_amount_since(
+            ) + await repository.balance_topups.sum_completed_amount_since(
                 since=since_7d,
                 include_linked=False,
             )

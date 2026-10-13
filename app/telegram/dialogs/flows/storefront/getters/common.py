@@ -43,8 +43,9 @@ from ..handlers import (
 
 FAQ_SUPPORT_URL: Final[str] = "https://t.me/TTStars_support"
 FAQ_NEWS_URL: Final[str] = "https://t.me/ttstars_news"
-FAQ_PRIVACY_PATH: Final[str] = "/miniapp/legal/privacy"
-FAQ_TERMS_PATH: Final[str] = "/miniapp/legal/terms"
+FAQ_PRIVACY_PATH: Final[str] = "/legal/privacy"
+FAQ_TERMS_PATH: Final[str] = "/legal/terms"
+DEFAULT_MINIAPP_URL: Final[str] = "https://ttstars.xyz"
 
 
 def banner_link(*, text: str, bg: str, fg: str, font: str) -> str:
@@ -176,6 +177,19 @@ def server_base_url(dialog_manager: DialogManager) -> str:
     if isinstance(raw_config, AppConfig):
         return raw_config.server.url.strip().rstrip("/")
     return os.getenv("SERVER_URL", "").strip().rstrip("/")
+
+
+def miniapp_base_url(dialog_manager: DialogManager) -> str:
+    explicit = os.getenv("TELEGRAM_MINIAPP_URL", "").strip().rstrip("/")
+    if explicit:
+        return explicit
+    raw_config = dialog_manager.middleware_data.get("config")
+    if isinstance(raw_config, AppConfig):
+        for origin in raw_config.telegram.miniapp_cors_origins:
+            normalized = str(origin).strip().rstrip("/")
+            if normalized.startswith("https://"):
+                return normalized
+    return DEFAULT_MINIAPP_URL
 
 
 async def current_user(dialog_manager: DialogManager) -> UserDto:

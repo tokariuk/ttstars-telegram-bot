@@ -104,11 +104,33 @@ class StarsOrdersRepository(BaseRepository):
         result = await self.session.scalar(query)
         return int(result or 0)
 
+    async def count_completed_since(self, *, since: datetime) -> int:
+        query = select(func.count(StarsOrder.id)).where(
+            and_(
+                StarsOrder.status == StarsOrderStatus.COMPLETED.value,
+                StarsOrder.fulfilled_at.is_not(None),
+                StarsOrder.fulfilled_at >= since,
+            )
+        )
+        result = await self.session.scalar(query)
+        return int(result or 0)
+
     async def sum_paid_amount_since(self, *, since: datetime) -> int:
         query = select(func.coalesce(func.sum(StarsOrder.amount_cents), 0)).where(
             and_(
                 StarsOrder.paid_at.is_not(None),
                 StarsOrder.paid_at >= since,
+            )
+        )
+        result = await self.session.scalar(query)
+        return int(result or 0)
+
+    async def sum_completed_amount_since(self, *, since: datetime) -> int:
+        query = select(func.coalesce(func.sum(StarsOrder.amount_cents), 0)).where(
+            and_(
+                StarsOrder.status == StarsOrderStatus.COMPLETED.value,
+                StarsOrder.fulfilled_at.is_not(None),
+                StarsOrder.fulfilled_at >= since,
             )
         )
         result = await self.session.scalar(query)

@@ -11,8 +11,8 @@ messages-admin_stats_screen =
     • Total: <b>{ $orders_total }</b>
     • New 24h: <b>{ $orders_new_24h }</b>
     • New 7d: <b>{ $orders_new_7d }</b>
-    • Paid 24h: <b>{ $orders_paid_24h }</b> (<b>{ $orders_paid_amount_24h } USD</b>)
-    • Paid 7d: <b>{ $orders_paid_7d }</b> (<b>{ $orders_paid_amount_7d } USD</b>)
+    • Fulfilled in 24h: <b>{ $orders_paid_24h }</b> (<b>{ $orders_paid_amount_24h } USD</b>)
+    • Fulfilled in 7d: <b>{ $orders_paid_7d }</b> (<b>{ $orders_paid_amount_7d } USD</b>)
     • Completed amount: <b>{ $orders_completed_amount } USD</b>
 
     <b>Statuses</b>

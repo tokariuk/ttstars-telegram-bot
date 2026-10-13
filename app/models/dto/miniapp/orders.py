@@ -11,6 +11,7 @@ from app.models.base import PydanticModel
 
 class OrderResponse(PydanticModel):
     id: int
+    user_id: int
     product_type: StarsOrderProductType
     status: StarsOrderStatus
     is_open: bool

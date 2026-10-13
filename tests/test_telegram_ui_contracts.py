@@ -18,6 +18,10 @@ from app.telegram.dialogs.common import premium_emoji
 from app.telegram.dialogs.flows.admin import windows as admin_windows
 from app.telegram.dialogs.flows.admin.windows.orders import orders_menu_window
 from app.telegram.dialogs.flows.storefront import windows as storefront_windows
+from app.telegram.dialogs.flows.storefront.getters.common import (
+    FAQ_PRIVACY_PATH,
+    FAQ_TERMS_PATH,
+)
 from app.telegram.dialogs.flows.storefront.windows.gifts import gifts_payment_window
 from app.telegram.dialogs.flows.storefront.windows.premium import premium_payment_window
 from app.telegram.dialogs.flows.storefront.windows.stars import stars_payment_window
@@ -131,6 +135,10 @@ def _buttons(widget: object) -> list[Button]:
 
 
 class TelegramUiContractTests(unittest.TestCase):
+    def test_faq_legal_buttons_target_the_current_miniapp_routes(self) -> None:
+        self.assertEqual(FAQ_PRIVACY_PATH, "/legal/privacy")
+        self.assertEqual(FAQ_TERMS_PATH, "/legal/terms")
+
     def test_admin_windows_do_not_render_banner_media(self) -> None:
         for name, window in vars(admin_windows).items():
             if not isinstance(window, Window):

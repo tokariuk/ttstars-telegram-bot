@@ -11,8 +11,8 @@ messages-admin_stats_screen =
     • Всього: <b>{ $orders_total }</b>
     • Нові за 24 год: <b>{ $orders_new_24h }</b>
     • Нові за 7 днів: <b>{ $orders_new_7d }</b>
-    • Оплачено за 24 год: <b>{ $orders_paid_24h }</b> (<b>{ $orders_paid_amount_24h } USD</b>)
-    • Оплачено за 7 днів: <b>{ $orders_paid_7d }</b> (<b>{ $orders_paid_amount_7d } USD</b>)
+    • Виконано за 24 год: <b>{ $orders_paid_24h }</b> (<b>{ $orders_paid_amount_24h } USD</b>)
+    • Виконано за 7 днів: <b>{ $orders_paid_7d }</b> (<b>{ $orders_paid_amount_7d } USD</b>)
     • Успішно завершено (сума): <b>{ $orders_completed_amount } USD</b>
 
     <b>Статуси</b>

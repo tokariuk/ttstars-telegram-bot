@@ -14,7 +14,7 @@ from .common import (
     banner_url,
     get_i18n,
     get_user,
-    server_base_url,
+    miniapp_base_url,
 )
 
 
@@ -22,7 +22,7 @@ async def faq_getter(dialog_manager: DialogManager, **_: Any) -> dict[str, Any]:
     i18n = get_i18n(dialog_manager=dialog_manager)
     user = get_user(dialog_manager=dialog_manager)
     locale = normalize_i18n_locale(user.language, fallback="ru")
-    base_url = server_base_url(dialog_manager=dialog_manager)
+    base_url = miniapp_base_url(dialog_manager=dialog_manager)
     faq_privacy_url = (
         f"{base_url}{FAQ_PRIVACY_PATH}?lang={locale}" if base_url else FAQ_PRIVACY_PATH
     )

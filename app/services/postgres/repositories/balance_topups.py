@@ -97,9 +97,41 @@ class BalanceTopupsRepository(BaseRepository):
         result = await self.session.scalar(query)
         return int(result or 0)
 
+    async def count_completed_since(
+        self, *, since: datetime, include_linked: bool = True
+    ) -> int:
+        query = select(func.count(BalanceTopup.id)).where(
+            and_(
+                BalanceTopup.status == StarsOrderStatus.COMPLETED.value,
+                BalanceTopup.paid_at.is_not(None),
+                BalanceTopup.paid_at >= since,
+            )
+        )
+        visibility_condition = self._visibility_condition(include_linked=include_linked)
+        if visibility_condition is not None:
+            query = query.where(visibility_condition)
+        result = await self.session.scalar(query)
+        return int(result or 0)
+
     async def sum_paid_amount_since(self, *, since: datetime, include_linked: bool = True) -> int:
         query = select(func.coalesce(func.sum(BalanceTopup.amount_cents), 0)).where(
             and_(
+                BalanceTopup.paid_at.is_not(None),
+                BalanceTopup.paid_at >= since,
+            )
+        )
+        visibility_condition = self._visibility_condition(include_linked=include_linked)
+        if visibility_condition is not None:
+            query = query.where(visibility_condition)
+        result = await self.session.scalar(query)
+        return int(result or 0)
+
+    async def sum_completed_amount_since(
+        self, *, since: datetime, include_linked: bool = True
+    ) -> int:
+        query = select(func.coalesce(func.sum(BalanceTopup.amount_cents), 0)).where(
+            and_(
+                BalanceTopup.status == StarsOrderStatus.COMPLETED.value,
                 BalanceTopup.paid_at.is_not(None),
                 BalanceTopup.paid_at >= since,
             )
