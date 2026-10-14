@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Optional, cast
 
-from sqlalchemy import Select, and_, desc, func, or_, select
+from sqlalchemy import Select, and_, desc, func, literal, or_, select, union_all
 
 from app.enums.stars_order import StarsOrderProductType, StarsOrderStatus, StarsPaymentProvider
 from app.models.sql import StarsOrder
@@ -12,6 +12,76 @@ from app.services.postgres.repositories.base import BaseRepository
 
 
 class StarsOrdersRepository(BaseRepository):
+    async def activity_by_day_since(
+        self,
+        *,
+        since: datetime,
+    ) -> dict[date, dict[str, int]]:
+        def event_query(
+            timestamp: Any,
+            event: str,
+            *,
+            status: StarsOrderStatus | None = None,
+            include_amount: bool = False,
+        ) -> Any:
+            day = func.date(timestamp).label("day")
+            query = select(
+                day,
+                literal(event).label("event"),
+                func.count(StarsOrder.id).label("count"),
+                (
+                    func.coalesce(func.sum(StarsOrder.amount_cents), 0)
+                    if include_amount
+                    else literal(0)
+                ).label("amount_cents"),
+            ).where(timestamp.is_not(None), timestamp >= since)
+            if status is not None:
+                query = query.where(StarsOrder.status == status.value)
+            return query.group_by(day)
+
+        rows = (
+            await self.session.execute(
+                union_all(
+                    event_query(StarsOrder.created_at, "created"),
+                    event_query(StarsOrder.paid_at, "paid"),
+                    event_query(
+                        StarsOrder.fulfilled_at,
+                        "completed",
+                        status=StarsOrderStatus.COMPLETED,
+                        include_amount=True,
+                    ),
+                    event_query(
+                        StarsOrder.canceled_at,
+                        "canceled",
+                        status=StarsOrderStatus.CANCELED,
+                    ),
+                    event_query(
+                        StarsOrder.failed_at,
+                        "failed",
+                        status=StarsOrderStatus.FAILED,
+                    ),
+                )
+            )
+        ).all()
+        result: dict[date, dict[str, int]] = {}
+        for raw_day, event, count, amount_cents in rows:
+            day = raw_day.date() if isinstance(raw_day, datetime) else raw_day
+            values = result.setdefault(
+                day,
+                {
+                    "created": 0,
+                    "paid": 0,
+                    "completed": 0,
+                    "canceled": 0,
+                    "failed": 0,
+                    "revenue_cents": 0,
+                },
+            )
+            values[str(event)] += int(count or 0)
+            if event == "completed":
+                values["revenue_cents"] += int(amount_cents or 0)
+        return result
+
     @staticmethod
     def _apply_admin_filters(
         query: Any,

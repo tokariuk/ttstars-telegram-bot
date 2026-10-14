@@ -145,6 +145,17 @@ class AdminProductStatResponse(PydanticModel):
     stars_count: int
 
 
+class AdminOrderActivityResponse(PydanticModel):
+    date: str
+    created: int
+    paid: int
+    completed: int
+    canceled: int
+    failed: int
+    revenue_cents: int
+    revenue_usd: str
+
+
 class AdminOrderStatsResponse(PydanticModel):
     total_orders: int
     created_last_24h: int
@@ -160,6 +171,7 @@ class AdminOrderStatsResponse(PydanticModel):
     completed_stars_count: int
     status_counts: dict[str, int]
     completed_products: dict[str, AdminProductStatResponse]
+    activity_daily: list[AdminOrderActivityResponse]
 
 
 class AdminSellStatsResponse(PydanticModel):

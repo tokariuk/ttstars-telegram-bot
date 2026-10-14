@@ -4,7 +4,7 @@ import asyncio
 import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import date, datetime, time, timedelta
 from decimal import ROUND_DOWN, Decimal
 from enum import StrEnum
 from typing import Any, Awaitable, Optional, cast
@@ -262,6 +262,44 @@ class AdminProductStats:
 
 
 @dataclass(frozen=True, slots=True)
+class AdminOrderActivityPoint:
+    date: date
+    created: int = 0
+    paid: int = 0
+    completed: int = 0
+    canceled: int = 0
+    failed: int = 0
+    revenue_cents: int = 0
+
+
+def _build_admin_activity_series(
+    *,
+    end_date: date,
+    days: int,
+    sources: tuple[dict[date, dict[str, int]], ...],
+) -> list[AdminOrderActivityPoint]:
+    safe_days = max(1, days)
+    start_date = end_date - timedelta(days=safe_days - 1)
+    result: list[AdminOrderActivityPoint] = []
+    for offset in range(safe_days):
+        current = start_date + timedelta(days=offset)
+        merged = {
+            "created": 0,
+            "paid": 0,
+            "completed": 0,
+            "canceled": 0,
+            "failed": 0,
+            "revenue_cents": 0,
+        }
+        for source in sources:
+            values = source.get(current, {})
+            for key in merged:
+                merged[key] += int(values.get(key, 0))
+        result.append(AdminOrderActivityPoint(date=current, **merged))
+    return result
+
+
+@dataclass(frozen=True, slots=True)
 class AdminOrdersStats:
     total_orders: int
     created_last_24h: int
@@ -274,6 +312,7 @@ class AdminOrdersStats:
     completed_stars_count: int
     status_counts: dict[StarsOrderStatus, int]
     completed_products: dict[StarsOrderProductType, AdminProductStats]
+    activity_daily: list[AdminOrderActivityPoint]
 
 
 logger: logging.Logger = logging.getLogger(name=__name__)
@@ -606,6 +645,12 @@ class StarsOrderService(CrudService):
         now = datetime_now()
         since_24h = now - timedelta(hours=24)
         since_7d = now - timedelta(days=7)
+        activity_days = 30
+        activity_start = datetime.combine(
+            now.date() - timedelta(days=activity_days - 1),
+            time.min,
+            tzinfo=now.tzinfo,
+        )
         async with SQLSessionContext(session_pool=self.session_pool) as (repository, _uow):
             orders_total = await repository.stars_orders.count()
             topups_total = await repository.balance_topups.count_for_admin(include_linked=False)
@@ -658,6 +703,13 @@ class StarsOrderService(CrudService):
             topups_completed_amount = await repository.balance_topups.sum_completed_amount(
                 include_linked=False
             )
+            order_activity = await repository.stars_orders.activity_by_day_since(
+                since=activity_start
+            )
+            topup_activity = await repository.balance_topups.activity_by_day_since(
+                since=activity_start,
+                include_linked=False,
+            )
 
         legacy_topup = completed_products_raw.get(StarsOrderProductType.TOPUP.value, {})
         merged_topup_count = int(legacy_topup.get("count", 0)) + int(topups_completed_count)
@@ -701,6 +753,11 @@ class StarsOrderService(CrudService):
             completed_stars_count=completed_stars_count,
             status_counts=status_counts,
             completed_products=completed_products,
+            activity_daily=_build_admin_activity_series(
+                end_date=now.date(),
+                days=activity_days,
+                sources=(order_activity, topup_activity),
+            ),
         )
 
     async def get_open_order(self, *, user_id: int) -> Optional[StarsOrderDto]:

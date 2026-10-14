@@ -18,6 +18,7 @@ from app.models.dto.miniapp import (
     AdminBalanceRequest,
     AdminBlockRequest,
     AdminChecksPageResponse,
+    AdminOrderActivityResponse,
     AdminOrdersPageResponse,
     AdminOrderStatsResponse,
     AdminProductStatResponse,
@@ -166,6 +167,19 @@ async def admin_stats(
                 )
                 for product, stat in orders.completed_products.items()
             },
+            activity_daily=[
+                AdminOrderActivityResponse(
+                    date=point.date.isoformat(),
+                    created=point.created,
+                    paid=point.paid,
+                    completed=point.completed,
+                    canceled=point.canceled,
+                    failed=point.failed,
+                    revenue_cents=point.revenue_cents,
+                    revenue_usd=price_usd_for_cents(point.revenue_cents),
+                )
+                for point in orders.activity_daily
+            ],
         ),
         sell=AdminSellStatsResponse(
             total_orders=sell.total_orders,
