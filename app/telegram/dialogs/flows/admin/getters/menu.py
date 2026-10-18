@@ -22,6 +22,7 @@ async def menu_getter(dialog_manager: DialogManager, **_: Any) -> dict[str, Any]
         "stars_sell_manage_button_text": i18n_ctx.buttons.admin_stars_sell_manage_root(),
         "stats_button_text": i18n_ctx.buttons.admin_stats(),
         "users_button_text": i18n_ctx.buttons.admin_users(),
+        "creatives_button_text": i18n_ctx.buttons.admin_creatives(),
         "close_button_text": i18n_ctx.buttons.admin_close(),
     }
 

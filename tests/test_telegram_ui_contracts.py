@@ -139,12 +139,15 @@ class TelegramUiContractTests(unittest.TestCase):
         self.assertEqual(FAQ_PRIVACY_PATH, "/legal/privacy")
         self.assertEqual(FAQ_TERMS_PATH, "/legal/terms")
 
-    def test_admin_windows_do_not_render_banner_media(self) -> None:
+    def test_only_creative_admin_windows_render_banner_media(self) -> None:
         for name, window in vars(admin_windows).items():
             if not isinstance(window, Window):
                 continue
             with self.subTest(window=name):
-                self.assertNotIsInstance(window.media, DynamicMedia)
+                if name.startswith("creatives_"):
+                    self.assertIsInstance(window.media, DynamicMedia)
+                else:
+                    self.assertNotIsInstance(window.media, DynamicMedia)
 
     def test_storefront_windows_keep_banner_media(self) -> None:
         for name, window in vars(storefront_windows).items():

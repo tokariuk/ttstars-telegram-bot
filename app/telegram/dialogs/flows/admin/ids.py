@@ -5,6 +5,7 @@ ADMIN_MENU_OPEN_STATS_BUTTON_ID = "admin_open_stats"
 ADMIN_MENU_OPEN_USERS_BUTTON_ID = "admin_open_users"
 ADMIN_MENU_OPEN_STARS_SELL_BUTTON_ID = "admin_open_stars_sell"
 ADMIN_MENU_OPEN_STARS_SELL_MANAGE_BUTTON_ID = "admin_open_stars_sell_manage"
+ADMIN_MENU_OPEN_CREATIVES_BUTTON_ID = "admin_open_creatives"
 ADMIN_MENU_CLOSE_BUTTON_ID = "admin_close"
 
 ADMIN_BROADCAST_SKIP_OPTIONS_BUTTON_ID = "admin_broadcast_skip_options"
@@ -61,3 +62,25 @@ ADMIN_ORDERS_FORCE_BUTTON_ID = "admin_orders_force"
 ADMIN_ORDERS_BACK_TO_MENU_BUTTON_ID = "admin_orders_back_menu"
 
 ADMIN_STATS_BACK_TO_MENU_BUTTON_ID = "admin_stats_back_menu"
+
+ADMIN_CREATIVES_OPEN_STARS_BUTTON_ID = "admin_creatives_open_stars"
+ADMIN_CREATIVES_OPEN_PREMIUM_BUTTON_ID = "admin_creatives_open_premium"
+ADMIN_CREATIVES_OPEN_GIFTS_BUTTON_ID = "admin_creatives_open_gifts"
+ADMIN_CREATIVES_OPEN_OVERVIEW_BUTTON_ID = "admin_creatives_open_overview"
+ADMIN_CREATIVES_BACK_TO_MENU_BUTTON_ID = "admin_creatives_back_menu"
+ADMIN_CREATIVES_BACK_TO_SECTION_BUTTON_ID = "admin_creatives_back_section"
+ADMIN_CREATIVES_STARS_PACK_BUTTON_IDS = tuple(
+    f"admin_creatives_stars_pack_{amount}" for amount in (100, 150, 250, 350, 500, 750, 1000)
+)
+ADMIN_CREATIVES_PREMIUM_PACK_BUTTON_IDS = tuple(
+    f"admin_creatives_premium_{months}" for months in (3, 6, 12)
+)
+ADMIN_CREATIVES_GIFT_ENTRY_BUTTON_IDS = (
+    "admin_creatives_gifts_basic",
+    "admin_creatives_gifts_collection",
+)
+ADMIN_CREATIVES_OVERVIEW_ENTRY_BUTTON_IDS = (
+    "admin_creatives_overview_stars",
+    "admin_creatives_overview_premium",
+    "admin_creatives_overview_gifts",
+)

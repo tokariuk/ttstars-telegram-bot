@@ -9,6 +9,7 @@ from app.telegram.dialogs.common.ttstars_interface_emoji import (
     BOX_1_EMOJI_ID,
     CHART_1_EMOJI_ID,
     CLOSE_EMOJI_ID,
+    COLOR_PALETTE_EMOJI_ID,
     KEY_EMOJI_ID,
     SETTINGS_EMOJI_ID,
     USERS_EMOJI_ID,
@@ -19,6 +20,7 @@ from ..handlers import (
     close_panel,
     open_stars_sell_admin_list,
     show_broadcast_content,
+    show_creatives_menu,
     show_orders_menu,
     show_promo_menu,
     show_stats,
@@ -27,6 +29,7 @@ from ..handlers import (
 from ..ids import (
     ADMIN_MENU_CLOSE_BUTTON_ID,
     ADMIN_MENU_OPEN_BROADCAST_BUTTON_ID,
+    ADMIN_MENU_OPEN_CREATIVES_BUTTON_ID,
     ADMIN_MENU_OPEN_ORDERS_BUTTON_ID,
     ADMIN_MENU_OPEN_PROMO_BUTTON_ID,
     ADMIN_MENU_OPEN_STARS_SELL_MANAGE_BUTTON_ID,
@@ -78,6 +81,12 @@ menu_window: Window = Window(
             on_click=open_stars_sell_admin_list,
             style=Style(emoji_id=SETTINGS_EMOJI_ID),
         ),
+    ),
+    Button(
+        Format("{creatives_button_text}"),
+        id=ADMIN_MENU_OPEN_CREATIVES_BUTTON_ID,
+        on_click=show_creatives_menu,
+        style=Style(emoji_id=COLOR_PALETTE_EMOJI_ID),
     ),
     Button(
         Format("{close_button_text}"),

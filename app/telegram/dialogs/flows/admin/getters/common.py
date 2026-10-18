@@ -13,14 +13,32 @@ from app.telegram.dialogs.common import get_user
 
 from ..handlers.shared import consume_notice
 
-ADMIN_BANNER_KEY = Literal["stars_sell"]
+ADMIN_BANNER_KEY = Literal[
+    "stars_sell",
+    "creatives",
+    "creatives_stars",
+    "creatives_premium",
+    "creatives_gifts",
+]
 
 ADMIN_BANNER_FILENAMES: dict[ADMIN_BANNER_KEY, dict[str, str]] = {
     "stars_sell": {
         "uk": "stars-sell.jpg",
         "ru": "stars-sell.jpg",
         "en": "stars-sell.jpg",
-    }
+    },
+    "creatives": {
+        "uk": "creatives.jpg",
+        "ru": "creatives.jpg",
+        "en": "creatives.jpg",
+    },
+    "creatives_stars": {"uk": "stars.jpg", "ru": "stars.jpg", "en": "stars.jpg"},
+    "creatives_premium": {
+        "uk": "premium.jpg",
+        "ru": "premium.jpg",
+        "en": "premium.jpg",
+    },
+    "creatives_gifts": {"uk": "gifts.jpg", "ru": "gifts.jpg", "en": "gifts.jpg"},
 }
 
 

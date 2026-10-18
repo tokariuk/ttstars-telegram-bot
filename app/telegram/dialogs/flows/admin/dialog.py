@@ -5,6 +5,11 @@ from .windows import (
     broadcast_confirm_window,
     broadcast_content_window,
     broadcast_options_window,
+    creatives_gifts_window,
+    creatives_menu_window,
+    creatives_overview_window,
+    creatives_premium_window,
+    creatives_stars_window,
     menu_window,
     order_force_window,
     order_retry_window,
@@ -56,6 +61,11 @@ dialog: Dialog = Dialog(
     stars_sell_admin_list_window,
     stars_sell_admin_details_window,
     stats_window,
+    creatives_menu_window,
+    creatives_stars_window,
+    creatives_premium_window,
+    creatives_gifts_window,
+    creatives_overview_window,
 )
 
 

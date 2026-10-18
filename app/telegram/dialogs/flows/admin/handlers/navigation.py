@@ -98,6 +98,55 @@ async def show_stats(_: CallbackQuery, __: Button, dialog_manager: DialogManager
     await dialog_manager.switch_to(AdminSG.stats, show_mode=ShowMode.EDIT)
 
 
+async def show_creatives_menu(
+    _: CallbackQuery,
+    __: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    _clear_notice(dialog_manager)
+    await dialog_manager.switch_to(AdminSG.creatives_menu, show_mode=ShowMode.EDIT)
+
+
+async def show_creatives_stars(
+    _: CallbackQuery,
+    __: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    await dialog_manager.switch_to(AdminSG.creatives_stars, show_mode=ShowMode.EDIT)
+
+
+async def show_creatives_premium(
+    _: CallbackQuery,
+    __: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    await dialog_manager.switch_to(AdminSG.creatives_premium, show_mode=ShowMode.EDIT)
+
+
+async def show_creatives_gifts(
+    _: CallbackQuery,
+    __: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    await dialog_manager.switch_to(AdminSG.creatives_gifts, show_mode=ShowMode.EDIT)
+
+
+async def show_creatives_overview(
+    _: CallbackQuery,
+    __: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    await dialog_manager.switch_to(AdminSG.creatives_overview, show_mode=ShowMode.EDIT)
+
+
+async def acknowledge_creative_preview(
+    callback: CallbackQuery,
+    _: Button,
+    __: DialogManager,
+) -> None:
+    await callback.answer()
+
+
 async def show_users_menu(
     _: CallbackQuery,
     __: Button,

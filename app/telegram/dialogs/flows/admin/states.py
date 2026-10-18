@@ -28,3 +28,8 @@ class AdminSG(StatesGroup):
     stars_sell_admin_list = State()
     stars_sell_admin_details = State()
     stats = State()
+    creatives_menu = State()
+    creatives_stars = State()
+    creatives_premium = State()
+    creatives_gifts = State()
+    creatives_overview = State()

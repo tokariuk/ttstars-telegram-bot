@@ -4,6 +4,13 @@ from .broadcast import (
     broadcast_content_getter,
     broadcast_options_getter,
 )
+from .creatives import (
+    creatives_gifts_getter,
+    creatives_menu_getter,
+    creatives_overview_getter,
+    creatives_premium_getter,
+    creatives_stars_getter,
+)
 from .menu import menu_getter
 from .orders import order_force_getter, order_retry_getter, orders_menu_getter
 from .promo import (
@@ -32,6 +39,11 @@ __all__ = [
     "broadcast_confirm_getter",
     "broadcast_content_getter",
     "broadcast_options_getter",
+    "creatives_gifts_getter",
+    "creatives_menu_getter",
+    "creatives_overview_getter",
+    "creatives_premium_getter",
+    "creatives_stars_getter",
     "menu_getter",
     "order_force_getter",
     "order_retry_getter",
