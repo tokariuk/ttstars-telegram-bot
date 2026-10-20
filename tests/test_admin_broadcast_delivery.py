@@ -8,16 +8,80 @@ from aiogram.exceptions import TelegramRetryAfter
 from aiogram.methods import SendMessage
 
 from app.telegram.dialogs.flows.admin.handlers import actions
-from app.telegram.dialogs.flows.admin.handlers.shared import save_broadcast_payload
+from app.telegram.dialogs.flows.admin.handlers.shared import (
+    load_broadcast_payload,
+    save_broadcast_payload,
+)
 from app.telegram.dialogs.flows.admin.helpers import (
     BroadcastDeliveryResult,
     BroadcastPayload,
     _deliver_to_user,
     deliver_broadcast,
+    send_broadcast_preview,
 )
 
 
 class AdminBroadcastDeliveryTests(unittest.IsolatedAsyncioTestCase):
+    def test_new_broadcasts_enable_link_preview_by_default(self) -> None:
+        payload = BroadcastPayload(
+            text_html="https://ttstars.xyz",
+            photo_file_id=None,
+            buttons=[],
+            target_languages=None,
+            include_close_button=False,
+        )
+
+        self.assertTrue(
+            hasattr(payload, "link_preview_enabled"),
+            "broadcast payload must carry the link-preview preference",
+        )
+        self.assertTrue(payload.link_preview_enabled)
+
+    async def test_preview_disables_telegram_link_preview_when_requested(self) -> None:
+        bot = SimpleNamespace(send_message=AsyncMock(return_value=object()))
+        payload = BroadcastPayload(
+            text_html="https://ttstars.xyz",
+            photo_file_id=None,
+            buttons=[],
+            target_languages=None,
+            include_close_button=False,
+            link_preview_enabled=False,
+        )
+
+        await send_broadcast_preview(
+            bot=bot,
+            i18n=MagicMock(),
+            chat_id=777,
+            payload=payload,
+        )
+
+        self.assertTrue(bot.send_message.await_args.kwargs["disable_web_page_preview"])
+
+    async def test_admin_can_toggle_link_preview_while_building_broadcast(self) -> None:
+        dialog_manager = SimpleNamespace(dialog_data={}, switch_to=AsyncMock())
+        save_broadcast_payload(
+            dialog_manager=dialog_manager,
+            payload=BroadcastPayload(
+                text_html="https://ttstars.xyz",
+                photo_file_id=None,
+                buttons=[],
+                target_languages=None,
+                include_close_button=False,
+            ),
+        )
+        callback = SimpleNamespace(answer=AsyncMock())
+        toggle = getattr(actions, "broadcast_toggle_link_preview", None)
+
+        self.assertIsNotNone(toggle, "link-preview toggle action is missing")
+        if toggle is None:
+            return
+        await toggle(callback, MagicMock(), dialog_manager)
+
+        payload = load_broadcast_payload(dialog_manager)
+        self.assertIsNotNone(payload)
+        if payload is not None:
+            self.assertFalse(payload.link_preview_enabled)
+
     async def test_bulk_delivery_paces_chunks_to_avoid_flood_control(self) -> None:
         user_service = SimpleNamespace(
             count_active=AsyncMock(return_value=4),

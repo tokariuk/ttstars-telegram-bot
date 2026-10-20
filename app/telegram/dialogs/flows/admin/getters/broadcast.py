@@ -59,6 +59,7 @@ async def broadcast_options_getter(dialog_manager: DialogManager, **_: Any) -> d
     payload = load_broadcast_payload(dialog_manager)
     target_languages = payload.target_languages if payload is not None else None
     include_close_button = payload.include_close_button if payload is not None else False
+    link_preview_enabled = payload.link_preview_enabled if payload is not None else True
     available_locales = list(user_service(dialog_manager).config.telegram.locales)
     text = with_notice(
         text=str(
@@ -70,6 +71,11 @@ async def broadcast_options_getter(dialog_manager: DialogManager, **_: Any) -> d
                     if include_close_button
                     else str(i18n_ctx.messages.admin_broadcast_option_disabled())
                 ),
+                link_preview=(
+                    str(i18n_ctx.messages.admin_broadcast_option_enabled())
+                    if link_preview_enabled
+                    else str(i18n_ctx.messages.admin_broadcast_option_disabled())
+                ),
             )
         ),
         notice=consume_notice(dialog_manager),
@@ -77,6 +83,11 @@ async def broadcast_options_getter(dialog_manager: DialogManager, **_: Any) -> d
     return {
         "text": text,
         "skip_button_text": i18n_ctx.buttons.admin_skip(),
+        "link_preview_button_text": (
+            i18n_ctx.messages.admin_broadcast_link_preview_disable()
+            if link_preview_enabled
+            else i18n_ctx.messages.admin_broadcast_link_preview_enable()
+        ),
         "back_button_text": i18n_ctx.buttons.admin_back_menu(),
     }
 
@@ -98,6 +109,11 @@ async def broadcast_confirm_getter(dialog_manager: DialogManager, **_: Any) -> d
                 close_button=(
                     str(i18n_ctx.messages.admin_broadcast_option_enabled())
                     if payload.include_close_button
+                    else str(i18n_ctx.messages.admin_broadcast_option_disabled())
+                ),
+                link_preview=(
+                    str(i18n_ctx.messages.admin_broadcast_option_enabled())
+                    if payload.link_preview_enabled
                     else str(i18n_ctx.messages.admin_broadcast_option_disabled())
                 ),
             )

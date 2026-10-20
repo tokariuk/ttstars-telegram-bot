@@ -15,6 +15,7 @@ messages-admin_broadcast_options_prompt =
     Available locales: <code>{ $locales }</code>
     Selected locales: <b>{ $selected_locales }</b>
     Close button: <b>{ $close_button }</b>
+    Link preview: <b>{ $link_preview }</b>
 
     Format:
     <code>all</code>
@@ -26,6 +27,8 @@ messages-admin_broadcast_options_prompt =
 messages-admin_broadcast_options_invalid = <blockquote><tg-emoji emoji-id="5381932538325404900">❌</tg-emoji> Invalid broadcast options: { $error }</blockquote>
 messages-admin_broadcast_option_enabled = enabled
 messages-admin_broadcast_option_disabled = disabled
+messages-admin_broadcast_link_preview_disable = Remove link preview
+messages-admin_broadcast_link_preview_enable = Show link preview
 
 messages-admin_broadcast_buttons_prompt =
     <blockquote><b><tg-emoji emoji-id="5382283505872967732">🔗</tg-emoji> Broadcast · Step 3/4</b></blockquote>
@@ -43,6 +46,7 @@ messages-admin_broadcast_preview_ready =
     Recipients: <b>{ $recipients }</b>
     Locales: <b>{ $locales }</b>
     Close button: <b>{ $close_button }</b>
+    Link preview: <b>{ $link_preview }</b>
     Buttons: <b>{ $buttons }</b>
 
 messages-admin_broadcast_preview_failed = <blockquote><tg-emoji emoji-id="5381932538325404900">❌</tg-emoji> Failed to build preview. Check message formatting.</blockquote>

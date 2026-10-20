@@ -41,6 +41,7 @@ class BroadcastPayload:
     buttons: list[BroadcastButton]
     target_languages: list[str] | None
     include_close_button: bool
+    link_preview_enabled: bool = True
 
 
 @dataclass(frozen=True, slots=True)
@@ -286,6 +287,7 @@ def payload_to_state(payload: BroadcastPayload) -> dict[str, Any]:
         "buttons": [{"text": button.text, "url": button.url} for button in payload.buttons],
         "target_languages": payload.target_languages,
         "include_close_button": payload.include_close_button,
+        "link_preview_enabled": payload.link_preview_enabled,
     }
 
 
@@ -337,6 +339,7 @@ def payload_from_state(data: dict[str, Any]) -> BroadcastPayload | None:
         buttons=_extract_buttons_from_state(data.get("buttons")),
         target_languages=_extract_target_languages(data.get("target_languages")),
         include_close_button=bool(data.get("include_close_button", False)),
+        link_preview_enabled=bool(data.get("link_preview_enabled", True)),
     )
 
 
@@ -519,7 +522,7 @@ async def _send_payload(
         text=payload.text_html,
         parse_mode="HTML",
         reply_markup=reply_markup,
-        disable_web_page_preview=False,
+        disable_web_page_preview=not payload.link_preview_enabled,
     )
 
 

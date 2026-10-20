@@ -6,6 +6,7 @@ from aiogram_dialog.widgets.style import Style
 from aiogram_dialog.widgets.text import Format
 
 from app.telegram.dialogs.common.ttstars_interface_emoji import (
+    EYE_EMOJI_ID,
     LEFT_SQUARE_EMOJI_ID,
     RIGHT_CIRCLE_EMOJI_ID,
     SEND_EMOJI_ID,
@@ -22,6 +23,7 @@ from ..handlers import (
     broadcast_send,
     broadcast_skip_buttons,
     broadcast_skip_options,
+    broadcast_toggle_link_preview,
     handle_broadcast_buttons_input,
     handle_broadcast_content_input,
     handle_broadcast_options_input,
@@ -34,6 +36,7 @@ from ..ids import (
     ADMIN_BROADCAST_CONFIRM_SEND_BUTTON_ID,
     ADMIN_BROADCAST_SKIP_BUTTONS_BUTTON_ID,
     ADMIN_BROADCAST_SKIP_OPTIONS_BUTTON_ID,
+    ADMIN_BROADCAST_TOGGLE_LINK_PREVIEW_BUTTON_ID,
 )
 from ..states import AdminSG
 
@@ -74,6 +77,12 @@ broadcast_buttons_window: Window = Window(
 broadcast_options_window: Window = Window(
     Format("{text}"),
     MessageInput(handle_broadcast_options_input),
+    Button(
+        Format("{link_preview_button_text}"),
+        id=ADMIN_BROADCAST_TOGGLE_LINK_PREVIEW_BUTTON_ID,
+        on_click=broadcast_toggle_link_preview,
+        style=Style(emoji_id=EYE_EMOJI_ID),
+    ),
     Row(
         Button(
             Format("{skip_button_text}"),

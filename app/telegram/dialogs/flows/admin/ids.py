@@ -9,6 +9,7 @@ ADMIN_MENU_OPEN_CREATIVES_BUTTON_ID = "admin_open_creatives"
 ADMIN_MENU_CLOSE_BUTTON_ID = "admin_close"
 
 ADMIN_BROADCAST_SKIP_OPTIONS_BUTTON_ID = "admin_broadcast_skip_options"
+ADMIN_BROADCAST_TOGGLE_LINK_PREVIEW_BUTTON_ID = "admin_broadcast_toggle_link_preview"
 ADMIN_BROADCAST_SKIP_BUTTONS_BUTTON_ID = "admin_broadcast_skip_buttons"
 ADMIN_BROADCAST_CONFIRM_SEND_BUTTON_ID = "admin_broadcast_send"
 ADMIN_BROADCAST_CONFIRM_RESTART_BUTTON_ID = "admin_broadcast_restart"

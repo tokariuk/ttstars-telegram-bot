@@ -15,6 +15,7 @@ messages-admin_broadcast_options_prompt =
     Доступные локали: <code>{ $locales }</code>
     Выбранные локали: <b>{ $selected_locales }</b>
     Кнопка «Закрыть»: <b>{ $close_button }</b>
+    Предпросмотр ссылки: <b>{ $link_preview }</b>
 
     Формат:
     <code>all</code>
@@ -26,6 +27,8 @@ messages-admin_broadcast_options_prompt =
 messages-admin_broadcast_options_invalid = <blockquote><tg-emoji emoji-id="5381932538325404900">❌</tg-emoji> Некорректные параметры рассылки: { $error }</blockquote>
 messages-admin_broadcast_option_enabled = включено
 messages-admin_broadcast_option_disabled = выключено
+messages-admin_broadcast_link_preview_disable = Убрать предпросмотр ссылки
+messages-admin_broadcast_link_preview_enable = Показывать предпросмотр ссылки
 
 messages-admin_broadcast_buttons_prompt =
     <blockquote><b><tg-emoji emoji-id="5382283505872967732">🔗</tg-emoji> Рассылка · Шаг 3/4</b></blockquote>
@@ -43,6 +46,7 @@ messages-admin_broadcast_preview_ready =
     Получатели: <b>{ $recipients }</b>
     Локали: <b>{ $locales }</b>
     Кнопка «Закрыть»: <b>{ $close_button }</b>
+    Предпросмотр ссылки: <b>{ $link_preview }</b>
     Кнопок: <b>{ $buttons }</b>
 
 messages-admin_broadcast_preview_failed = <blockquote><tg-emoji emoji-id="5381932538325404900">❌</tg-emoji> Не удалось собрать превью. Проверь форматирование.</blockquote>

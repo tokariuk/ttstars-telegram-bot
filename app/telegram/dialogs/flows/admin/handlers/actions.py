@@ -71,6 +71,27 @@ async def broadcast_skip_options(
     await dialog_manager.switch_to(AdminSG.broadcast_buttons, show_mode=ShowMode.EDIT)
 
 
+async def broadcast_toggle_link_preview(
+    callback: CallbackQuery,
+    _: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    payload = load_broadcast_payload(dialog_manager)
+    if payload is None:
+        i18n_ctx = i18n(dialog_manager)
+        set_notice(dialog_manager, str(i18n_ctx.messages.admin_broadcast_content_invalid()))
+        await dialog_manager.switch_to(AdminSG.broadcast_content, show_mode=ShowMode.EDIT)
+        await callback.answer()
+        return
+
+    save_broadcast_payload(
+        dialog_manager=dialog_manager,
+        payload=replace(payload, link_preview_enabled=not payload.link_preview_enabled),
+    )
+    await callback.answer()
+    await dialog_manager.switch_to(AdminSG.broadcast_options, show_mode=ShowMode.EDIT)
+
+
 async def broadcast_send(
     callback: CallbackQuery,
     _: Button,
