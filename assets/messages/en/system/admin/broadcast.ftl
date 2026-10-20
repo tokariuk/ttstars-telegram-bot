@@ -46,6 +46,11 @@ messages-admin_broadcast_preview_ready =
     Buttons: <b>{ $buttons }</b>
 
 messages-admin_broadcast_preview_failed = <blockquote><tg-emoji emoji-id="5381932538325404900">❌</tg-emoji> Failed to build preview. Check message formatting.</blockquote>
+messages-admin_broadcast_preview_failed_detail =
+    <blockquote><tg-emoji emoji-id="5381932538325404900">❌</tg-emoji> Broadcast not started</blockquote>
+
+    Telegram rejected the test message: <code>{ $reason }</code>
+    Fix the content or buttons and try again.
 messages-admin_broadcast_preview_content = Content
 messages-admin_broadcast_preview_buttons = Buttons
 messages-admin_broadcast_preview_photo = Photo

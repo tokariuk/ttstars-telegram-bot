@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import replace
 
 from aiogram.types import CallbackQuery
@@ -12,6 +13,7 @@ from app.telegram.html import escape_text
 from ..helpers import (
     deliver_broadcast,
     payload_with_buttons,
+    send_broadcast_preview,
 )
 from ..states import AdminSG
 from .shared import (
@@ -27,6 +29,8 @@ from .shared import (
     set_promo_selected_code,
     user_service,
 )
+
+logger = logging.getLogger(__name__)
 
 
 async def broadcast_skip_buttons(
@@ -80,14 +84,39 @@ async def broadcast_send(
         return
 
     await callback.answer()
-    set_notice(dialog_manager, str(i18n_ctx.messages.admin_broadcast_started()))
-    await dialog_manager.switch_to(AdminSG.broadcast_confirm, show_mode=ShowMode.EDIT)
-
     bot = callback.bot
     if bot is None:
         set_notice(dialog_manager, str(i18n_ctx.messages.admin_broadcast_preview_failed()))
         await dialog_manager.switch_to(AdminSG.broadcast_confirm, show_mode=ShowMode.EDIT)
         return
+
+    try:
+        await send_broadcast_preview(
+            bot=bot,
+            i18n=i18n_ctx,
+            chat_id=callback.from_user.id,
+            payload=payload,
+        )
+    except Exception as error:
+        logger.warning(
+            "Broadcast preview validation failed for admin_id=%d: %s: %s",
+            callback.from_user.id,
+            type(error).__name__,
+            error,
+        )
+        set_notice(
+            dialog_manager,
+            str(
+                i18n_ctx.messages.admin_broadcast_preview_failed_detail(
+                    reason=escape_text(getattr(error, "message", str(error))),
+                )
+            ),
+        )
+        await dialog_manager.switch_to(AdminSG.broadcast_confirm, show_mode=ShowMode.EDIT)
+        return
+
+    set_notice(dialog_manager, str(i18n_ctx.messages.admin_broadcast_started()))
+    await dialog_manager.switch_to(AdminSG.broadcast_confirm, show_mode=ShowMode.EDIT)
 
     result = await deliver_broadcast(
         bot=bot,

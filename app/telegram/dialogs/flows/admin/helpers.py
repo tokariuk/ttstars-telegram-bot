@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from dataclasses import dataclass, replace
 from datetime import datetime
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
@@ -15,6 +16,8 @@ from aiogram_i18n import I18nContext
 from app.services.crud.user import UserService
 from app.utils.localization import normalize_i18n_locale
 from app.utils.time import datetime_now
+
+logger = logging.getLogger(__name__)
 
 _MAX_BROADCAST_BUTTONS = 8
 _MAX_BROADCAST_BUTTON_TEXT = 64
@@ -387,7 +390,7 @@ async def deliver_broadcast(
     target_languages: list[str] | None = None,
     include_close_button: bool = False,
     batch_size: int = 300,
-    concurrency: int = 25,
+    concurrency: int = 10,
 ) -> BroadcastDeliveryResult:
     total = await user_service.count_active(locales=target_languages)
     if total <= 0:
@@ -431,6 +434,10 @@ async def deliver_broadcast(
                     blocked += 1
                 else:
                     failed += 1
+            if index + concurrency < len(recipients):
+                # Keep bulk traffic below Telegram's regular bot-wide throughput
+                # and avoid making every coroutine collide on the same flood wait.
+                await asyncio.sleep(0.55)
 
     return BroadcastDeliveryResult(total=total, sent=sent, failed=failed, blocked=blocked)
 
@@ -454,15 +461,8 @@ async def _deliver_to_user(
         else None
     )
     markup = build_link_keyboard(payload.buttons, close_button_text=close_button_text)
-    try:
-        await _send_payload(
-            bot=bot,
-            chat_id=user_id,
-            payload=payload,
-            reply_markup=markup,
-        )
-    except TelegramRetryAfter as error:
-        await asyncio.sleep(float(error.retry_after) + 0.1)
+    max_attempts = 4
+    for attempt in range(max_attempts):
         try:
             await _send_payload(
                 bot=bot,
@@ -470,18 +470,29 @@ async def _deliver_to_user(
                 payload=payload,
                 reply_markup=markup,
             )
+        except TelegramRetryAfter as error:
+            if attempt + 1 >= max_attempts:
+                logger.warning(
+                    "Broadcast delivery exhausted flood-wait retries for user_id=%d",
+                    user_id,
+                )
+                return "failed"
+            jitter = (user_id % 10) * 0.05
+            await asyncio.sleep(float(error.retry_after) + 0.1 + jitter)
+            continue
         except TelegramForbiddenError:
             await user_service.set_blocked_at(user_id=user_id, blocked_at=datetime_now())
             return "blocked"
-        except Exception:
+        except Exception as error:
+            logger.warning(
+                "Broadcast delivery failed for user_id=%d: %s: %s",
+                user_id,
+                type(error).__name__,
+                error,
+            )
             return "failed"
         return "sent"
-    except TelegramForbiddenError:
-        await user_service.set_blocked_at(user_id=user_id, blocked_at=datetime_now())
-        return "blocked"
-    except Exception:
-        return "failed"
-    return "sent"
+    return "failed"
 
 
 async def _send_payload(

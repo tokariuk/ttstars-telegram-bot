@@ -46,6 +46,11 @@ messages-admin_broadcast_preview_ready =
     Кнопок: <b>{ $buttons }</b>
 
 messages-admin_broadcast_preview_failed = <blockquote><tg-emoji emoji-id="5381932538325404900">❌</tg-emoji> Не удалось собрать превью. Проверь форматирование.</blockquote>
+messages-admin_broadcast_preview_failed_detail =
+    <blockquote><tg-emoji emoji-id="5381932538325404900">❌</tg-emoji> Рассылка не запущена</blockquote>
+
+    Telegram отклонил тестовое сообщение: <code>{ $reason }</code>
+    Исправь содержимое или кнопки и попробуй снова.
 messages-admin_broadcast_preview_content = Содержимое
 messages-admin_broadcast_preview_buttons = Кнопки
 messages-admin_broadcast_preview_photo = Фото
