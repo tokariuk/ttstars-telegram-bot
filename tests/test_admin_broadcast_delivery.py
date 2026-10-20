@@ -17,11 +17,30 @@ from app.telegram.dialogs.flows.admin.helpers import (
     BroadcastPayload,
     _deliver_to_user,
     deliver_broadcast,
+    normalize_url,
+    parse_link_buttons,
     send_broadcast_preview,
 )
 
 
 class AdminBroadcastDeliveryTests(unittest.IsolatedAsyncioTestCase):
+    def test_button_parser_uses_last_separator_before_url(self) -> None:
+        buttons = parse_link_buttons(
+            "🦊 | ACCOUNTS | https://t.me/FoxyProxyShopBot?start=reklamavtg"
+        )
+
+        self.assertEqual(len(buttons), 1)
+        self.assertEqual(buttons[0].text, "🦊 ACCOUNTS")
+        self.assertEqual(
+            buttons[0].url,
+            "https://t.me/FoxyProxyShopBot?start=reklamavtg",
+        )
+
+    def test_url_normalizer_rejects_text_mixed_with_url(self) -> None:
+        self.assertIsNone(
+            normalize_url("ACCOUNTS | https://t.me/FoxyProxyShopBot?start=reklamavtg")
+        )
+
     def test_new_broadcasts_enable_link_preview_by_default(self) -> None:
         payload = BroadcastPayload(
             text_html="https://ttstars.xyz",

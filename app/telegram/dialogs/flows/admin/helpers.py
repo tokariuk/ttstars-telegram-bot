@@ -231,7 +231,9 @@ def parse_link_buttons(value: str) -> list[BroadcastButton]:
         text_part: str
         url_part: str
         if "|" in line:
-            text_part, url_part = line.split("|", 1)
+            parts = [part.strip() for part in line.split("|")]
+            text_part = " ".join(part for part in parts[:-1] if part)
+            url_part = parts[-1]
         elif " - " in line:
             text_part, url_part = line.split(" - ", 1)
         elif " — " in line:
@@ -258,6 +260,8 @@ def normalize_url(value: str) -> str | None:
     url = value.strip()
     if not url:
         return None
+    if "|" in url or any(character.isspace() for character in url):
+        return None
     if url.startswith("t.me/") or url.startswith("telegram.me/"):
         url = f"https://{url}"
     elif not url.startswith("http://") and not url.startswith("https://"):
@@ -268,7 +272,11 @@ def normalize_url(value: str) -> str | None:
     parsed = urlparse(url)
     if parsed.scheme not in {"http", "https"}:
         return None
-    if not parsed.netloc:
+    if not parsed.netloc or parsed.hostname is None:
+        return None
+    try:
+        parsed.port
+    except ValueError:
         return None
     return url
 
