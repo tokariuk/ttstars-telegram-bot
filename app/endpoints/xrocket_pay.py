@@ -25,7 +25,19 @@ def create_router(path: str) -> APIRouter:
                 detail="xRocket Pay is not configured.",
             )
 
-        payload = mjson.decode(await request.body())
+        raw_body = await request.body()
+        if not xrocket_pay_service.verify_webhook_signature(
+            raw_body=raw_body,
+            signature=request.headers.get("Signature"),
+            signature_version=request.headers.get("Signature-Version"),
+            signature_timestamp=request.headers.get("Signature-Timestamp"),
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid xRocket webhook signature.",
+            )
+
+        payload = mjson.decode(raw_body)
         event = xrocket_pay_service.parse_webhook_event(payload)
         if event is None:
             return {"ok": True}

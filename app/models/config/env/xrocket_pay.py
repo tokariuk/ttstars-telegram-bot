@@ -5,7 +5,8 @@ from .base import EnvSettings
 
 class XRocketPayConfig(EnvSettings, env_prefix="XROCKET_PAY_"):
     api_key: SecretStr | None = None
-    base_url: str = "https://pay.xrocket.exchange"
+    webhook_secret: SecretStr | None = None
+    base_url: str = "https://pay.api.xrocket.exchange"
     currency: str = "USDT"
     webhook_path: str = "/xrocket-pay/webhook"
     success_url: str | None = None

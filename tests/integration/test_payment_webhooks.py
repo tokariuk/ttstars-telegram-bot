@@ -208,6 +208,11 @@ class PaymentWebhookIntegrationTests(unittest.IsolatedAsyncioTestCase):
             method="POST",
             path="/xrocket",
             body=mjson.bytes_encode({"type": "invoicePay", "data": {"id": "invoice-45"}}),
+            headers={
+                "signature": "valid",
+                "signature-version": "v1",
+                "signature-timestamp": "1773223200000",
+            },
         )
 
         self.assert_webhook_ok(response)
@@ -224,6 +229,28 @@ class PaymentWebhookIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 )
             ],
         )
+
+    async def test_xrocket_webhook_rejects_invalid_signature(self) -> None:
+        app, orders = create_test_app(
+            create_xrocket_router("/xrocket"),
+            provider_name="xrocket_pay_service",
+            provider=ProviderFake(signature_valid=False),
+        )
+
+        response = await asgi_request(
+            app,
+            method="POST",
+            path="/xrocket",
+            body=b"{}",
+            headers={
+                "signature": "invalid",
+                "signature-version": "v1",
+                "signature-timestamp": "1773223200000",
+            },
+        )
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(orders.calls, [])
 
     async def test_heleket_webhook_verifies_signature_and_forwards_payment(self) -> None:
         event = HeleketWebhookEvent(

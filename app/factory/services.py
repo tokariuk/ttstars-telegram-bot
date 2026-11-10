@@ -131,6 +131,7 @@ def _create_payment_services(config: AppConfig) -> PaymentServices:
     )
     xrocket_pay_service = XRocketPayService(
         api_key=_secret_value(config.xrocket_pay.api_key),
+        webhook_secret=_secret_value(config.xrocket_pay.webhook_secret),
         base_url=config.xrocket_pay.base_url,
         currency=config.xrocket_pay.currency,
         success_url=config.xrocket_pay.success_url,

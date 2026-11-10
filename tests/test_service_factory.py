@@ -64,6 +64,7 @@ def _config() -> Any:
         ),
         xrocket_pay=SimpleNamespace(
             api_key=SecretStr("xrocket-key"),
+            webhook_secret=SecretStr("xrocket-webhook-secret"),
             base_url="https://xrocket.test/",
             currency="usdt",
             success_url="https://example.test/success",

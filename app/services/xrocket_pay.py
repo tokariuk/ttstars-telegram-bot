@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
+import time
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Any
@@ -39,11 +42,13 @@ class XRocketPayService:
         self,
         *,
         api_key: str | None,
+        webhook_secret: str | None,
         base_url: str,
         currency: str,
         success_url: str | None = None,
     ) -> None:
         self.api_key = (api_key or "").strip()
+        self.webhook_secret = (webhook_secret or "").strip()
         self.base_url = base_url.rstrip("/")
         self.currency = (currency or "USD").strip().upper() or "USD"
         self.success_url = (success_url or "").strip()
@@ -51,11 +56,16 @@ class XRocketPayService:
 
     @property
     def configured(self) -> bool:
+        return bool(self.api_key and self.webhook_secret and self.base_url)
+
+    @property
+    def api_configured(self) -> bool:
         return bool(self.api_key and self.base_url)
 
     def _headers(self) -> dict[str, str]:
         return {
-            "Rocket-Pay-Key": self.api_key,
+            "Authorization": f"Bearer {self.api_key}",
+            "Accept": "application/json",
             "Content-Type": "application/json",
         }
 
@@ -75,21 +85,25 @@ class XRocketPayService:
             raise RuntimeError("xRocket payload is empty.")
 
         request_payload: dict[str, Any] = {
-            "amount": self._format_amount_for_request(amount),
+            "priceAmount": self._format_amount_for_request(amount),
             "numPayments": 1,
-            "currency": self.currency,
+            "priceCurrency": self.currency,
+            "payoutCurrency": self.currency,
+            "payCurrencies": [self.currency],
+            "clientInvoiceId": normalized_payload,
             "description": description,
-            "payload": normalized_payload,
-            "commentsEnabled": False,
         }
         if callback_url:
-            request_payload["callbackUrl"] = callback_url
-        elif self.success_url:
-            request_payload["callbackUrl"] = self.success_url
+            request_payload["callback"] = {
+                "callbackUrl": callback_url,
+                "payload": {"paymentPayload": normalized_payload},
+            }
+        if self.success_url:
+            request_payload["url"] = {"successUrl": self.success_url}
 
         payload = await self._request_json(
             method="POST",
-            path="/tg-invoices",
+            path="/api/v1/invoices",
             json=request_payload,
         )
         invoice = self._extract_invoice(payload)
@@ -98,7 +112,9 @@ class XRocketPayService:
             raise RuntimeError("xRocket Pay did not return invoice ID.")
         return XRocketInvoice(
             invoice_id=invoice_id,
-            payment_payload=self._extract_string(invoice.get("payload")) or normalized_payload,
+            payment_payload=(
+                self._extract_string(invoice.get("clientInvoiceId")) or normalized_payload
+            ),
             pay_url=self._extract_checkout_url(invoice),
             status=self._extract_status(invoice),
         )
@@ -109,7 +125,7 @@ class XRocketPayService:
         payment_payload: str | None = None,
         invoice_id: str | None = None,
     ) -> XRocketInvoiceStatus:
-        if not self.configured:
+        if not self.api_configured:
             return XRocketInvoiceStatus(is_paid=False, status="unconfigured")
 
         normalized_payment_payload = (
@@ -119,17 +135,16 @@ class XRocketPayService:
         if not normalized_invoice_id and not normalized_payment_payload:
             return XRocketInvoiceStatus(is_paid=False, status="invoice_missing")
 
-        if not normalized_invoice_id and normalized_payment_payload:
-            invoice_meta = await self._find_invoice_by_payload(
-                payment_payload=normalized_payment_payload
-            )
-            if invoice_meta is None:
-                return XRocketInvoiceStatus(is_paid=False, status="invoice_missing")
-            normalized_invoice_id = invoice_meta[0]
+        params = (
+            {"invoiceId": normalized_invoice_id}
+            if normalized_invoice_id
+            else {"clientInvoiceId": normalized_payment_payload}
+        )
 
         payload = await self._request_json(
             method="GET",
-            path=f"/tg-invoices/{normalized_invoice_id}",
+            path="/api/v1/invoice",
+            params=params,
         )
         invoice = self._extract_invoice(payload)
         status = self._extract_status(invoice)
@@ -143,18 +158,66 @@ class XRocketPayService:
     def parse_webhook_event(self, payload: Any) -> XRocketWebhookEvent | None:
         if not isinstance(payload, dict):
             return None
-        event_type = self._extract_string(payload.get("type"))
-        invoice = payload.get("data")
+        if (self._extract_string(payload.get("type")) or "").lower() != "invoice":
+            return None
+        data = payload.get("data")
+        if not isinstance(data, dict):
+            return None
+        event_name = (self._extract_string(data.get("event")) or "").lower()
+        if event_name not in {"invoice_status_changed", "payment_status_changed"}:
+            return None
+        invoice = data.get("invoice")
         if not isinstance(invoice, dict):
             return None
         status = self._extract_status(invoice)
-        is_paid = (event_type or "").lower() == "invoicepay" or status in _PAID_STATUSES
+        callback = invoice.get("callback")
+        callback_payload: Any = None
+        if isinstance(callback, dict):
+            callback_payload = callback.get("payload")
+        embedded_payment_payload: str | None = None
+        if isinstance(callback_payload, dict):
+            embedded_payment_payload = self._extract_string(
+                callback_payload.get("paymentPayload")
+            )
         return XRocketWebhookEvent(
-            payment_payload=self._extract_string(invoice.get("payload")),
+            payment_payload=(
+                self._extract_string(invoice.get("clientInvoiceId"))
+                or embedded_payment_payload
+            ),
             invoice_id=self._extract_string(invoice.get("id")),
             status=status,
-            is_paid=is_paid,
+            is_paid=status in _PAID_STATUSES,
         )
+
+    def verify_webhook_signature(
+        self,
+        *,
+        raw_body: bytes,
+        signature: str | None,
+        signature_version: str | None,
+        signature_timestamp: str | None,
+        now_ms: int | None = None,
+    ) -> bool:
+        if not self.webhook_secret or signature_version != "v1":
+            return False
+        normalized_signature = (signature or "").strip().lower()
+        normalized_timestamp = (signature_timestamp or "").strip()
+        if not normalized_signature or not normalized_timestamp:
+            return False
+        try:
+            timestamp_ms = int(normalized_timestamp)
+        except ValueError:
+            return False
+        current_ms = int(time.time() * 1000) if now_ms is None else now_ms
+        if abs(current_ms - timestamp_ms) > 300_000:
+            return False
+        signed_payload = normalized_timestamp.encode() + b"." + raw_body
+        expected = hmac.new(
+            self.webhook_secret.encode(),
+            signed_payload,
+            hashlib.sha256,
+        ).hexdigest()
+        return hmac.compare_digest(expected, normalized_signature)
 
     async def _request_json(
         self,
@@ -176,8 +239,6 @@ class XRocketPayService:
             ) as response:
                 payload = await self._safe_json(response)
                 self._raise_for_error(response=response, payload=payload)
-                if payload.get("success") is False:
-                    self._raise_for_error(response=response, payload=payload)
                 return payload
 
     @staticmethod
@@ -189,7 +250,7 @@ class XRocketPayService:
 
     @staticmethod
     def _raise_for_error(*, response: ClientResponse, payload: dict[str, Any]) -> None:
-        if response.status < 400 and payload.get("success") is not False:
+        if response.status < 400:
             return
         message = ""
         for key in ("message", "error", "detail"):
@@ -214,20 +275,18 @@ class XRocketPayService:
 
     @staticmethod
     def _extract_invoice(payload: dict[str, Any]) -> dict[str, Any]:
-        data = payload.get("data")
-        if isinstance(data, dict):
-            if any(k in data for k in ("id", "amount", "currency", "status", "link")):
-                return data
-
-        if any(k in payload for k in ("id", "amount", "currency", "status", "link")):
+        if any(k in payload for k in ("id", "clientInvoiceId", "status", "links")):
             return payload
 
         raise RuntimeError("xRocket Pay did not return invoice payload.")
 
     @staticmethod
     def _extract_checkout_url(invoice: dict[str, Any]) -> str:
-        for key in ("link", "url", "payUrl", "pay_url"):
-            value = invoice.get(key)
+        links = invoice.get("links")
+        if not isinstance(links, dict):
+            raise RuntimeError("xRocket Pay did not return invoice checkout URL.")
+        for key in ("telegramBotLink", "webLink"):
+            value = links.get(key)
             if isinstance(value, str) and value.strip():
                 return value.strip()
         raise RuntimeError("xRocket Pay did not return invoice checkout URL.")
@@ -247,7 +306,7 @@ class XRocketPayService:
         return extract_optional_string(value)
 
     @staticmethod
-    def _format_amount_for_request(value: str) -> float:
+    def _format_amount_for_request(value: str) -> str:
         try:
             amount = Decimal(str(value))
         except (InvalidOperation, TypeError) as error:
@@ -255,45 +314,4 @@ class XRocketPayService:
         if amount <= 0:
             raise RuntimeError("Amount for xRocket Pay invoice must be positive.")
         quantized = amount.quantize(Decimal("0.000000001"), rounding=ROUND_HALF_UP)
-        return float(quantized)
-
-    async def _find_invoice_by_payload(  # noqa: C901
-        self,
-        *,
-        payment_payload: str,
-    ) -> tuple[str, str] | None:
-        limit = 100
-        for offset in (0, 100, 200):
-            payload = await self._request_json(
-                method="GET",
-                path="/tg-invoices",
-                params={"limit": str(limit), "offset": str(offset)},
-            )
-            data = payload.get("data")
-            if not isinstance(data, dict):
-                break
-            results = data.get("results")
-            if not isinstance(results, list) or not results:
-                break
-            for item in results:
-                if not isinstance(item, dict):
-                    continue
-                item_payload = self._extract_string(item.get("payload"))
-                if item_payload != payment_payload:
-                    continue
-                invoice_id = self._extract_string(item.get("id"))
-                status = self._extract_status(item)
-                if invoice_id is None:
-                    continue
-                return invoice_id, status
-            total_raw = data.get("total")
-            if isinstance(total_raw, (int, float, str)):
-                try:
-                    total = int(total_raw)
-                except ValueError:
-                    total = 0
-            else:
-                total = 0
-            if total and offset + limit >= total:
-                break
-        return None
+        return format(quantized, "f")
