@@ -71,8 +71,6 @@ async def fulfill_paid_order(  # noqa: C901
             return await _fulfill_gift_order(
                 service=service,
                 order=current,
-                order_error_cls=order_error_cls,
-                logger=logger,
             )
 
         return await _fulfill_fragment_order(
@@ -123,72 +121,11 @@ async def _fulfill_gift_order(
     *,
     service: StarsOrderService,
     order: StarsOrderDto,
-    order_error_cls: type[Exception],
-    logger: logging.Logger,
 ) -> StarsOrderDto:
-    if (
-        order.recipient_user_id is None or order.recipient_user_id <= 0
-    ) and not order.recipient_username:
-        return await service._mark_failed_and_refund(
-            order=order,
-            error_text="Gift recipient is missing.",
-        )
-    if order.gift_id is None or not order.gift_id.strip():
-        return await service._mark_failed_and_refund(
-            order=order,
-            error_text="Gift ID is missing.",
-        )
-    if not service.telegram_gift_service.configured:
-        return await service._mark_failed_and_refund(
-            order=order,
-            error_text="Telegram gift service is not configured.",
-        )
-
-    try:
-        await service.telegram_gift_service.send_gift(
-            user_id=order.recipient_user_id,
-            recipient_username=order.recipient_username,
-            gift_id=order.gift_id,
-            text=order.gift_message,
-            is_private=order.gift_sender_private,
-            pay_for_upgrade=False,
-        )
-    except Exception as error:
-        error_text = str(error).strip() or "Unknown Telegram gift error."
-        if service._is_retryable_delivery_error(error_text):
-            retrying = await service._update_order(
-                order_id=order.id,
-                status=StarsOrderStatus.PAYMENT_CONFIRMED,
-                fragment_error=error_text,
-                provider_status="gift_delivery_retry",
-                failed_at=None,
-            )
-            if retrying is None:
-                raise order_error_cls("Failed to mark gift order for delivery retry.") from error
-            return retrying
-
-        return await service._mark_failed_and_refund(
-            order=order,
-            error_text=error_text,
-        )
-
-    completed_gift = await service._update_order(
-        order_id=order.id,
-        status=StarsOrderStatus.COMPLETED,
-        provider_status="gift_confirmed",
-        fragment_tx_hash=None,
-        fulfilled_at=datetime_now(),
+    return await service._mark_failed_and_refund(
+        order=order,
+        error_text="Telegram gifts are no longer available.",
     )
-    if completed_gift is None:
-        raise order_error_cls("Failed to mark gift order as completed.")
-    try:
-        await service._apply_referral_rewards(order_id=completed_gift.id)
-    except Exception:
-        logger.exception(
-            "Failed to apply referral rewards for gift order %s.",
-            completed_gift.id,
-        )
-    return completed_gift
 
 
 async def _fulfill_fragment_order(

@@ -5,7 +5,6 @@ from .windows import (
     broadcast_confirm_window,
     broadcast_content_window,
     broadcast_options_window,
-    creatives_gifts_window,
     creatives_menu_window,
     creatives_overview_window,
     creatives_premium_window,
@@ -64,7 +63,6 @@ dialog: Dialog = Dialog(
     creatives_menu_window,
     creatives_stars_window,
     creatives_premium_window,
-    creatives_gifts_window,
     creatives_overview_window,
 )
 

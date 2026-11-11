@@ -331,7 +331,10 @@ async def _credit_topup_transaction(
             user.balance_cents = int(user.balance_cents) + int(current.amount_cents)
         current.credited_at = current.credited_at or datetime_now()
 
-        if current.auto_product_type is not None:
+        if (
+            current.auto_product_type is not None
+            and current.auto_product_type != StarsOrderProductType.GIFT.value
+        ):
             product_type = StarsOrderProductType(str(current.auto_product_type))
             amount_cents = int(current.amount_cents)
             if int(user.balance_cents) < amount_cents:

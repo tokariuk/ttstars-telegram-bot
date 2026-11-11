@@ -6,10 +6,8 @@ from typing import cast
 from fastapi import APIRouter, Request
 
 from app.enums.stars_sell_order import StarsSellPayoutMethod
-from app.gifts import list_gift_packs
 from app.models.dto.miniapp import (
     CatalogResponse,
-    GiftPackResponse,
     PaymentProviderResponse,
     PremiumPlanResponse,
     ReferralProgramResponse,
@@ -29,7 +27,6 @@ from ..deps import StarsOrderServiceDep, StarsSellOrderServiceDep
 from ..providers import (
     SUPPORTED_PAYMENT_PROVIDERS,
     provider_title,
-    supports_gifts,
     supports_topup,
 )
 
@@ -51,16 +48,6 @@ def _build_catalog(
         )
         for pack in (get_premium_pack(months=months) for months in premium_months_options())
     ]
-    gifts = [
-        GiftPackResponse(
-            key=pack.key,
-            gift_id=pack.gift_id,
-            label=pack.label,
-            price_cents=pack.price_cents,
-            price_usd=pack.price_usd,
-        )
-        for pack in list_gift_packs()
-    ]
     providers = [
         PaymentProviderResponse(
             provider=provider,
@@ -72,7 +59,7 @@ def _build_catalog(
             payout_fixed_usd=service.provider_payout_fixed_usd(provider=provider),
             supports_stars=True,
             supports_premium=True,
-            supports_gifts=supports_gifts(provider),
+            supports_gifts=False,
             supports_topup=supports_topup(provider),
         )
         for provider in SUPPORTED_PAYMENT_PROVIDERS
@@ -85,7 +72,7 @@ def _build_catalog(
             max_stars=MAX_STARS_COUNT,
         ),
         premium_plans=premium_plans,
-        gifts=gifts,
+        gifts=[],
         sell=SellConfigResponse(
             min_stars=sell_service.min_stars,
             max_stars=sell_service.max_stars,

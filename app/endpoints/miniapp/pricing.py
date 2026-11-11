@@ -3,7 +3,6 @@ from __future__ import annotations
 from decimal import Decimal, InvalidOperation
 
 from app.enums.stars_order import StarsOrderProductType
-from app.gifts import get_gift_pack
 from app.stars import build_stars_pack, get_premium_pack
 
 from .errors import validation_error
@@ -59,10 +58,5 @@ def net_amount_cents_for_quote(  # noqa: C901 - explicit validation per product 
             validation_error("amount_usd is required for top-up quotes.")
         return parse_usd_amount_to_cents(amount_usd)
     if product_type == StarsOrderProductType.GIFT:
-        if gift_key is None:
-            validation_error("gift_key is required for gift quotes.")
-        try:
-            return get_gift_pack(key=gift_key).price_cents
-        except ValueError as error:
-            validation_error(str(error))
+        validation_error("Telegram gifts are no longer available.")
     validation_error("Unsupported product type for quote.")

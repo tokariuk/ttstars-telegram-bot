@@ -21,7 +21,6 @@ from app.services.nice_pay import NicePayService
 from app.services.platega_pay import PlategaPayService
 from app.services.promo_codes import PromoCodeService
 from app.services.redis import RedisRepository
-from app.services.telegram_gifts import TelegramGiftService
 from app.services.ton_pay import TonPayService
 from app.services.xrocket_pay import XRocketPayService
 
@@ -38,7 +37,6 @@ class Services(TypedDict):
     redis_repository: RedisRepository
     stars_order_service: StarsOrderService
     stars_sell_order_service: StarsSellOrderService
-    telegram_gift_service: TelegramGiftService
     ton_pay_service: TonPayService
     user_service: UserService
     xrocket_pay_service: XRocketPayService
@@ -51,7 +49,6 @@ class PaymentServices(TypedDict):
     lzt_pay_service: LZTPayService
     nice_pay_service: NicePayService
     platega_pay_service: PlategaPayService
-    telegram_gift_service: TelegramGiftService
     ton_pay_service: TonPayService
     xrocket_pay_service: XRocketPayService
 
@@ -147,17 +144,6 @@ def _create_payment_services(config: AppConfig) -> PaymentServices:
         invoice_tx_scan_limit=config.ton_pay.invoice_tx_scan_limit,
         rate_cache_ttl_seconds=config.ton_pay.rate_cache_ttl_seconds,
     )
-    telegram_gift_service = TelegramGiftService(
-        bot_token=config.telegram.bot_token.get_secret_value(),
-        userbot_api_id=config.telegram_gifts_userbot.api_id,
-        userbot_api_hash=_secret_value(config.telegram_gifts_userbot.api_hash),
-        userbot_session=_secret_value(config.telegram_gifts_userbot.session),
-        userbot_device_model=config.telegram_gifts_userbot.device_model,
-        userbot_system_version=config.telegram_gifts_userbot.system_version,
-        userbot_app_version=config.telegram_gifts_userbot.app_version,
-        userbot_lang_code=config.telegram_gifts_userbot.lang_code,
-        userbot_system_lang_code=config.telegram_gifts_userbot.system_lang_code,
-    )
     fragment_stars_service = FragmentStarsService(
         cookies=_secret_value(config.fragment.cookies),
         fragment_hash=_secret_value(config.fragment.hash),
@@ -172,7 +158,6 @@ def _create_payment_services(config: AppConfig) -> PaymentServices:
         lzt_pay_service=lzt_pay_service,
         nice_pay_service=nice_pay_service,
         platega_pay_service=platega_pay_service,
-        telegram_gift_service=telegram_gift_service,
         ton_pay_service=ton_pay_service,
         xrocket_pay_service=xrocket_pay_service,
     )
@@ -206,7 +191,6 @@ def _create_application_services(
         lzt_pay_service=payment_services["lzt_pay_service"],
         nice_pay_service=payment_services["nice_pay_service"],
         platega_pay_service=payment_services["platega_pay_service"],
-        telegram_gift_service=payment_services["telegram_gift_service"],
         ton_pay_service=payment_services["ton_pay_service"],
         xrocket_pay_service=payment_services["xrocket_pay_service"],
         fragment_stars_service=payment_services["fragment_stars_service"],
@@ -247,7 +231,6 @@ def create_services(
         redis_repository=application_services["redis_repository"],
         stars_order_service=application_services["stars_order_service"],
         stars_sell_order_service=application_services["stars_sell_order_service"],
-        telegram_gift_service=payment_services["telegram_gift_service"],
         ton_pay_service=payment_services["ton_pay_service"],
         user_service=application_services["user_service"],
         xrocket_pay_service=payment_services["xrocket_pay_service"],

@@ -20,7 +20,6 @@ from ..getters import (
 )
 from ..handlers import (
     acknowledge_creative_preview,
-    show_creatives_gifts,
     show_creatives_menu,
     show_creatives_overview,
     show_creatives_premium,
@@ -31,7 +30,6 @@ from ..ids import (
     ADMIN_CREATIVES_BACK_TO_MENU_BUTTON_ID,
     ADMIN_CREATIVES_BACK_TO_SECTION_BUTTON_ID,
     ADMIN_CREATIVES_GIFT_ENTRY_BUTTON_IDS,
-    ADMIN_CREATIVES_OPEN_GIFTS_BUTTON_ID,
     ADMIN_CREATIVES_OPEN_OVERVIEW_BUTTON_ID,
     ADMIN_CREATIVES_OPEN_PREMIUM_BUTTON_ID,
     ADMIN_CREATIVES_OPEN_STARS_BUTTON_ID,
@@ -69,19 +67,11 @@ creatives_menu_window: Window = Window(
             style=Style(emoji_id=LIGHTNING_EMOJI_ID),
         ),
     ),
-    Row(
-        Button(
-            Format("{gifts_button_text}"),
-            id=ADMIN_CREATIVES_OPEN_GIFTS_BUTTON_ID,
-            on_click=show_creatives_gifts,
-            style=Style(emoji_id=GIFT_EMOJI_ID),
-        ),
-        Button(
-            Format("{overview_button_text}"),
-            id=ADMIN_CREATIVES_OPEN_OVERVIEW_BUTTON_ID,
-            on_click=show_creatives_overview,
-            style=Style(emoji_id=IMAGE_EMOJI_ID),
-        ),
+    Button(
+        Format("{overview_button_text}"),
+        id=ADMIN_CREATIVES_OPEN_OVERVIEW_BUTTON_ID,
+        on_click=show_creatives_overview,
+        style=Style(emoji_id=IMAGE_EMOJI_ID),
     ),
     Button(
         Format("{back_to_menu_button_text}"),
@@ -169,12 +159,6 @@ creatives_overview_window: Window = Window(
         id=ADMIN_CREATIVES_OVERVIEW_ENTRY_BUTTON_IDS[1],
         on_click=acknowledge_creative_preview,
         style=Style(emoji_id=LIGHTNING_EMOJI_ID),
-    ),
-    Button(
-        Format("{gifts_button_text}"),
-        id=ADMIN_CREATIVES_OVERVIEW_ENTRY_BUTTON_IDS[2],
-        on_click=acknowledge_creative_preview,
-        style=Style(emoji_id=GIFT_EMOJI_ID),
     ),
     _back_to_creatives_button(),
     state=AdminSG.creatives_overview,

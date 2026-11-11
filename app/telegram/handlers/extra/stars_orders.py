@@ -31,7 +31,6 @@ from app.models.dto.user import UserDto
 from app.services.crud import StarsOrderService, StarsSellOrderService, UserService
 from app.services.crud.stars_order import PaymentCheckOutcome, PaymentCheckResult
 from app.services.crypto_pay import CryptoPayService
-from app.services.telegram_gifts import TelegramGiftService
 from app.services.ton_pay import TonPayService
 from app.stars import price_usd_for_cents
 from app.telegram.keyboards.callback_data.order import (
@@ -557,7 +556,6 @@ async def start_stars_orders_loop(
 
 @router.shutdown()
 async def stop_stars_orders_loop(
-    telegram_gift_service: TelegramGiftService,
     ton_pay_service: TonPayService,
 ) -> None:
     global _stars_orders_task, _ton_payments_task
@@ -567,8 +565,6 @@ async def stop_stars_orders_loop(
     _ton_payments_task = None
     if not tasks:
         with contextlib.suppress(Exception):
-            await telegram_gift_service.close()
-        with contextlib.suppress(Exception):
             await ton_pay_service.close()
         return
     for task in tasks:
@@ -576,7 +572,5 @@ async def stop_stars_orders_loop(
     for task in tasks:
         with contextlib.suppress(asyncio.CancelledError):
             await task
-    with contextlib.suppress(Exception):
-        await telegram_gift_service.close()
     with contextlib.suppress(Exception):
         await ton_pay_service.close()

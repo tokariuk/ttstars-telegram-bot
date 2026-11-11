@@ -139,7 +139,6 @@ async def creatives_overview_getter(
     i18n_ctx = i18n(dialog_manager)
     stars = creative_stars_offers()[0]
     premium = creative_premium_offers()[0]
-    gifts = creative_gift_offers()[0]
     return {
         "text": i18n_ctx.messages.admin_creatives_overview_screen(),
         "banner_url": admin_banner_url(dialog_manager, "creatives"),
@@ -148,9 +147,6 @@ async def creatives_overview_getter(
         ),
         "premium_button_text": i18n_ctx.buttons.admin_creatives_overview_premium(
             price=premium.price_usd,
-        ),
-        "gifts_button_text": i18n_ctx.buttons.admin_creatives_overview_gifts(
-            price=gifts.price_usd,
         ),
         **_common_buttons(dialog_manager),
     }

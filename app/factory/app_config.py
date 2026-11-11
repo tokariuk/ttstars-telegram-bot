@@ -15,7 +15,6 @@ from app.models.config.env import (
     ServerConfig,
     SQLAlchemyConfig,
     TelegramConfig,
-    TelegramGiftsUserbotConfig,
     TonPayConfig,
     XRocketPayConfig,
 )
@@ -39,5 +38,4 @@ def create_app_config() -> AppConfig:
         redis=RedisConfig(),  # pyright: ignore[reportCallIssue]
         server=ServerConfig(),  # pyright: ignore[reportCallIssue]
         common=CommonConfig(),  # pyright: ignore[reportCallIssue]
-        telegram_gifts_userbot=TelegramGiftsUserbotConfig(),  # pyright: ignore[reportCallIssue]
     )

@@ -66,9 +66,6 @@ from app.services.crud.stars_order_support import (
     create_external_order as create_external_order_support,
 )
 from app.services.crud.stars_order_support import (
-    create_gift_order as create_gift_order_support,
-)
-from app.services.crud.stars_order_support import (
     create_premium_order as create_premium_order_support,
 )
 from app.services.crud.stars_order_support import (
@@ -184,7 +181,6 @@ from app.services.lzt_pay import LZTPayService
 from app.services.nice_pay import NicePayService
 from app.services.platega_pay import PlategaPayService
 from app.services.postgres import SQLSessionContext
-from app.services.telegram_gifts import TelegramGiftService
 from app.services.ton_pay import TonPayService
 from app.services.xrocket_pay import XRocketPayService
 from app.stars import get_premium_pack, normalize_recipient_username, price_usd_for_cents
@@ -330,7 +326,6 @@ class StarsOrderService(CrudService):
         lzt_pay_service: LZTPayService,
         nice_pay_service: NicePayService,
         platega_pay_service: PlategaPayService,
-        telegram_gift_service: TelegramGiftService,
         ton_pay_service: TonPayService,
         xrocket_pay_service: XRocketPayService,
         fragment_stars_service: FragmentStarsService,
@@ -341,7 +336,6 @@ class StarsOrderService(CrudService):
         self.lzt_pay_service = lzt_pay_service
         self.nice_pay_service = nice_pay_service
         self.platega_pay_service = platega_pay_service
-        self.telegram_gift_service = telegram_gift_service
         self.ton_pay_service = ton_pay_service
         self.xrocket_pay_service = xrocket_pay_service
         self.fragment_stars_service = fragment_stars_service
@@ -900,53 +894,7 @@ class StarsOrderService(CrudService):
         gift_message: str | None,
         gift_sender_private: bool,
     ) -> StarsOrderDto:
-        if provider == StarsPaymentProvider.BALANCE:
-            return await create_gift_order_support(
-                service=self,
-                provider=provider,
-                user_id=user_id,
-                recipient_username=recipient_username,
-                recipient_user_id=recipient_user_id,
-                gift_key=gift_key,
-                gift_message=gift_message,
-                gift_sender_private=gift_sender_private,
-                provider_unavailable_error_cls=ProviderUnavailableError,
-                validation_error_cls=ValidationError,
-                insufficient_balance_error_cls=InsufficientBalanceError,
-                balance_in_progress_error_cls=BalanceOrderInProgressError,
-                stars_order_error_cls=StarsOrderError,
-            )
-        if provider not in EXTERNAL_PAYMENT_PROVIDERS:
-            raise ProviderUnavailableError(f"{provider.value} payment is not supported.")
-        self._ensure_provider_configured(provider=provider)
-        gift = self._resolve_gift_pack(gift_key=gift_key)
-        normalized_message = self._normalize_gift_message(gift_message)
-        prepared = await self._prepare_external_order_payload(
-            user_id=user_id,
-            recipient_username=recipient_username,
-            stars_count=0,
-            product_type=StarsOrderProductType.GIFT,
-            premium_months=None,
-            forced_amount_cents=gift.price_cents,
-            recipient_user_id=recipient_user_id,
-            gift_id=gift.gift_id,
-            gift_message=normalized_message,
-            gift_sender_private=gift_sender_private,
-            validation_error_cls=ValidationError,
-        )
-        return await self._create_external_topup(
-            user_id=user_id,
-            provider=provider,
-            amount_cents=prepared.amount_cents,
-            description=prepared.description,
-            auto_product_type=StarsOrderProductType.GIFT,
-            auto_recipient_username=prepared.recipient_username,
-            auto_stars_count=prepared.stars_count,
-            auto_recipient_user_id=prepared.recipient_user_id,
-            auto_gift_id=prepared.gift_id,
-            auto_gift_message=prepared.gift_message,
-            auto_gift_sender_private=prepared.gift_sender_private,
-        )
+        raise ProviderUnavailableError("Telegram gifts are no longer available.")
 
     async def create_topup_order(
         self,
@@ -2137,22 +2085,7 @@ end
         recipient_username: str,
         recipient_user_id: int | None,
     ) -> int | None:
-        if recipient_user_id is not None and recipient_user_id > 0:
-            return recipient_user_id
-        try:
-            resolved_user_id = await self.telegram_gift_service.resolve_user_id(
-                recipient_username=recipient_username,
-            )
-            if resolved_user_id is not None and resolved_user_id > 0:
-                return resolved_user_id
-            if self.telegram_gift_service.userbot_configured:
-                raise ValidationError("Gift recipient username is invalid.")
-            raise ValidationError(
-                "Gift recipient cannot be verified without userbot session. "
-                "Configure TELEGRAM_GIFTS_USERBOT_SESSION or ask recipient to start the bot."
-            )
-        except RuntimeError as error:
-            raise ValidationError(str(error)) from error
+        raise ValidationError("Telegram gifts are no longer available.")
 
     async def validate_gift_recipient_username(
         self,

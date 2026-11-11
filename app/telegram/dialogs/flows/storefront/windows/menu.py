@@ -6,7 +6,6 @@ from aiogram_dialog.widgets.text import Format
 
 from app.telegram.dialogs.common.premium_emoji import (
     CALCULATOR_EMOJI_ID,
-    GIFT_EMOJI_ID,
     INFO_SQUARE_EMOJI_ID,
     LIGHTNING_EMOJI_ID,
     PLUS_EMOJI_ID,
@@ -19,7 +18,6 @@ from ..getters import menu_getter
 from ..handlers import (
     show_calculator,
     show_faq,
-    show_gifts,
     show_premium_recipient,
     show_profile,
     show_stars_recipient,
@@ -29,7 +27,6 @@ from ..handlers import (
 from ..ids import (
     STOREFRONT_OPEN_CALCULATOR_BUTTON_ID,
     STOREFRONT_OPEN_FAQ_BUTTON_ID,
-    STOREFRONT_OPEN_GIFTS_BUTTON_ID,
     STOREFRONT_OPEN_MINIAPP_BUTTON_ID,
     STOREFRONT_OPEN_PREMIUM_BUTTON_ID,
     STOREFRONT_OPEN_PROFILE_BUTTON_ID,
@@ -62,12 +59,6 @@ menu_window: Window = Window(
             on_click=show_premium_recipient,
             style=Style(style=ButtonStyle.PRIMARY, emoji_id=LIGHTNING_EMOJI_ID),
         ),
-    ),
-    Button(
-        Format("{buy_gifts_button_text}"),
-        id=STOREFRONT_OPEN_GIFTS_BUTTON_ID,
-        on_click=show_gifts,
-        style=Style(style=ButtonStyle.PRIMARY, emoji_id=GIFT_EMOJI_ID),
     ),
     Row(
         Button(

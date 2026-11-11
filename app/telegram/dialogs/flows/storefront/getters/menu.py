@@ -35,7 +35,6 @@ async def menu_getter(dialog_manager: DialogManager, **_: Any) -> dict[str, Any]
         "buy_stars_button_text": i18n.buttons.buy_stars(),
         "buy_premium_button_text": i18n.buttons.buy_premium(),
         "sell_stars_button_text": i18n.buttons.sell_stars(),
-        "buy_gifts_button_text": i18n.buttons.buy_gifts(),
         "topup_button_text": i18n.buttons.topup_balance(),
         "calculator_button_text": i18n.buttons.calculator(),
         "profile_button_text": i18n.buttons.profile(),

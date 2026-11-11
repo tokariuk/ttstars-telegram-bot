@@ -147,7 +147,6 @@ class PaymentServiceFactoryTests(unittest.TestCase):
                 "lzt_pay_service",
                 "nice_pay_service",
                 "platega_pay_service",
-                "telegram_gift_service",
                 "ton_pay_service",
                 "xrocket_pay_service",
             },
