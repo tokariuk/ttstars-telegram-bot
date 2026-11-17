@@ -18,7 +18,6 @@ ADMIN_BANNER_KEY = Literal[
     "creatives",
     "creatives_stars",
     "creatives_premium",
-    "creatives_gifts",
 ]
 
 ADMIN_BANNER_FILENAMES: dict[ADMIN_BANNER_KEY, dict[str, str]] = {
@@ -38,7 +37,6 @@ ADMIN_BANNER_FILENAMES: dict[ADMIN_BANNER_KEY, dict[str, str]] = {
         "ru": "premium.jpg",
         "en": "premium.jpg",
     },
-    "creatives_gifts": {"uk": "gifts.jpg", "ru": "gifts.jpg", "en": "gifts.jpg"},
 }
 
 

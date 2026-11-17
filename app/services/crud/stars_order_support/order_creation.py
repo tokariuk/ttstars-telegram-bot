@@ -112,62 +112,6 @@ async def create_premium_order(
     )
 
 
-async def create_gift_order(
-    *,
-    service: StarsOrderService,
-    provider: StarsPaymentProvider,
-    user_id: int,
-    recipient_username: str,
-    recipient_user_id: int | None,
-    gift_key: str,
-    gift_message: str | None,
-    gift_sender_private: bool,
-    provider_unavailable_error_cls: type[Exception],
-    validation_error_cls: type[Exception],
-    insufficient_balance_error_cls: type[Exception],
-    balance_in_progress_error_cls: type[Exception],
-    stars_order_error_cls: type[Exception],
-) -> StarsOrderDto:
-    gift = service._resolve_gift_pack(gift_key=gift_key)
-    normalized_message = service._normalize_gift_message(gift_message)
-    if provider == StarsPaymentProvider.BALANCE:
-        return await create_balance_product_order(
-            service=service,
-            user_id=user_id,
-            recipient_username=recipient_username,
-            stars_count=0,
-            amount_cents=gift.price_cents,
-            product_type=StarsOrderProductType.GIFT,
-            recipient_user_id=recipient_user_id,
-            gift_id=gift.gift_id,
-            gift_message=normalized_message,
-            gift_sender_private=gift_sender_private,
-            validation_error_cls=validation_error_cls,
-            insufficient_balance_error_cls=insufficient_balance_error_cls,
-            balance_in_progress_error_cls=balance_in_progress_error_cls,
-        )
-
-    if provider not in EXTERNAL_PAYMENT_PROVIDERS:
-        raise provider_unavailable_error_cls(f"{provider.value} payment is not supported.")
-    service._ensure_provider_configured(provider=provider)
-    return await create_external_order(
-        service=service,
-        user_id=user_id,
-        recipient_username=recipient_username,
-        stars_count=0,
-        provider=provider,
-        product_type=StarsOrderProductType.GIFT,
-        recipient_user_id=recipient_user_id,
-        gift_id=gift.gift_id,
-        gift_message=normalized_message,
-        gift_sender_private=gift_sender_private,
-        forced_amount_cents=gift.price_cents,
-        validation_error_cls=validation_error_cls,
-        provider_unavailable_error_cls=provider_unavailable_error_cls,
-        stars_order_error_cls=stars_order_error_cls,
-    )
-
-
 async def create_topup_order(
     *,
     service: StarsOrderService,
@@ -209,9 +153,6 @@ async def create_balance_product_order(
     product_type: StarsOrderProductType,
     premium_months: int | None = None,
     recipient_user_id: int | None = None,
-    gift_id: str | None = None,
-    gift_message: str | None = None,
-    gift_sender_private: bool | None = None,
     validation_error_cls: type[Exception],
     insufficient_balance_error_cls: type[Exception],
     balance_in_progress_error_cls: type[Exception],
@@ -220,9 +161,6 @@ async def create_balance_product_order(
         recipient_username=recipient_username,
         product_type=product_type,
         recipient_user_id=recipient_user_id,
-        gift_id=gift_id,
-        gift_message=gift_message,
-        gift_sender_private=gift_sender_private,
         validation_error_cls=validation_error_cls,
     )
 
@@ -263,9 +201,6 @@ async def create_balance_product_order(
             product_type=product_type.value,
             premium_months=premium_months,
             recipient_user_id=prepared.recipient_user_id,
-            gift_id=prepared.gift_id,
-            gift_message=prepared.gift_message,
-            gift_sender_private=prepared.gift_sender_private,
             amount_cents=amount_cents,
             payment_provider=StarsPaymentProvider.BALANCE.value,
             payment_currency="USD",
@@ -292,9 +227,6 @@ async def create_external_order(
     premium_months: int | None = None,
     forced_amount_cents: int | None = None,
     recipient_user_id: int | None = None,
-    gift_id: str | None = None,
-    gift_message: str | None = None,
-    gift_sender_private: bool | None = None,
     validation_error_cls: type[Exception],
     provider_unavailable_error_cls: type[Exception],
     stars_order_error_cls: type[Exception],
@@ -307,9 +239,6 @@ async def create_external_order(
         premium_months=premium_months,
         forced_amount_cents=forced_amount_cents,
         recipient_user_id=recipient_user_id,
-        gift_id=gift_id,
-        gift_message=gift_message,
-        gift_sender_private=gift_sender_private,
         validation_error_cls=validation_error_cls,
     )
 
@@ -334,9 +263,6 @@ async def create_external_order(
         product_type=product_type,
         premium_months=prepared.premium_months,
         recipient_user_id=prepared.recipient_user_id,
-        gift_id=prepared.gift_id,
-        gift_message=prepared.gift_message,
-        gift_sender_private=prepared.gift_sender_private,
     )
 
     try:

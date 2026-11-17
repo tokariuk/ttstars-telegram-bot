@@ -6,12 +6,10 @@ messages-provider_platega = <tg-emoji emoji-id="5413448965393784161">⭐</tg-emo
 
 messages-provider_lzt = <tg-emoji emoji-id="5413626751270041131">⭐</tg-emoji> LZT
 
-messages-provider_nicepay_ru = <tg-emoji emoji-id="5442763117916364881">⭐</tg-emoji> NicePay (RU карты)
-
-messages-provider_nicepay_kz = <tg-emoji emoji-id="5442763117916364881">⭐</tg-emoji> NicePay (KZ карты)
-
 messages-provider_heleket = <tg-emoji emoji-id="5447299883281191872">⭐</tg-emoji> Heleket (криптовалюта)
 
 messages-provider_xrocket = <tg-emoji emoji-id="5427095240429314728">⭐</tg-emoji> xRocket
 
 messages-provider_balance = <tg-emoji emoji-id="5381926933393085632">⭐</tg-emoji> Баланс
+
+messages-provider_archived = Архивный способ оплаты

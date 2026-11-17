@@ -29,19 +29,6 @@ messages-order_checkout_message_topup =
     <tr><th>До оплати</th><td><mark>{ $pay_amount } USD</mark></td></tr>
     </table>
 
-messages-order_checkout_message_gift =
-    <blockquote><b><tg-emoji emoji-id="5379759198974289129">🎁</tg-emoji> Оплата · Подарунок</b></blockquote>
-
-    <table bordered compact>
-    <tr><td>Отримувач</td><td><code>{ $recipient_id }</code></td></tr>
-    <tr><td>Подарунок</td><td><code>{ $gift }</code></td></tr>
-    <tr><td>Підпис</td><td><code>{ $message }</code></td></tr>
-    <tr><td>Відправник</td><td><code>{ $sender_visibility }</code></td></tr>
-    <tr><td>Сума замовлення</td><td><code>{ $amount } USD</code></td></tr>
-    <tr><td>Комісія</td><td><code>{ $fee_text }</code></td></tr>
-    <tr><th>До оплати</th><td><mark>{ $pay_amount } USD</mark></td></tr>
-    </table>
-
 messages-order_checkout_send_failed =
     <blockquote><b><tg-emoji emoji-id="5381932538325404900">⭐</tg-emoji> Потрібна перевірка</b></blockquote>
 

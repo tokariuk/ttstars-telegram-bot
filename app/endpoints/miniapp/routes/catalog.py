@@ -59,7 +59,6 @@ def _build_catalog(
             payout_fixed_usd=service.provider_payout_fixed_usd(provider=provider),
             supports_stars=True,
             supports_premium=True,
-            supports_gifts=False,
             supports_topup=supports_topup(provider),
         )
         for provider in SUPPORTED_PAYMENT_PROVIDERS
@@ -72,7 +71,6 @@ def _build_catalog(
             max_stars=MAX_STARS_COUNT,
         ),
         premium_plans=premium_plans,
-        gifts=[],
         sell=SellConfigResponse(
             min_stars=sell_service.min_stars,
             max_stars=sell_service.max_stars,

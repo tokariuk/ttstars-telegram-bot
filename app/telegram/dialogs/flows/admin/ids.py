@@ -66,7 +66,6 @@ ADMIN_STATS_BACK_TO_MENU_BUTTON_ID = "admin_stats_back_menu"
 
 ADMIN_CREATIVES_OPEN_STARS_BUTTON_ID = "admin_creatives_open_stars"
 ADMIN_CREATIVES_OPEN_PREMIUM_BUTTON_ID = "admin_creatives_open_premium"
-ADMIN_CREATIVES_OPEN_GIFTS_BUTTON_ID = "admin_creatives_open_gifts"
 ADMIN_CREATIVES_OPEN_OVERVIEW_BUTTON_ID = "admin_creatives_open_overview"
 ADMIN_CREATIVES_BACK_TO_MENU_BUTTON_ID = "admin_creatives_back_menu"
 ADMIN_CREATIVES_BACK_TO_SECTION_BUTTON_ID = "admin_creatives_back_section"
@@ -76,12 +75,7 @@ ADMIN_CREATIVES_STARS_PACK_BUTTON_IDS = tuple(
 ADMIN_CREATIVES_PREMIUM_PACK_BUTTON_IDS = tuple(
     f"admin_creatives_premium_{months}" for months in (3, 6, 12)
 )
-ADMIN_CREATIVES_GIFT_ENTRY_BUTTON_IDS = (
-    "admin_creatives_gifts_basic",
-    "admin_creatives_gifts_collection",
-)
 ADMIN_CREATIVES_OVERVIEW_ENTRY_BUTTON_IDS = (
     "admin_creatives_overview_stars",
     "admin_creatives_overview_premium",
-    "admin_creatives_overview_gifts",
 )

@@ -39,8 +39,6 @@ _PROVIDER_DISPLAY_NAMES: dict[StarsPaymentProvider, str] = {
     StarsPaymentProvider.XROCKET_PAY: "xRocket",
     StarsPaymentProvider.HELEKET_PAY: "Heleket",
     StarsPaymentProvider.LZT_PAY: "LZT Pay",
-    StarsPaymentProvider.NICE_PAY_RU: "NicePay RU",
-    StarsPaymentProvider.NICE_PAY_KZ: "NicePay KZ",
     StarsPaymentProvider.PLATEGA_PAY: "Platega",
     StarsPaymentProvider.BALANCE: "Balance",
 }
@@ -69,8 +67,6 @@ def _build_lolz_forum_metrics(stars_order_service: StarsOrderService) -> LolzFor
         StarsPaymentProvider.XROCKET_PAY,
         StarsPaymentProvider.HELEKET_PAY,
         StarsPaymentProvider.LZT_PAY,
-        StarsPaymentProvider.NICE_PAY_RU,
-        StarsPaymentProvider.NICE_PAY_KZ,
         StarsPaymentProvider.PLATEGA_PAY,
     )
     configured_providers = [
@@ -147,8 +143,6 @@ async def get_payment_fees(request: Request) -> PaymentFeesResponse:
         StarsPaymentProvider.XROCKET_PAY,
         StarsPaymentProvider.HELEKET_PAY,
         StarsPaymentProvider.LZT_PAY,
-        StarsPaymentProvider.NICE_PAY_RU,
-        StarsPaymentProvider.NICE_PAY_KZ,
         StarsPaymentProvider.PLATEGA_PAY,
         StarsPaymentProvider.BALANCE,
     )

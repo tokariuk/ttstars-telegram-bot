@@ -25,9 +25,9 @@ from ..deps import (
     StarsOrderServiceDep,
     run_idempotent_order_create,
 )
-from ..errors import ApiError, map_service_error, not_found, validation_error
+from ..errors import ApiError, ErrorCode, map_service_error, not_found, validation_error
 from ..pricing import net_amount_cents_for_quote, parse_usd_amount_to_cents
-from ..providers import TOPUP_PAYMENT_PROVIDERS
+from ..providers import SUPPORTED_PAYMENT_PROVIDERS, TOPUP_PAYMENT_PROVIDERS
 from ..serializers import build_order_response, build_payment_check_response
 
 router = APIRouter(prefix="/orders", tags=["orders"])
@@ -40,12 +40,16 @@ async def quote_order(
     _auth: CurrentUser,
     stars_order_service: StarsOrderServiceDep,
 ) -> QuoteResponse:
+    if payload.provider not in SUPPORTED_PAYMENT_PROVIDERS:
+        validation_error(
+            "This payment provider is unavailable.",
+            code=ErrorCode.PROVIDER_UNAVAILABLE,
+        )
     net_cents = net_amount_cents_for_quote(
         product_type=payload.product_type,
         stars_count=payload.stars_count,
         months=payload.months,
         amount_usd=payload.amount_usd,
-        gift_key=payload.gift_key,
     )
     try:
         pricing = stars_order_service.preview_checkout_pricing(

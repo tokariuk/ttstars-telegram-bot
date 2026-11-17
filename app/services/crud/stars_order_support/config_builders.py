@@ -10,16 +10,6 @@ ParsePercent = Callable[..., Decimal]
 ParseMoneyCents = Callable[..., int]
 
 
-def build_nice_pay_provider_currencies(
-    *,
-    config: AppConfig,
-) -> dict[StarsPaymentProvider, str]:
-    return {
-        StarsPaymentProvider.NICE_PAY_RU: config.nice_pay.currency_ru,
-        StarsPaymentProvider.NICE_PAY_KZ: config.nice_pay.currency_kz,
-    }
-
-
 def build_payment_fee_percents(
     *,
     config: AppConfig,
@@ -42,14 +32,6 @@ def build_payment_fee_percents(
         StarsPaymentProvider.PLATEGA_PAY: parse_percent(
             config.platega_pay.fee_percent,
             default="0",
-        ),
-        StarsPaymentProvider.NICE_PAY_RU: parse_percent(
-            config.nice_pay.fee_percent_ru,
-            default="9",
-        ),
-        StarsPaymentProvider.NICE_PAY_KZ: parse_percent(
-            config.nice_pay.fee_percent_kz,
-            default="9",
         ),
         StarsPaymentProvider.XROCKET_PAY: parse_percent(
             config.xrocket_pay.fee_percent,
@@ -85,14 +67,6 @@ def build_payout_fee_percents(
             config.platega_pay.payout_fee_percent,
             default="0",
         ),
-        StarsPaymentProvider.NICE_PAY_RU: parse_percent(
-            config.nice_pay.payout_fee_percent,
-            default="5.5",
-        ),
-        StarsPaymentProvider.NICE_PAY_KZ: parse_percent(
-            config.nice_pay.payout_fee_percent,
-            default="5.5",
-        ),
         StarsPaymentProvider.XROCKET_PAY: parse_percent(
             config.xrocket_pay.payout_fee_percent,
             default="0",
@@ -127,14 +101,6 @@ def build_payout_fixed_cents(
             config.platega_pay.payout_fixed_usd,
             default="0",
         ),
-        StarsPaymentProvider.NICE_PAY_RU: parse_money_cents(
-            config.nice_pay.payout_fixed_usd,
-            default="0",
-        ),
-        StarsPaymentProvider.NICE_PAY_KZ: parse_money_cents(
-            config.nice_pay.payout_fixed_usd,
-            default="0",
-        ),
         StarsPaymentProvider.XROCKET_PAY: parse_money_cents(
             config.xrocket_pay.payout_fixed_usd,
             default="0",
@@ -167,14 +133,6 @@ def build_min_payment_amount_cents(
         ),
         StarsPaymentProvider.PLATEGA_PAY: parse_money_cents(
             config.platega_pay.min_payment_usd or config.platega_pay.min_topup_usd,
-            default="1",
-        ),
-        StarsPaymentProvider.NICE_PAY_RU: parse_money_cents(
-            config.nice_pay.min_payment_usd_ru or config.nice_pay.min_topup_usd_ru,
-            default="1",
-        ),
-        StarsPaymentProvider.NICE_PAY_KZ: parse_money_cents(
-            config.nice_pay.min_payment_usd_kz or config.nice_pay.min_topup_usd_kz,
             default="1",
         ),
         StarsPaymentProvider.XROCKET_PAY: parse_money_cents(

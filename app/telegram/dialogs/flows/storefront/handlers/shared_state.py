@@ -8,7 +8,6 @@ from aiogram_dialog import DialogManager
 from app.stars import (
     get_premium_pack,
     get_stars_pack,
-    normalize_recipient_username,
     parse_stars_count,
     premium_months_options,
 )
@@ -32,11 +31,6 @@ from .shared_constants import (
     CHECKS_PAGE_KEY,
     CHECKS_SELECTED_CHECK_ID_KEY,
     DEFAULT_TOPUP_CENTS,
-    GIFTS_MESSAGE_KEY,
-    GIFTS_RECIPIENT_USER_ID_KEY,
-    GIFTS_RECIPIENT_USERNAME_KEY,
-    GIFTS_SELECTED_KEY,
-    GIFTS_SENDER_PRIVATE_KEY,
     HISTORY_PAGE_KEY,
     HISTORY_SELECTED_ORDER_ID_KEY,
     MAX_TOPUP_CENTS,
@@ -268,89 +262,26 @@ def selected_topup_amount_cents(dialog_manager: DialogManager) -> int:
     return DEFAULT_TOPUP_CENTS
 
 
-def selected_gift_recipient_user_id(dialog_manager: DialogManager) -> int | None:
-    return read_positive_int(dialog_manager.dialog_data, GIFTS_RECIPIENT_USER_ID_KEY)
 
 
-def set_selected_gift_recipient_user_id(
-    dialog_manager: DialogManager,
-    recipient_user_id: int | None,
-) -> None:
-    if recipient_user_id is None or recipient_user_id <= 0:
-        dialog_manager.dialog_data.pop(GIFTS_RECIPIENT_USER_ID_KEY, None)
-        return
-    dialog_manager.dialog_data[GIFTS_RECIPIENT_USER_ID_KEY] = recipient_user_id
 
 
-def selected_gift_recipient_username(dialog_manager: DialogManager) -> str | None:
-    raw_value = dialog_manager.dialog_data.get(GIFTS_RECIPIENT_USERNAME_KEY)
-    if not isinstance(raw_value, str):
-        return None
-    return normalize_recipient_username(raw_value)
 
 
-def set_selected_gift_recipient_username(
-    dialog_manager: DialogManager,
-    recipient_username: str | None,
-) -> None:
-    if recipient_username is None:
-        dialog_manager.dialog_data.pop(GIFTS_RECIPIENT_USERNAME_KEY, None)
-        return
-    normalized = normalize_recipient_username(recipient_username)
-    if normalized is None:
-        dialog_manager.dialog_data.pop(GIFTS_RECIPIENT_USERNAME_KEY, None)
-        return
-    dialog_manager.dialog_data[GIFTS_RECIPIENT_USERNAME_KEY] = normalized
 
 
-def selected_gift_key(dialog_manager: DialogManager) -> str | None:
-    return read_stripped_string(dialog_manager.dialog_data, GIFTS_SELECTED_KEY)
 
 
-def set_selected_gift_key(dialog_manager: DialogManager, gift_key: str | None) -> None:
-    set_stripped_string(dialog_manager.dialog_data, GIFTS_SELECTED_KEY, gift_key)
 
 
-def selected_gift_message(dialog_manager: DialogManager) -> str | None:
-    return read_stripped_string(dialog_manager.dialog_data, GIFTS_MESSAGE_KEY)
 
 
-def set_selected_gift_message(dialog_manager: DialogManager, message: str | None) -> None:
-    set_stripped_string(dialog_manager.dialog_data, GIFTS_MESSAGE_KEY, message)
 
 
-def selected_gift_sender_private(dialog_manager: DialogManager) -> bool | None:
-    raw_value = dialog_manager.dialog_data.get(GIFTS_SENDER_PRIVATE_KEY)
-    if isinstance(raw_value, bool):
-        return raw_value
-    if isinstance(raw_value, str):
-        lowered = raw_value.strip().lower()
-        if lowered == "true":
-            return True
-        if lowered == "false":
-            return False
-    return None
 
 
-def set_selected_gift_sender_private(
-    dialog_manager: DialogManager,
-    sender_private: bool | None,
-) -> None:
-    if sender_private is None:
-        dialog_manager.dialog_data.pop(GIFTS_SENDER_PRIVATE_KEY, None)
-        return
-    dialog_manager.dialog_data[GIFTS_SENDER_PRIVATE_KEY] = bool(sender_private)
 
 
-def clear_gift_draft(dialog_manager: DialogManager) -> None:
-    clear_state_keys(
-        dialog_manager.dialog_data,
-        GIFTS_RECIPIENT_USER_ID_KEY,
-        GIFTS_RECIPIENT_USERNAME_KEY,
-        GIFTS_SELECTED_KEY,
-        GIFTS_MESSAGE_KEY,
-        GIFTS_SENDER_PRIVATE_KEY,
-    )
 
 
 def parse_topup_amount_cents(value: str) -> int | None:

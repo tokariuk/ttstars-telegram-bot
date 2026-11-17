@@ -1,12 +1,5 @@
 from .calculator import calculator_window
 from .faq import faq_window
-from .gifts import (
-    gifts_catalog_window,
-    gifts_message_window,
-    gifts_payment_window,
-    gifts_recipient_window,
-    gifts_sender_privacy_window,
-)
 from .menu import menu_window
 from .premium import premium_payment_window, premium_plans_window, premium_recipient_window
 from .profile import (
@@ -57,11 +50,6 @@ __all__ = [
     "checks_settings_window",
     "calculator_window",
     "faq_window",
-    "gifts_catalog_window",
-    "gifts_message_window",
-    "gifts_payment_window",
-    "gifts_recipient_window",
-    "gifts_sender_privacy_window",
     "history_details_window",
     "history_window",
     "menu_window",

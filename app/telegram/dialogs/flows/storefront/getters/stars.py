@@ -21,7 +21,6 @@ from .common import (
     get_i18n,
     heleket_pay_configured,
     lzt_pay_configured,
-    nice_pay_configured,
     payment_button_text,
     platega_pay_configured,
     price_usd_for_cents,
@@ -96,8 +95,6 @@ async def stars_payment_getter(dialog_manager: DialogManager, **_: Any) -> dict[
     can_pay_ton = bool(can_pay_base and ton_pay_configured(dialog_manager))
     can_pay_platega = bool(can_pay_base and platega_pay_configured(dialog_manager))
     can_pay_lzt = bool(can_pay_base and lzt_pay_configured(dialog_manager))
-    can_pay_nicepay_ru = bool(can_pay_base and nice_pay_configured(dialog_manager))
-    can_pay_nicepay_kz = bool(can_pay_base and nice_pay_configured(dialog_manager))
     can_pay_heleket = bool(can_pay_base and heleket_pay_configured(dialog_manager))
     can_pay_xrocket = bool(can_pay_base and xrocket_pay_configured(dialog_manager))
 
@@ -130,22 +127,6 @@ async def stars_payment_getter(dialog_manager: DialogManager, **_: Any) -> dict[
         and provider_meets_min_payment_amount(
             dialog_manager,
             provider=StarsPaymentProvider.LZT_PAY,
-            amount_cents=pack.price_cents,
-        )
-    )
-    can_pay_nicepay_ru_min_ok = bool(
-        can_pay_nicepay_ru
-        and provider_meets_min_payment_amount(
-            dialog_manager,
-            provider=StarsPaymentProvider.NICE_PAY_RU,
-            amount_cents=pack.price_cents,
-        )
-    )
-    can_pay_nicepay_kz_min_ok = bool(
-        can_pay_nicepay_kz
-        and provider_meets_min_payment_amount(
-            dialog_manager,
-            provider=StarsPaymentProvider.NICE_PAY_KZ,
             amount_cents=pack.price_cents,
         )
     )
@@ -194,18 +175,6 @@ async def stars_payment_getter(dialog_manager: DialogManager, **_: Any) -> dict[
             base_text=str(i18n.buttons.pay_lzt()),
             net_amount_cents=pack.price_cents,
         ),
-        "pay_nicepay_ru_text": payment_button_text(
-            dialog_manager,
-            provider=StarsPaymentProvider.NICE_PAY_RU,
-            base_text=str(i18n.buttons.pay_nicepay_ru()),
-            net_amount_cents=pack.price_cents,
-        ),
-        "pay_nicepay_kz_text": payment_button_text(
-            dialog_manager,
-            provider=StarsPaymentProvider.NICE_PAY_KZ,
-            base_text=str(i18n.buttons.pay_nicepay_kz()),
-            net_amount_cents=pack.price_cents,
-        ),
         "pay_heleket_text": payment_button_text(
             dialog_manager,
             provider=StarsPaymentProvider.HELEKET_PAY,
@@ -226,24 +195,18 @@ async def stars_payment_getter(dialog_manager: DialogManager, **_: Any) -> dict[
         "can_pay_ton": can_pay_ton,
         "can_pay_platega": can_pay_platega,
         "can_pay_lzt": can_pay_lzt,
-        "can_pay_nicepay_ru": can_pay_nicepay_ru,
-        "can_pay_nicepay_kz": can_pay_nicepay_kz,
         "can_pay_heleket": can_pay_heleket,
         "can_pay_xrocket": can_pay_xrocket,
         "can_pay_crypto_primary": can_pay_crypto_min_ok,
         "can_pay_ton_primary": can_pay_ton_min_ok,
         "can_pay_platega_primary": can_pay_platega_min_ok,
         "can_pay_lzt_primary": can_pay_lzt_min_ok,
-        "can_pay_nicepay_ru_primary": can_pay_nicepay_ru_min_ok,
-        "can_pay_nicepay_kz_primary": can_pay_nicepay_kz_min_ok,
         "can_pay_heleket_primary": can_pay_heleket_min_ok,
         "can_pay_xrocket_primary": can_pay_xrocket_min_ok,
         "can_pay_crypto_danger": bool(can_pay_crypto and not can_pay_crypto_min_ok),
         "can_pay_ton_danger": bool(can_pay_ton and not can_pay_ton_min_ok),
         "can_pay_platega_danger": bool(can_pay_platega and not can_pay_platega_min_ok),
         "can_pay_lzt_danger": bool(can_pay_lzt and not can_pay_lzt_min_ok),
-        "can_pay_nicepay_ru_danger": bool(can_pay_nicepay_ru and not can_pay_nicepay_ru_min_ok),
-        "can_pay_nicepay_kz_danger": bool(can_pay_nicepay_kz and not can_pay_nicepay_kz_min_ok),
         "can_pay_heleket_danger": bool(can_pay_heleket and not can_pay_heleket_min_ok),
         "can_pay_xrocket_danger": bool(can_pay_xrocket and not can_pay_xrocket_min_ok),
     }

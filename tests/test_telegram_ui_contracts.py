@@ -22,7 +22,6 @@ from app.telegram.dialogs.flows.storefront.getters.common import (
     FAQ_PRIVACY_PATH,
     FAQ_TERMS_PATH,
 )
-from app.telegram.dialogs.flows.storefront.windows.gifts import gifts_payment_window
 from app.telegram.dialogs.flows.storefront.windows.premium import premium_payment_window
 from app.telegram.dialogs.flows.storefront.windows.stars import stars_payment_window
 from app.telegram.dialogs.flows.storefront.windows.topup import topup_payment_window
@@ -175,10 +174,9 @@ class TelegramUiContractTests(unittest.TestCase):
                 with self.subTest(window=name, button=button.widget_id):
                     self.assertIsNotNone(cast(Style, button.style).emoji_id)
 
-    def test_legacy_emoji_catalog_keeps_public_provider_and_gift_exports(self) -> None:
+    def test_legacy_emoji_catalog_keeps_public_provider_exports(self) -> None:
         expected_exports = {
             "CRYPTOBOT_PAY_EMOJI_ID",
-            "GIFT_DEFAULT_BEAR_EMOJI_ID",
             "LEFT_CIRCLE_2_EMOJI_ID",
             "TELEGRAM_STAR_EMOJI_ID",
             "TTSTARS_EMOJI_ID",
@@ -218,7 +216,6 @@ class TelegramUiContractTests(unittest.TestCase):
             stars_payment_window,
             premium_payment_window,
             topup_payment_window,
-            gifts_payment_window,
         )
 
         for window in payment_windows:

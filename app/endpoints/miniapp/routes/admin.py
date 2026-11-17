@@ -286,7 +286,7 @@ async def admin_block_user(
 
 
 # --------------------------------------------------------------------------- #
-# Orders (stars / premium / gift / topup)
+# Orders (stars / premium / topup, including archived records)
 # --------------------------------------------------------------------------- #
 @router.get("/orders", summary="Search and paginate every order and top-up")
 async def admin_list_orders(

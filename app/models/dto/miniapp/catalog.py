@@ -3,7 +3,6 @@ from __future__ import annotations
 from app.enums.stars_order import StarsPaymentProvider
 from app.models.base import PydanticModel
 
-from .gifts import GiftPackResponse
 from .sell import SellConfigResponse
 
 
@@ -29,7 +28,6 @@ class PaymentProviderResponse(PydanticModel):
     payout_fixed_usd: str
     supports_stars: bool
     supports_premium: bool
-    supports_gifts: bool
     supports_topup: bool
 
 
@@ -42,7 +40,6 @@ class ReferralProgramResponse(PydanticModel):
 class CatalogResponse(PydanticModel):
     stars: StarsPricingResponse
     premium_plans: list[PremiumPlanResponse]
-    gifts: list[GiftPackResponse]
     sell: SellConfigResponse
     payment_providers: list[PaymentProviderResponse]
     referral_program: ReferralProgramResponse

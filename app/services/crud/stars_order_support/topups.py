@@ -145,32 +145,6 @@ async def create_and_attach_topup_invoice(
             checkout_url=platega_invoice.pay_url,
             provider_status=platega_invoice.status,
         )
-    if provider in {StarsPaymentProvider.NICE_PAY_RU, StarsPaymentProvider.NICE_PAY_KZ}:
-        nice_order_id = service._build_nice_pay_order_id(
-            provider=provider,
-            local_order_id=virtual_order_id,
-        )
-        nice_currency = service._nice_pay_currency(provider=provider)
-        nice_amount_minor = await service.nice_pay_service.invoice_amount_minor_from_usd_cents(
-            usd_cents=checkout_pricing.invoice_amount_cents,
-            currency=nice_currency,
-        )
-        nice_invoice = await service.nice_pay_service.create_invoice(
-            amount_minor=nice_amount_minor,
-            order_id=nice_order_id,
-            customer=f"user_{user_id}",
-            description=description,
-            currency=nice_currency,
-        )
-        return await service._update_topup(
-            topup_id=topup.id,
-            status=StarsOrderStatus.PENDING_PAYMENT,
-            payment_payload=nice_invoice.payment_id,
-            provider_reference=nice_invoice.order_id,
-            provider_amount_minor=nice_invoice.amount_minor,
-            checkout_url=nice_invoice.pay_url,
-            provider_status=nice_invoice.status,
-        )
     if provider == StarsPaymentProvider.XROCKET_PAY:
         payment_payload = f"topup-{virtual_order_id}"
         xrocket_invoice = await service.xrocket_pay_service.create_invoice(
@@ -355,9 +329,6 @@ async def _credit_topup_transaction(
                 product_type=product_type.value,
                 premium_months=current.auto_premium_months,
                 recipient_user_id=current.auto_recipient_user_id,
-                gift_id=current.auto_gift_id,
-                gift_message=current.auto_gift_message,
-                gift_sender_private=current.auto_gift_sender_private,
                 amount_cents=amount_cents,
                 payment_provider=current.payment_provider,
                 payment_currency=current.payment_currency,

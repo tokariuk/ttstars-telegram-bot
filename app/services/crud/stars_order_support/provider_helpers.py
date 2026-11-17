@@ -8,8 +8,6 @@ from app.utils.routes import normalize_route_path
 
 from .constants import (
     HELEKET_ORDER_ID_PREFIX,
-    NICE_PAY_PROVIDER_VARIANTS,
-    NICEPAY_ORDER_ID_PREFIX,
     PLATEGA_PAYLOAD_PREFIX,
 )
 
@@ -28,8 +26,6 @@ def is_provider_configured(*, service: StarsOrderService, provider: StarsPayment
         return service.heleket_pay_service.configured
     if provider == StarsPaymentProvider.PLATEGA_PAY:
         return service.platega_pay_service.configured
-    if provider in NICE_PAY_PROVIDER_VARIANTS:
-        return service.nice_pay_service.configured
     if provider == StarsPaymentProvider.XROCKET_PAY:
         return service.xrocket_pay_service.configured
     if provider == StarsPaymentProvider.BALANCE:
@@ -48,8 +44,6 @@ def provider_currency(*, service: StarsOrderService, provider: StarsPaymentProvi
         return service.heleket_pay_service.currency
     if provider == StarsPaymentProvider.PLATEGA_PAY:
         return service.platega_pay_service.currency
-    if provider in NICE_PAY_PROVIDER_VARIANTS:
-        return nice_pay_currency(service=service, provider=provider)
     if provider == StarsPaymentProvider.XROCKET_PAY:
         return service.xrocket_pay_service.currency
     return "USD"
@@ -58,23 +52,6 @@ def provider_currency(*, service: StarsOrderService, provider: StarsPaymentProvi
 def build_platega_payload(*, local_order_id: int) -> str:
     # Random suffix prevents collisions after local DB resets.
     return f"{PLATEGA_PAYLOAD_PREFIX}-{local_order_id}-{uuid4().hex[:10]}"
-
-
-def build_nice_pay_order_id(*, provider: StarsPaymentProvider, local_order_id: int) -> str:
-    # Random suffix prevents collisions after local DB resets.
-    if provider == StarsPaymentProvider.NICE_PAY_RU:
-        provider_suffix = "ru"
-    elif provider == StarsPaymentProvider.NICE_PAY_KZ:
-        provider_suffix = "kz"
-    else:
-        raise ValueError(f"Unsupported NicePay provider: {provider.value}")
-    return f"{NICEPAY_ORDER_ID_PREFIX}-{provider_suffix}-{local_order_id}-{uuid4().hex[:10]}"
-
-
-def nice_pay_currency(*, service: StarsOrderService, provider: StarsPaymentProvider) -> str:
-    value = service.nice_pay_provider_currencies.get(provider, service.nice_pay_service.currency)
-    normalized = (value or "").strip().upper()
-    return normalized or service.nice_pay_service.currency
 
 
 def build_heleket_order_id(*, local_order_id: int) -> str:

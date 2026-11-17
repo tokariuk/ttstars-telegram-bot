@@ -2,7 +2,6 @@ buttons-open_miniapp = TTStars App
 buttons-buy_stars = Купить Stars
 buttons-buy_premium = Купить Premium
 buttons-sell_stars = Продажа Stars
-buttons-buy_gifts = Подарки
 buttons-topup_balance = Пополнить баланс
 buttons-calculator = Калькулятор
 buttons-profile = Профиль

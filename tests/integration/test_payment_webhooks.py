@@ -10,12 +10,10 @@ from fastapi import APIRouter, FastAPI
 from app.endpoints.crypto_pay import create_router as create_crypto_router
 from app.endpoints.heleket_pay import create_router as create_heleket_router
 from app.endpoints.lzt_pay import create_router as create_lzt_router
-from app.endpoints.nice_pay import create_router as create_nice_router
 from app.endpoints.platega_pay import create_router as create_platega_router
 from app.endpoints.ton_pay import create_router as create_ton_router
 from app.endpoints.xrocket_pay import create_router as create_xrocket_router
 from app.services.heleket_pay import HeleketWebhookEvent
-from app.services.nice_pay import NicePayWebhookEvent
 from app.services.platega_pay import PlategaWebhookEvent
 from app.services.xrocket_pay import XRocketWebhookEvent
 from app.utils import mjson
@@ -50,9 +48,6 @@ class StarsOrderServiceFake:
 
     async def process_lzt_webhook_invoice(self, **kwargs: Any) -> None:
         await self._record("lzt", kwargs)
-
-    async def process_nice_pay_webhook_payment(self, **kwargs: Any) -> None:
-        await self._record("nice", kwargs)
 
     async def process_platega_webhook_payment(self, **kwargs: Any) -> None:
         await self._record("platega", kwargs)
@@ -124,36 +119,6 @@ class PaymentWebhookIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(
             orders.calls,
             [("lzt", {"invoice_id": 42, "payment_id": "pay-42"})],
-        )
-
-    async def test_nice_webhook_verifies_signature_and_forwards_payment(self) -> None:
-        event = NicePayWebhookEvent(
-            result="success",
-            payment_id="nice-43",
-            order_id="43",
-            is_paid=True,
-        )
-        app, orders = create_test_app(
-            create_nice_router("/nice"),
-            provider_name="nice_pay_service",
-            provider=ProviderFake(event=event),
-        )
-        response = await asgi_request(
-            app,
-            method="GET",
-            path="/nice",
-            query={"result": "success", "hash": "valid"},
-        )
-
-        self.assert_webhook_ok(response)
-        self.assertEqual(
-            orders.calls,
-            [
-                (
-                    "nice",
-                    {"payment_id": "nice-43", "order_id": "43", "webhook_result": "success"},
-                )
-            ],
         )
 
     async def test_platega_webhook_verifies_signature_and_forwards_payment(self) -> None:
@@ -306,12 +271,6 @@ class PaymentWebhookIntegrationTests(unittest.IsolatedAsyncioTestCase):
     async def test_signed_webhooks_reject_invalid_signatures(self) -> None:
         cases = (
             (create_crypto_router("/hook"), "crypto_pay_service", ProviderFake(), "POST"),
-            (
-                create_nice_router("/hook"),
-                "nice_pay_service",
-                ProviderFake(signature_valid=False),
-                "GET",
-            ),
             (
                 create_platega_router("/hook"),
                 "platega_pay_service",

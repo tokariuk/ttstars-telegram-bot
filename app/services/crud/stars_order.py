@@ -19,7 +19,6 @@ from app.enums.stars_order import (
     StarsOrderStatus,
     StarsPaymentProvider,
 )
-from app.gifts import TelegramGiftPack, get_gift_pack
 from app.models.config import AppConfig
 from app.models.dto.balance_topup import BalanceTopupDto
 from app.models.dto.stars_order import StarsOrderDto
@@ -34,12 +33,6 @@ from app.services.crud.stars_order_support import (
 )
 from app.services.crud.stars_order_support import (
     build_min_payment_amount_cents as build_min_payment_amount_cents_support,
-)
-from app.services.crud.stars_order_support import (
-    build_nice_pay_order_id as build_nice_pay_order_id_support,
-)
-from app.services.crud.stars_order_support import (
-    build_nice_pay_provider_currencies as build_nice_pay_provider_currencies_support,
 )
 from app.services.crud.stars_order_support import (
     build_payment_fee_percents as build_payment_fee_percents_support,
@@ -111,9 +104,6 @@ from app.services.crud.stars_order_support import (
     mark_failed_and_refund as mark_failed_and_refund_support,
 )
 from app.services.crud.stars_order_support import (
-    nice_pay_currency as nice_pay_currency_support,
-)
-from app.services.crud.stars_order_support import (
     poll_pending_orders as poll_pending_orders_support,
 )
 from app.services.crud.stars_order_support import (
@@ -130,9 +120,6 @@ from app.services.crud.stars_order_support import (
 )
 from app.services.crud.stars_order_support import (
     process_lzt_webhook_invoice as process_lzt_webhook_invoice_support,
-)
-from app.services.crud.stars_order_support import (
-    process_nice_pay_webhook_payment as process_nice_pay_webhook_payment_support,
 )
 from app.services.crud.stars_order_support import (
     process_platega_webhook_payment as process_platega_webhook_payment_support,
@@ -178,12 +165,11 @@ from app.services.crypto_pay import CryptoPayService
 from app.services.fragment_stars import FragmentStarsService
 from app.services.heleket_pay import HeleketPayService
 from app.services.lzt_pay import LZTPayService
-from app.services.nice_pay import NicePayService
 from app.services.platega_pay import PlategaPayService
 from app.services.postgres import SQLSessionContext
 from app.services.ton_pay import TonPayService
 from app.services.xrocket_pay import XRocketPayService
-from app.stars import get_premium_pack, normalize_recipient_username, price_usd_for_cents
+from app.stars import get_premium_pack, price_usd_for_cents
 from app.utils.key_builder import build_key
 from app.utils.time import datetime_now
 
@@ -324,7 +310,6 @@ class StarsOrderService(CrudService):
         crypto_pay_service: CryptoPayService,
         heleket_pay_service: HeleketPayService,
         lzt_pay_service: LZTPayService,
-        nice_pay_service: NicePayService,
         platega_pay_service: PlategaPayService,
         ton_pay_service: TonPayService,
         xrocket_pay_service: XRocketPayService,
@@ -334,14 +319,10 @@ class StarsOrderService(CrudService):
         self.crypto_pay_service = crypto_pay_service
         self.heleket_pay_service = heleket_pay_service
         self.lzt_pay_service = lzt_pay_service
-        self.nice_pay_service = nice_pay_service
         self.platega_pay_service = platega_pay_service
         self.ton_pay_service = ton_pay_service
         self.xrocket_pay_service = xrocket_pay_service
         self.fragment_stars_service = fragment_stars_service
-        self.nice_pay_provider_currencies = build_nice_pay_provider_currencies_support(
-            config=config,
-        )
         self.payment_fee_percents = build_payment_fee_percents_support(
             config=config,
             parse_percent=self._parse_percent,
@@ -819,9 +800,6 @@ class StarsOrderService(CrudService):
             premium_months=None,
             forced_amount_cents=None,
             recipient_user_id=None,
-            gift_id=None,
-            gift_message=None,
-            gift_sender_private=None,
             validation_error_cls=ValidationError,
         )
         return await self._create_external_topup(
@@ -867,9 +845,6 @@ class StarsOrderService(CrudService):
             premium_months=premium_pack.months,
             forced_amount_cents=premium_pack.price_cents,
             recipient_user_id=None,
-            gift_id=None,
-            gift_message=None,
-            gift_sender_private=None,
             validation_error_cls=ValidationError,
         )
         return await self._create_external_topup(
@@ -883,18 +858,6 @@ class StarsOrderService(CrudService):
             auto_premium_months=prepared.premium_months,
         )
 
-    async def create_gift_order(
-        self,
-        *,
-        provider: StarsPaymentProvider,
-        user_id: int,
-        recipient_username: str,
-        recipient_user_id: int | None,
-        gift_key: str,
-        gift_message: str | None,
-        gift_sender_private: bool,
-    ) -> StarsOrderDto:
-        raise ProviderUnavailableError("Telegram gifts are no longer available.")
 
     async def create_topup_order(
         self,
@@ -916,9 +879,6 @@ class StarsOrderService(CrudService):
             premium_months=None,
             forced_amount_cents=amount_cents,
             recipient_user_id=None,
-            gift_id=None,
-            gift_message=None,
-            gift_sender_private=None,
             validation_error_cls=ValidationError,
         )
         return await self._create_external_topup(
@@ -938,9 +898,6 @@ class StarsOrderService(CrudService):
         product_type: StarsOrderProductType,
         premium_months: int | None = None,
         recipient_user_id: int | None = None,
-        gift_id: str | None = None,
-        gift_message: str | None = None,
-        gift_sender_private: bool | None = None,
     ) -> StarsOrderDto:
         return await create_balance_product_order_support(
             service=self,
@@ -951,9 +908,6 @@ class StarsOrderService(CrudService):
             product_type=product_type,
             premium_months=premium_months,
             recipient_user_id=recipient_user_id,
-            gift_id=gift_id,
-            gift_message=gift_message,
-            gift_sender_private=gift_sender_private,
             validation_error_cls=ValidationError,
             insufficient_balance_error_cls=InsufficientBalanceError,
             balance_in_progress_error_cls=BalanceOrderInProgressError,
@@ -970,9 +924,6 @@ class StarsOrderService(CrudService):
         premium_months: int | None = None,
         forced_amount_cents: int | None = None,
         recipient_user_id: int | None = None,
-        gift_id: str | None = None,
-        gift_message: str | None = None,
-        gift_sender_private: bool | None = None,
     ) -> StarsOrderDto:
         return await create_external_order_support(
             service=self,
@@ -984,9 +935,6 @@ class StarsOrderService(CrudService):
             premium_months=premium_months,
             forced_amount_cents=forced_amount_cents,
             recipient_user_id=recipient_user_id,
-            gift_id=gift_id,
-            gift_message=gift_message,
-            gift_sender_private=gift_sender_private,
             validation_error_cls=ValidationError,
             provider_unavailable_error_cls=ProviderUnavailableError,
             stars_order_error_cls=StarsOrderError,
@@ -1005,10 +953,9 @@ class StarsOrderService(CrudService):
         auto_stars_count: int = 0,
         auto_premium_months: int | None = None,
         auto_recipient_user_id: int | None = None,
-        auto_gift_id: str | None = None,
-        auto_gift_message: str | None = None,
-        auto_gift_sender_private: bool | None = None,
     ) -> BalanceTopupDto:
+        if auto_product_type == StarsOrderProductType.GIFT:
+            raise ValidationError("Unsupported order product type.")
         topup = BalanceTopup(
             user_id=user_id,
             amount_cents=amount_cents,
@@ -1020,9 +967,6 @@ class StarsOrderService(CrudService):
             auto_stars_count=auto_stars_count,
             auto_premium_months=auto_premium_months,
             auto_recipient_user_id=auto_recipient_user_id,
-            auto_gift_id=auto_gift_id,
-            auto_gift_message=auto_gift_message,
-            auto_gift_sender_private=auto_gift_sender_private,
         )
         async with SQLSessionContext(session_pool=self.session_pool) as (_repository, uow):
             await uow.commit(topup)
@@ -1095,9 +1039,6 @@ class StarsOrderService(CrudService):
         auto_stars_count: int = 0,
         auto_premium_months: int | None = None,
         auto_recipient_user_id: int | None = None,
-        auto_gift_id: str | None = None,
-        auto_gift_message: str | None = None,
-        auto_gift_sender_private: bool | None = None,
     ) -> StarsOrderDto:
         self._validate_provider_min_payment_amount(
             provider=provider,
@@ -1120,9 +1061,6 @@ class StarsOrderService(CrudService):
             auto_stars_count=auto_stars_count,
             auto_premium_months=auto_premium_months,
             auto_recipient_user_id=auto_recipient_user_id,
-            auto_gift_id=auto_gift_id,
-            auto_gift_message=auto_gift_message,
-            auto_gift_sender_private=auto_gift_sender_private,
         )
 
         try:
@@ -1158,9 +1096,6 @@ class StarsOrderService(CrudService):
         recipient_username: str,
         product_type: StarsOrderProductType,
         recipient_user_id: int | None,
-        gift_id: str | None,
-        gift_message: str | None,
-        gift_sender_private: bool | None,
         validation_error_cls: type[Exception],
     ) -> Any:
         return await prepare_balance_order_payload_support(
@@ -1168,9 +1103,6 @@ class StarsOrderService(CrudService):
             recipient_username=recipient_username,
             product_type=product_type,
             recipient_user_id=recipient_user_id,
-            gift_id=gift_id,
-            gift_message=gift_message,
-            gift_sender_private=gift_sender_private,
             validation_error_cls=validation_error_cls,
         )
 
@@ -1184,9 +1116,6 @@ class StarsOrderService(CrudService):
         premium_months: int | None,
         forced_amount_cents: int | None,
         recipient_user_id: int | None,
-        gift_id: str | None,
-        gift_message: str | None,
-        gift_sender_private: bool | None,
         validation_error_cls: type[Exception],
     ) -> Any:
         return await prepare_external_order_payload_support(
@@ -1198,9 +1127,6 @@ class StarsOrderService(CrudService):
             premium_months=premium_months,
             forced_amount_cents=forced_amount_cents,
             recipient_user_id=recipient_user_id,
-            gift_id=gift_id,
-            gift_message=gift_message,
-            gift_sender_private=gift_sender_private,
             validation_error_cls=validation_error_cls,
         )
 
@@ -1531,34 +1457,6 @@ class StarsOrderService(CrudService):
             provider_reference=transaction_id,
         )
 
-    async def process_nice_pay_webhook_payment(
-        self,
-        *,
-        payment_id: str | None = None,
-        order_id: str | None = None,
-        webhook_result: str | None = None,
-    ) -> Optional[StarsOrderDto]:
-        order = await process_nice_pay_webhook_payment_support(
-            service=self,
-            payment_id=payment_id,
-            order_id=order_id,
-            webhook_result=webhook_result,
-        )
-        if order is not None:
-            return order
-        topup = await self._find_topup_for_webhook(
-            providers=[StarsPaymentProvider.NICE_PAY_RU, StarsPaymentProvider.NICE_PAY_KZ],
-            payment_payload=payment_id,
-            provider_reference=order_id,
-        )
-        if topup is None:
-            return None
-        return await self._process_topup_webhook(
-            topup=topup,
-            provider_status=webhook_result,
-            payment_payload=payment_id,
-            provider_reference=order_id,
-        )
 
     async def process_heleket_webhook_invoice(
         self,
@@ -1770,9 +1668,6 @@ class StarsOrderService(CrudService):
         product_type: StarsOrderProductType,
         premium_months: int | None = None,
         recipient_user_id: int | None = None,
-        gift_id: str | None = None,
-        gift_message: str | None = None,
-        gift_sender_private: bool | None = None,
         amount_cents: int,
         payment_provider: StarsPaymentProvider,
         payment_currency: str,
@@ -1785,9 +1680,6 @@ class StarsOrderService(CrudService):
             product_type=product_type.value,
             premium_months=premium_months,
             recipient_user_id=recipient_user_id,
-            gift_id=gift_id,
-            gift_message=gift_message,
-            gift_sender_private=gift_sender_private,
             amount_cents=amount_cents,
             payment_provider=payment_provider.value,
             payment_currency=payment_currency,
@@ -2079,77 +1971,11 @@ end
             min_amount_text=min_amount_text,
         )
 
-    async def _resolve_gift_recipient_user_id(
-        self,
-        *,
-        recipient_username: str,
-        recipient_user_id: int | None,
-    ) -> int | None:
-        raise ValidationError("Telegram gifts are no longer available.")
-
-    async def validate_gift_recipient_username(
-        self,
-        *,
-        recipient_username: str,
-    ) -> str | None:
-        resolved = await self.resolve_gift_recipient_username(
-            recipient_username=recipient_username,
-        )
-        return resolved[0] if resolved is not None else None
-
-    async def resolve_gift_recipient_username(
-        self,
-        *,
-        recipient_username: str,
-    ) -> tuple[str, int] | None:
-        normalized = normalize_recipient_username(recipient_username)
-        if normalized is None:
-            return None
-        try:
-            resolved_user_id = await self._resolve_gift_recipient_user_id(
-                recipient_username=normalized,
-                recipient_user_id=None,
-            )
-        except ValidationError:
-            return None
-        if resolved_user_id is None or resolved_user_id <= 0:
-            return None
-        return normalized, resolved_user_id
-
-    @staticmethod
-    def _normalize_gift_message(value: str | None) -> str | None:
-        if value is None:
-            return None
-        normalized = value.strip()
-        if not normalized:
-            return None
-        if len(normalized) > 128:
-            raise ValidationError("Gift message is too long.")
-        return normalized
-
-    @staticmethod
-    def _resolve_gift_pack(*, gift_key: str) -> TelegramGiftPack:
-        normalized = gift_key.strip()
-        if not normalized:
-            raise ValidationError("Gift is not selected.")
-        try:
-            return get_gift_pack(key=normalized)
-        except ValueError as error:
-            raise ValidationError("Unsupported gift.") from error
 
     @staticmethod
     def _build_platega_payload(*, local_order_id: int) -> str:
         return build_platega_payload_support(local_order_id=local_order_id)
 
-    @staticmethod
-    def _build_nice_pay_order_id(*, provider: StarsPaymentProvider, local_order_id: int) -> str:
-        return build_nice_pay_order_id_support(
-            provider=provider,
-            local_order_id=local_order_id,
-        )
-
-    def _nice_pay_currency(self, *, provider: StarsPaymentProvider) -> str:
-        return nice_pay_currency_support(service=self, provider=provider)
 
     @staticmethod
     def _build_heleket_order_id(*, local_order_id: int) -> str:

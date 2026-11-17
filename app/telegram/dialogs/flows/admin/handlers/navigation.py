@@ -123,12 +123,6 @@ async def show_creatives_premium(
     await dialog_manager.switch_to(AdminSG.creatives_premium, show_mode=ShowMode.EDIT)
 
 
-async def show_creatives_gifts(
-    _: CallbackQuery,
-    __: Button,
-    dialog_manager: DialogManager,
-) -> None:
-    await dialog_manager.switch_to(AdminSG.creatives_gifts, show_mode=ShowMode.EDIT)
 
 
 async def show_creatives_overview(

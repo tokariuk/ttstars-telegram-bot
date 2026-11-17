@@ -17,7 +17,6 @@ from app.services.crypto_pay import CryptoPayService
 from app.services.fragment_stars import FragmentStarsService
 from app.services.heleket_pay import HeleketPayService
 from app.services.lzt_pay import LZTPayService
-from app.services.nice_pay import NicePayService
 from app.services.platega_pay import PlategaPayService
 from app.services.promo_codes import PromoCodeService
 from app.services.redis import RedisRepository
@@ -31,7 +30,6 @@ class Services(TypedDict):
     fragment_stars_service: FragmentStarsService
     heleket_pay_service: HeleketPayService
     lzt_pay_service: LZTPayService
-    nice_pay_service: NicePayService
     platega_pay_service: PlategaPayService
     promo_code_service: PromoCodeService
     redis_repository: RedisRepository
@@ -47,7 +45,6 @@ class PaymentServices(TypedDict):
     fragment_stars_service: FragmentStarsService
     heleket_pay_service: HeleketPayService
     lzt_pay_service: LZTPayService
-    nice_pay_service: NicePayService
     platega_pay_service: PlategaPayService
     ton_pay_service: TonPayService
     xrocket_pay_service: XRocketPayService
@@ -92,15 +89,6 @@ def _create_payment_services(config: AppConfig) -> PaymentServices:
         merchant_key=_secret_value(config.lzt_pay.merchant_key),
         currency=config.lzt_pay.currency,
         success_url=lzt_success_url,
-    )
-    nice_pay_service = NicePayService(
-        merchant_id=config.nice_pay.merchant_id,
-        secret_key=_secret_value(config.nice_pay.secret_key),
-        base_url=config.nice_pay.base_url,
-        currency=config.nice_pay.currency_ru,
-        method=config.nice_pay.method,
-        success_url=config.nice_pay.success_url,
-        fail_url=config.nice_pay.fail_url,
     )
     platega_pay_service = PlategaPayService(
         merchant_id=config.platega_pay.merchant_id,
@@ -156,7 +144,6 @@ def _create_payment_services(config: AppConfig) -> PaymentServices:
         fragment_stars_service=fragment_stars_service,
         heleket_pay_service=heleket_pay_service,
         lzt_pay_service=lzt_pay_service,
-        nice_pay_service=nice_pay_service,
         platega_pay_service=platega_pay_service,
         ton_pay_service=ton_pay_service,
         xrocket_pay_service=xrocket_pay_service,
@@ -189,7 +176,6 @@ def _create_application_services(
         crypto_pay_service=payment_services["crypto_pay_service"],
         heleket_pay_service=payment_services["heleket_pay_service"],
         lzt_pay_service=payment_services["lzt_pay_service"],
-        nice_pay_service=payment_services["nice_pay_service"],
         platega_pay_service=payment_services["platega_pay_service"],
         ton_pay_service=payment_services["ton_pay_service"],
         xrocket_pay_service=payment_services["xrocket_pay_service"],
@@ -225,7 +211,6 @@ def create_services(
         fragment_stars_service=payment_services["fragment_stars_service"],
         heleket_pay_service=payment_services["heleket_pay_service"],
         lzt_pay_service=payment_services["lzt_pay_service"],
-        nice_pay_service=payment_services["nice_pay_service"],
         platega_pay_service=payment_services["platega_pay_service"],
         promo_code_service=application_services["promo_code_service"],
         redis_repository=application_services["redis_repository"],

@@ -5,7 +5,6 @@ from .broadcast import (
     broadcast_options_getter,
 )
 from .creatives import (
-    creatives_gifts_getter,
     creatives_menu_getter,
     creatives_overview_getter,
     creatives_premium_getter,
@@ -39,7 +38,6 @@ __all__ = [
     "broadcast_confirm_getter",
     "broadcast_content_getter",
     "broadcast_options_getter",
-    "creatives_gifts_getter",
     "creatives_menu_getter",
     "creatives_overview_getter",
     "creatives_premium_getter",

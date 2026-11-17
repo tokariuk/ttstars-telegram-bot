@@ -7,8 +7,6 @@ from app.enums.stars_order import StarsOrderStatus, StarsPaymentProvider
 from app.models.dto.stars_order import StarsOrderDto
 from app.stars import build_crypto_payload
 
-from .constants import NICE_PAY_PROVIDER_VARIANTS
-
 if TYPE_CHECKING:
     from app.services.crud.stars_order import StarsOrderService
     from app.services.crud.stars_order_support.pricing import CheckoutPricing
@@ -104,32 +102,6 @@ async def create_and_attach_invoice(
             provider_amount_minor=platega_invoice.amount_minor,
             checkout_url=platega_invoice.pay_url,
             provider_status=platega_invoice.status,
-        )
-    if provider in NICE_PAY_PROVIDER_VARIANTS:
-        nice_order_id = service._build_nice_pay_order_id(
-            provider=provider,
-            local_order_id=order.id,
-        )
-        nice_currency = service._nice_pay_currency(provider=provider)
-        nice_amount_minor = await service.nice_pay_service.invoice_amount_minor_from_usd_cents(
-            usd_cents=checkout_pricing.invoice_amount_cents,
-            currency=nice_currency,
-        )
-        nice_invoice = await service.nice_pay_service.create_invoice(
-            amount_minor=nice_amount_minor,
-            order_id=nice_order_id,
-            customer=f"user_{user_id}",
-            description=description,
-            currency=nice_currency,
-        )
-        return await service._update_order(
-            order_id=order.id,
-            status=StarsOrderStatus.PENDING_PAYMENT,
-            payment_payload=nice_invoice.payment_id,
-            provider_reference=nice_invoice.order_id,
-            provider_amount_minor=nice_invoice.amount_minor,
-            checkout_url=nice_invoice.pay_url,
-            provider_status=nice_invoice.status,
         )
     if provider == StarsPaymentProvider.XROCKET_PAY:
         payment_payload = f"stars-order-{order.id}"

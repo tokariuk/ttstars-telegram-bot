@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from collections import Counter
 from dataclasses import dataclass
 from typing import Any, Final
 
 from aiogram_dialog import DialogManager
 
-from app.gifts import list_gift_packs
-from app.stars import get_premium_pack, price_usd_for_cents, price_usd_for_stars
+from app.stars import get_premium_pack, price_usd_for_stars
 
 from ..handlers.shared import i18n
 from .common import admin_banner_url
@@ -39,14 +37,6 @@ def creative_premium_offers() -> tuple[CreativeOffer, ...]:
     )
 
 
-def creative_gift_offers() -> tuple[CreativeOffer, ...]:
-    counts_by_price = Counter(gift.price_cents for gift in list_gift_packs())
-    return tuple(
-        CreativeOffer(amount=count, price_usd=price_usd_for_cents(price_cents))
-        for price_cents, count in sorted(counts_by_price.items())
-    )
-
-
 def _common_buttons(dialog_manager: DialogManager) -> dict[str, Any]:
     i18n_ctx = i18n(dialog_manager)
     return {
@@ -65,7 +55,6 @@ async def creatives_menu_getter(
         "banner_url": admin_banner_url(dialog_manager, "creatives"),
         "stars_button_text": i18n_ctx.buttons.admin_creatives_stars(),
         "premium_button_text": i18n_ctx.buttons.admin_creatives_premium(),
-        "gifts_button_text": i18n_ctx.buttons.admin_creatives_gifts(),
         "overview_button_text": i18n_ctx.buttons.admin_creatives_overview(),
         "back_to_menu_button_text": i18n_ctx.buttons.admin_creatives_back_to_menu(),
     }
@@ -110,28 +99,6 @@ async def creatives_premium_getter(
     return result
 
 
-async def creatives_gifts_getter(
-    dialog_manager: DialogManager,
-    **_: Any,
-) -> dict[str, Any]:
-    i18n_ctx = i18n(dialog_manager)
-    basic, collection = creative_gift_offers()
-    return {
-        "text": i18n_ctx.messages.admin_creatives_gifts_screen(
-            designs=basic.amount + collection.amount,
-        ),
-        "banner_url": admin_banner_url(dialog_manager, "creatives_gifts"),
-        "basic_gift_button_text": i18n_ctx.buttons.admin_creatives_gift_basic(
-            price=basic.price_usd,
-        ),
-        "gift_collection_button_text": i18n_ctx.buttons.admin_creatives_gift_collection(
-            count=collection.amount,
-            price=collection.price_usd,
-        ),
-        **_common_buttons(dialog_manager),
-    }
-
-
 async def creatives_overview_getter(
     dialog_manager: DialogManager,
     **_: Any,
@@ -154,10 +121,8 @@ async def creatives_overview_getter(
 
 __all__ = [
     "CreativeOffer",
-    "creative_gift_offers",
     "creative_premium_offers",
     "creative_stars_offers",
-    "creatives_gifts_getter",
     "creatives_menu_getter",
     "creatives_overview_getter",
     "creatives_premium_getter",

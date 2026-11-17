@@ -9,6 +9,7 @@ class StarsPaymentProvider(StrEnum):
     PLATEGA_PAY = "platega_pay"
     XROCKET_PAY = "xrocket_pay"
     LZT_PAY = "lzt_pay"
+    # Historical DB values only. New payments cannot use these providers.
     NICE_PAY_RU = "nice_pay_ru"
     NICE_PAY_KZ = "nice_pay_kz"
     HELEKET_PAY = "heleket_pay"
@@ -18,6 +19,7 @@ class StarsPaymentProvider(StrEnum):
 class StarsOrderProductType(StrEnum):
     STARS = "stars"
     PREMIUM = "premium"
+    # Historical DB value only; new gift purchases are unavailable.
     GIFT = "gift"
     TOPUP = "topup"
 

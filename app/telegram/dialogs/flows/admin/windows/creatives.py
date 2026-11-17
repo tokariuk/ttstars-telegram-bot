@@ -4,7 +4,6 @@ from aiogram_dialog.widgets.style import Style
 from aiogram_dialog.widgets.text import Format
 
 from app.telegram.dialogs.common.ttstars_interface_emoji import (
-    GIFT_EMOJI_ID,
     IMAGE_EMOJI_ID,
     LEFT_SQUARE_EMOJI_ID,
     LIGHTNING_EMOJI_ID,
@@ -12,7 +11,6 @@ from app.telegram.dialogs.common.ttstars_interface_emoji import (
 )
 
 from ..getters import (
-    creatives_gifts_getter,
     creatives_menu_getter,
     creatives_overview_getter,
     creatives_premium_getter,
@@ -29,7 +27,6 @@ from ..handlers import (
 from ..ids import (
     ADMIN_CREATIVES_BACK_TO_MENU_BUTTON_ID,
     ADMIN_CREATIVES_BACK_TO_SECTION_BUTTON_ID,
-    ADMIN_CREATIVES_GIFT_ENTRY_BUTTON_IDS,
     ADMIN_CREATIVES_OPEN_OVERVIEW_BUTTON_ID,
     ADMIN_CREATIVES_OPEN_PREMIUM_BUTTON_ID,
     ADMIN_CREATIVES_OPEN_STARS_BUTTON_ID,
@@ -125,25 +122,6 @@ creatives_premium_window: Window = Window(
     getter=creatives_premium_getter,
 )
 
-creatives_gifts_window: Window = Window(
-    banner_preview(),
-    Format("{text}"),
-    Button(
-        Format("{basic_gift_button_text}"),
-        id=ADMIN_CREATIVES_GIFT_ENTRY_BUTTON_IDS[0],
-        on_click=acknowledge_creative_preview,
-        style=Style(emoji_id=GIFT_EMOJI_ID),
-    ),
-    Button(
-        Format("{gift_collection_button_text}"),
-        id=ADMIN_CREATIVES_GIFT_ENTRY_BUTTON_IDS[1],
-        on_click=acknowledge_creative_preview,
-        style=Style(emoji_id=GIFT_EMOJI_ID),
-    ),
-    _back_to_creatives_button(),
-    state=AdminSG.creatives_gifts,
-    getter=creatives_gifts_getter,
-)
 
 creatives_overview_window: Window = Window(
     banner_preview(),
@@ -167,7 +145,6 @@ creatives_overview_window: Window = Window(
 
 
 __all__ = [
-    "creatives_gifts_window",
     "creatives_menu_window",
     "creatives_overview_window",
     "creatives_premium_window",

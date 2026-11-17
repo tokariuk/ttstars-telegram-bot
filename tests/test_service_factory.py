@@ -29,15 +29,6 @@ def _config() -> Any:
             currency="usd",
             success_url="   ",
         ),
-        nice_pay=SimpleNamespace(
-            merchant_id="nice-id",
-            secret_key=SecretStr("nice-key"),
-            base_url="https://nice.test/",
-            currency_ru="rub",
-            method="card",
-            success_url="https://example.test/success",
-            fail_url="https://example.test/fail",
-        ),
         platega_pay=SimpleNamespace(
             merchant_id="platega-id",
             secret_key=SecretStr("platega-key"),
@@ -80,16 +71,6 @@ def _config() -> Any:
             invoice_tx_scan_limit=50,
             rate_cache_ttl_seconds=10,
         ),
-        telegram_gifts_userbot=SimpleNamespace(
-            api_id=123,
-            api_hash=SecretStr("api-hash"),
-            session=SecretStr("session"),
-            device_model="device",
-            system_version="system",
-            app_version="app",
-            lang_code="en",
-            system_lang_code="en",
-        ),
         fragment=SimpleNamespace(
             cookies=SecretStr("cookies"),
             hash=SecretStr("hash"),
@@ -112,7 +93,6 @@ def _config() -> Any:
     for provider_name in (
         "crypto_pay",
         "lzt_pay",
-        "nice_pay",
         "platega_pay",
         "heleket_pay",
         "xrocket_pay",
@@ -124,13 +104,6 @@ def _config() -> Any:
         provider.payout_fixed_usd = "0"
         provider.min_payment_usd = "1"
         provider.min_topup_usd = "1"
-    config.nice_pay.currency_kz = "KZT"
-    config.nice_pay.fee_percent_ru = "9"
-    config.nice_pay.fee_percent_kz = "9"
-    config.nice_pay.min_payment_usd_ru = "1"
-    config.nice_pay.min_payment_usd_kz = "1"
-    config.nice_pay.min_topup_usd_ru = "1"
-    config.nice_pay.min_topup_usd_kz = "1"
     return config
 
 
@@ -145,7 +118,6 @@ class PaymentServiceFactoryTests(unittest.TestCase):
                 "fragment_stars_service",
                 "heleket_pay_service",
                 "lzt_pay_service",
-                "nice_pay_service",
                 "platega_pay_service",
                 "ton_pay_service",
                 "xrocket_pay_service",

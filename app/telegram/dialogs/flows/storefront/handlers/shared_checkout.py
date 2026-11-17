@@ -12,30 +12,15 @@ from aiogram.types import (
 from aiogram_dialog import DialogManager
 
 from app.enums.stars_order import StarsOrderProductType
-from app.gifts import get_gift_pack_by_id
 from app.models.dto.stars_order import StarsOrderDto
 from app.services.crud.stars_order import CheckoutPricing
-from app.stars import normalize_recipient_username, price_usd_for_cents
+from app.stars import price_usd_for_cents
 from app.telegram.dialogs.common import get_i18n, get_user
 from app.telegram.dialogs.common.premium_emoji import CLOSE_EMOJI_ID, WALLET_EMOJI_ID
-from app.telegram.html import escape_text, username
+from app.telegram.html import escape_text
 from app.telegram.keyboards.callback_data.order import CDOrderCheckoutCancel
 
-from .shared_constants import GIFT_NAME_MESSAGE_BY_KEY
 from .shared_services import stars_order_service
-
-
-def _localized_gift_name(i18n: Any, *, gift_id: str) -> str:
-    gift = get_gift_pack_by_id(gift_id=gift_id)
-    if gift is None:
-        return gift_id
-    message_key = GIFT_NAME_MESSAGE_BY_KEY.get(gift.key)
-    if message_key is None:
-        return gift.label
-    message_getter = getattr(i18n.messages, message_key, None)
-    if message_getter is None:
-        return gift.label
-    return str(message_getter())
 
 
 def order_checkout_message_text(
@@ -53,31 +38,6 @@ def order_checkout_message_text(
                 amount=amount,
                 fee_text=fee_text,
                 pay_amount=total_with_fee,
-            )
-        )
-    if order.product_type == StarsOrderProductType.GIFT:
-        gift_name = (
-            _localized_gift_name(i18n=i18n, gift_id=order.gift_id) if order.gift_id else "—"
-        )
-        recipient_display = (
-            username(order.recipient_username)
-            if normalize_recipient_username(order.recipient_username) is not None
-            else str(order.recipient_user_id or 0)
-        )
-        visibility = (
-            str(i18n.messages.gift_sender_private_option())
-            if order.gift_sender_private
-            else str(i18n.messages.gift_sender_visible_option())
-        )
-        return str(
-            i18n.messages.order_checkout_message_gift(
-                recipient_id=recipient_display,
-                gift=gift_name,
-                amount=amount,
-                fee_text=fee_text,
-                pay_amount=total_with_fee,
-                message=escape_text(order.gift_message) if order.gift_message else "—",
-                sender_visibility=visibility,
             )
         )
     if order.product_type == StarsOrderProductType.PREMIUM:

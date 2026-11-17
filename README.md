@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/License-MIT-blue)](#license)
 
 Telegram bot for selling Telegram Stars:
-- payment methods: `CryptoBot`, `xRocket Pay`, `LZT Market`, `RollyPay (SBP)`, `NicePay (RU/KZ cards)`, `Heleket`
+- payment methods: `CryptoBot`, `xRocket Pay`, `LZT Market`, `RollyPay (SBP)`, `Heleket`
 - delivery: automated purchase via Fragment wallet flow (`bohd4nx/FragmentAPI` approach)
 - balance: user balance with pay-from-balance flow and auto-refund on delivery failure
 - UI: aiogram-dialog flow with `uk`, `ru`, `en` localization
@@ -54,7 +54,7 @@ in-process against local protocol doubles.
 - Configure public domain for webhooks and checkout links:
   - `SERVER_URL=https://trolololo.icu`
   - `TELEGRAM_USE_WEBHOOK=True`
-- Fill `CRYPTO_PAY_*`, `XROCKET_PAY_*`, `LZT_PAY_*`, `ROLLY_PAY_*`, `NICE_PAY_*`, `HELEKET_PAY_*` in `.env`
+- Fill `CRYPTO_PAY_*`, `XROCKET_PAY_*`, `LZT_PAY_*`, `ROLLY_PAY_*`, `HELEKET_PAY_*` in `.env`
 - For xRocket set:
   - `XROCKET_PAY_BASE_URL=https://pay.xrocket.exchange`
   - `XROCKET_PAY_CURRENCY=USDT` (or any code from `/currencies/available`, e.g. `TONCOIN`, `USDC`, `BTC`)

@@ -45,7 +45,6 @@ from .checks import (
     UpdateCheckRequest,
 )
 from .common import ErrorBody, ErrorResponse, OkResponse
-from .gifts import CreateGiftOrderRequest, GiftPackResponse
 from .orders import (
     CreatePremiumOrderRequest,
     CreateStarsOrderRequest,
@@ -107,14 +106,12 @@ __all__ = [
     "CheckResponse",
     "ChecksPageResponse",
     "CreateCheckRequest",
-    "CreateGiftOrderRequest",
     "CreatePremiumOrderRequest",
     "CreateSellOrderRequest",
     "CreateStarsOrderRequest",
     "CreateTopupOrderRequest",
     "ErrorBody",
     "ErrorResponse",
-    "GiftPackResponse",
     "MeResponse",
     "OkResponse",
     "OrderResponse",

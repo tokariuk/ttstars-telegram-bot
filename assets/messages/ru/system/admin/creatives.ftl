@@ -17,16 +17,9 @@ messages-admin_creatives_premium_screen =
 
     Выбери подходящий срок:
 
-messages-admin_creatives_gifts_screen =
-    <blockquote><b><tg-emoji emoji-id="5379759198974289129">🎁</tg-emoji> Telegram Gifts</b></blockquote>
-
-    <b>{ $designs } вариантов</b> подарков для близких, друзей и особых поводов.
-
-    Стоимость в TTStars:
-
 messages-admin_creatives_overview_screen =
     <blockquote><b><tg-emoji emoji-id="5381963861521900532">🖼️</tg-emoji> Всё для Telegram</b></blockquote>
 
-    Stars, Premium и подарки — в одном сервисе.
+    Stars и Premium — в одном сервисе.
 
     Актуальные предложения TTStars:

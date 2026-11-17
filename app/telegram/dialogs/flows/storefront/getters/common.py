@@ -10,7 +10,6 @@ from urllib.parse import quote_plus
 from aiogram_dialog import DialogManager
 
 from app.enums.stars_order import StarsOrderProductType, StarsOrderStatus, StarsPaymentProvider
-from app.gifts import get_gift_pack_by_id
 from app.models.config import AppConfig
 from app.models.dto.stars_order import StarsOrderDto
 from app.models.dto.user import UserDto
@@ -19,20 +18,14 @@ from app.services.crud.user import UserService
 from app.stars import (
     DEFAULT_STARS_COUNT,
     get_stars_pack,
-    normalize_recipient_username,
     premium_months_options,
     price_usd_for_cents,
 )
 from app.telegram.dialogs.common import get_i18n, get_user
-from app.telegram.html import spoiler_code
+from app.telegram.html import escape_text, spoiler_code
 
 from ..handlers import (
     DEFAULT_TOPUP_CENTS,
-    GIFTS_MESSAGE_KEY,
-    GIFTS_RECIPIENT_USER_ID_KEY,
-    GIFTS_RECIPIENT_USERNAME_KEY,
-    GIFTS_SELECTED_KEY,
-    GIFTS_SENDER_PRIVATE_KEY,
     PREMIUM_RECIPIENT_USERNAME_KEY,
     SELECTED_PREMIUM_MONTHS_KEY,
     SELECTED_STARS_COUNT_KEY,
@@ -60,7 +53,6 @@ BANNER_KEY = Literal[
     "stars",
     "premium",
     "stars_sell",
-    "gifts",
     "topup",
     "calculator",
     "profile",
@@ -77,7 +69,6 @@ BANNER_FILENAMES: Final[dict[BANNER_KEY, str]] = {
     "stars": "stars.jpg",
     "premium": "premium.jpg",
     "stars_sell": "stars-sell.jpg",
-    "gifts": "gifts.jpg",
     "topup": "topup.jpg",
     "calculator": "calculator.jpg",
     "profile": "profile.jpg",
@@ -91,7 +82,6 @@ BANNER_FILENAMES: Final[dict[BANNER_KEY, str]] = {
 
 BANNER_FALLBACKS: Final[dict[BANNER_KEY, str]] = {
     "checks": "history.jpg",
-    "gifts": "premium.jpg",
 }
 
 
@@ -100,7 +90,6 @@ PLACEHOLDER_BANNERS: Final[dict[BANNER_KEY, str]] = {
     "stars": banner_link(text="Stars", bg="16213e", fg="f8fafc", font="poppins"),
     "premium": banner_link(text="Premium", bg="1f2937", fg="f9fafb", font="poppins"),
     "stars_sell": banner_link(text="Sell Stars", bg="1f2937", fg="f9fafb", font="poppins"),
-    "gifts": banner_link(text="Telegram Gifts", bg="3b1c32", fg="fff1f2", font="poppins"),
     "topup": banner_link(text="Top Up Balance", bg="0f766e", fg="f0fdfa", font="poppins"),
     "calculator": banner_link(text="Stars Calculator", bg="312e81", fg="eef2ff", font="poppins"),
     "profile": banner_link(text="Your Profile", bg="3f1d2e", fg="fff1f2", font="poppins"),
@@ -110,20 +99,6 @@ PLACEHOLDER_BANNERS: Final[dict[BANNER_KEY, str]] = {
     "promo": banner_link(text="Promo Codes", bg="4a044e", fg="fdf4ff", font="poppins"),
     "faq": banner_link(text="FAQ", bg="0b3b4d", fg="ecfeff", font="poppins"),
 }
-_GIFT_NAME_MESSAGE_BY_KEY: Final[dict[str, str]] = {
-    "new_year_tree": "gift_name_new_year_tree",
-    "valentine_heart": "gift_name_valentine_heart",
-    "new_year_bear": "gift_name_new_year_bear",
-    "bear_with_heart": "gift_name_bear_with_heart",
-    "bear_with_bouquet": "gift_name_bear_with_bouquet",
-    "irish_bear": "gift_name_irish_bear",
-    "clown_bear": "gift_name_clown_bear",
-    "easter_bear": "gift_name_easter_bear",
-    "worker_bear": "gift_name_worker_bear",
-    "default_bear": "gift_name_default_bear",
-}
-
-
 @lru_cache(maxsize=1)
 def _assets_root() -> Path:
     current = Path(__file__).resolve()
@@ -278,52 +253,6 @@ def selected_topup_cents(dialog_manager: DialogManager) -> int:
     return DEFAULT_TOPUP_CENTS
 
 
-def selected_gift_recipient_user_id(dialog_manager: DialogManager) -> int | None:
-    raw_value = dialog_manager.dialog_data.get(GIFTS_RECIPIENT_USER_ID_KEY)
-    if isinstance(raw_value, int):
-        return raw_value if raw_value > 0 else None
-    if isinstance(raw_value, str) and raw_value.isdigit():
-        parsed = int(raw_value)
-        return parsed if parsed > 0 else None
-    return None
-
-
-def selected_gift_recipient_username(dialog_manager: DialogManager) -> str | None:
-    raw_value = dialog_manager.dialog_data.get(GIFTS_RECIPIENT_USERNAME_KEY)
-    if not isinstance(raw_value, str):
-        return None
-    return normalize_recipient_username(raw_value)
-
-
-def selected_gift_key(dialog_manager: DialogManager) -> str | None:
-    raw_value = dialog_manager.dialog_data.get(GIFTS_SELECTED_KEY)
-    if not isinstance(raw_value, str):
-        return None
-    normalized = raw_value.strip()
-    return normalized or None
-
-
-def selected_gift_message(dialog_manager: DialogManager) -> str | None:
-    raw_value = dialog_manager.dialog_data.get(GIFTS_MESSAGE_KEY)
-    if not isinstance(raw_value, str):
-        return None
-    normalized = raw_value.strip()
-    return normalized or None
-
-
-def selected_gift_sender_private(dialog_manager: DialogManager) -> bool | None:
-    raw_value = dialog_manager.dialog_data.get(GIFTS_SENDER_PRIVATE_KEY)
-    if isinstance(raw_value, bool):
-        return raw_value
-    if isinstance(raw_value, str):
-        lowered = raw_value.strip().lower()
-        if lowered == "true":
-            return True
-        if lowered == "false":
-            return False
-    return None
-
-
 def secret_code_view(value: str | None, *, placeholder: str = "—") -> str:
     """Render a technical identifier (TX hash, provider ref) for a message.
 
@@ -341,14 +270,12 @@ def provider_label(i18n: Any, provider: StarsPaymentProvider) -> str:
         StarsPaymentProvider.TON_PAY: i18n.messages.provider_ton,
         StarsPaymentProvider.LZT_PAY: i18n.messages.provider_lzt,
         StarsPaymentProvider.HELEKET_PAY: i18n.messages.provider_heleket,
-        StarsPaymentProvider.NICE_PAY_RU: i18n.messages.provider_nicepay_ru,
-        StarsPaymentProvider.NICE_PAY_KZ: i18n.messages.provider_nicepay_kz,
         StarsPaymentProvider.PLATEGA_PAY: i18n.messages.provider_platega,
         StarsPaymentProvider.XROCKET_PAY: i18n.messages.provider_xrocket,
         StarsPaymentProvider.BALANCE: i18n.messages.provider_balance,
     }
     getter = provider_getters.get(provider)
-    return str(getter()) if getter is not None else provider.value
+    return str(getter()) if getter is not None else str(i18n.messages.provider_archived())
 
 
 def lzt_pay_configured(dialog_manager: DialogManager) -> bool:
@@ -370,13 +297,6 @@ def ton_pay_configured(dialog_manager: DialogManager) -> bool:
     if not isinstance(service_raw, StarsOrderService):
         return False
     return service_raw.ton_pay_service.configured
-
-
-def nice_pay_configured(dialog_manager: DialogManager) -> bool:
-    service_raw = dialog_manager.middleware_data.get("stars_order_service")
-    if not isinstance(service_raw, StarsOrderService):
-        return False
-    return service_raw.nice_pay_service.configured
 
 
 def heleket_pay_configured(dialog_manager: DialogManager) -> bool:
@@ -471,27 +391,11 @@ def status_label(i18n: Any, status: StarsOrderStatus) -> str:
     return str(i18n.messages.order_status_failed())
 
 
-def _localized_gift_name(i18n: Any, *, gift_id: str) -> str:
-    gift = get_gift_pack_by_id(gift_id=gift_id)
-    if gift is None:
-        return gift_id
-    message_key = _GIFT_NAME_MESSAGE_BY_KEY.get(gift.key)
-    if message_key is None:
-        return gift.label
-    message_getter = getattr(i18n.messages, message_key, None)
-    if message_getter is None:
-        return gift.label
-    return str(message_getter())
-
-
 def product_label(i18n: Any, order: StarsOrderDto) -> str:
     if order.product_type == StarsOrderProductType.TOPUP:
         return str(i18n.messages.order_product_topup())
     if order.product_type == StarsOrderProductType.GIFT:
-        gift_name = (
-            _localized_gift_name(i18n=i18n, gift_id=order.gift_id) if order.gift_id else "Gift"
-        )
-        return str(i18n.messages.order_product_gift(gift=gift_name))
+        return str(i18n.messages.order_product_gift(gift=escape_text(order.gift_id or "—")))
     if order.product_type == StarsOrderProductType.PREMIUM:
         return str(i18n.messages.order_product_premium(months=order.premium_months or 0))
     return str(i18n.messages.order_product_stars(stars=order.stars_count))
@@ -511,7 +415,6 @@ __all__ = [
     "get_user",
     "heleket_pay_configured",
     "lzt_pay_configured",
-    "nice_pay_configured",
     "payment_button_text",
     "provider_fee_percent_text",
     "provider_meets_min_payment_amount",
@@ -522,11 +425,6 @@ __all__ = [
     "selected_premium_months",
     "selected_stars_count",
     "selected_topup_cents",
-    "selected_gift_recipient_user_id",
-    "selected_gift_recipient_username",
-    "selected_gift_key",
-    "selected_gift_message",
-    "selected_gift_sender_private",
     "secret_code_view",
     "server_base_url",
     "status_label",

@@ -9,8 +9,6 @@ SUPPORTED_PAYMENT_PROVIDERS: tuple[StarsPaymentProvider, ...] = (
     StarsPaymentProvider.XROCKET_PAY,
     StarsPaymentProvider.HELEKET_PAY,
     StarsPaymentProvider.LZT_PAY,
-    StarsPaymentProvider.NICE_PAY_RU,
-    StarsPaymentProvider.NICE_PAY_KZ,
     StarsPaymentProvider.PLATEGA_PAY,
     StarsPaymentProvider.BALANCE,
 )
@@ -29,8 +27,6 @@ _PROVIDER_TITLES: dict[StarsPaymentProvider, str] = {
     StarsPaymentProvider.XROCKET_PAY: "xRocket",
     StarsPaymentProvider.HELEKET_PAY: "Heleket",
     StarsPaymentProvider.LZT_PAY: "LZT Pay",
-    StarsPaymentProvider.NICE_PAY_RU: "NicePay RU",
-    StarsPaymentProvider.NICE_PAY_KZ: "NicePay KZ",
     StarsPaymentProvider.PLATEGA_PAY: "Platega",
     StarsPaymentProvider.BALANCE: "Balance",
 }
@@ -42,9 +38,3 @@ def provider_title(provider: StarsPaymentProvider) -> str:
 
 def supports_topup(provider: StarsPaymentProvider) -> bool:
     return provider in TOPUP_PAYMENT_PROVIDERS
-
-
-def supports_gifts(provider: StarsPaymentProvider) -> bool:
-    # Gifts are a balance-funded product: every supported provider (and the
-    # internal wallet) can pay for them, exactly like Stars and Premium.
-    return provider in SUPPORTED_PAYMENT_PROVIDERS

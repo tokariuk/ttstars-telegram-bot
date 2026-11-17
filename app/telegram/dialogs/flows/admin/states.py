@@ -31,5 +31,4 @@ class AdminSG(StatesGroup):
     creatives_menu = State()
     creatives_stars = State()
     creatives_premium = State()
-    creatives_gifts = State()
     creatives_overview = State()

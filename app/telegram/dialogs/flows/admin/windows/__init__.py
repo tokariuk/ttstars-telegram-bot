@@ -5,7 +5,6 @@ from .broadcast import (
     broadcast_options_window,
 )
 from .creatives import (
-    creatives_gifts_window,
     creatives_menu_window,
     creatives_overview_window,
     creatives_premium_window,
@@ -39,7 +38,6 @@ __all__ = [
     "broadcast_confirm_window",
     "broadcast_content_window",
     "broadcast_options_window",
-    "creatives_gifts_window",
     "creatives_menu_window",
     "creatives_overview_window",
     "creatives_premium_window",

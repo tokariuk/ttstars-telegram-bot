@@ -20,7 +20,6 @@ from app.services.crud.stars_order import (
 from app.telegram.dialogs.common import get_i18n
 
 from .shared_checkout import send_checkout_message
-from .shared_constants import MAX_GIFT_MESSAGE_LENGTH
 from .shared_services import set_notice
 
 logger = logging.getLogger(__name__)
@@ -45,7 +44,6 @@ def _set_validation_notice(
     i18n: Any,
     error: ValidationError,
 ) -> None:
-    error_text = str(error).strip().lower()
     if isinstance(error, PaymentMinAmountError):
         set_notice(
             dialog_manager,
@@ -56,27 +54,6 @@ def _set_validation_notice(
                 )
             ),
         )
-        return
-    if "gift recipient" in error_text:
-        set_notice(dialog_manager, str(i18n.messages.gift_recipient_invalid()))
-        return
-    if "userbot configuration is incomplete" in error_text:
-        set_notice(dialog_manager, str(i18n.messages.gift_userbot_session_required()))
-        return
-    if "cannot be verified without userbot session" in error_text:
-        set_notice(dialog_manager, str(i18n.messages.gift_userbot_session_required()))
-        return
-    if "gift sender visibility" in error_text:
-        set_notice(dialog_manager, str(i18n.messages.gift_sender_visibility_required()))
-        return
-    if "gift message is too long" in error_text:
-        set_notice(
-            dialog_manager,
-            str(i18n.messages.gift_message_too_long(max_chars=MAX_GIFT_MESSAGE_LENGTH)),
-        )
-        return
-    if "gift id" in error_text or "unsupported gift" in error_text:
-        set_notice(dialog_manager, str(i18n.messages.gift_invalid()))
         return
     set_notice(dialog_manager, str(i18n.messages.order_validation_error()))
 

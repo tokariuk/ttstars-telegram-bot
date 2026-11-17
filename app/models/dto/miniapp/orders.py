@@ -66,7 +66,6 @@ class QuoteRequest(PydanticModel):
     stars_count: Optional[int] = Field(default=None, ge=1)
     months: Optional[int] = Field(default=None, ge=1)
     amount_usd: Optional[str] = Field(default=None, max_length=32)
-    gift_key: Optional[str] = Field(default=None, max_length=64)
 
 
 class QuoteResponse(PydanticModel):

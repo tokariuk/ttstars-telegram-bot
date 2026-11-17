@@ -5,8 +5,6 @@ from typing import TYPE_CHECKING
 from app.enums.stars_order import StarsPaymentProvider
 from app.models.dto.stars_order import StarsOrderDto
 
-from .constants import NICE_PAY_PROVIDER_VARIANTS
-
 if TYPE_CHECKING:
     from app.services.crud.stars_order import StarsOrderService
 
@@ -54,13 +52,6 @@ async def is_order_paid(  # noqa: C901
             transaction_id=order.provider_reference,
         )
         return platega_status.is_paid, platega_status.status
-    if order.payment_provider in NICE_PAY_PROVIDER_VARIANTS:
-        if order.payment_payload is None or not order.payment_payload.strip():
-            return False, "payment_missing"
-        nice_status = await service.nice_pay_service.get_invoice_status(
-            payment_id=order.payment_payload,
-        )
-        return nice_status.is_paid, nice_status.status
     if order.payment_provider == StarsPaymentProvider.XROCKET_PAY:
         xrocket_status = await service.xrocket_pay_service.get_invoice_status(
             payment_payload=order.payment_payload,

@@ -15,7 +15,6 @@ from .shared import (
     checks_history_page,
     checks_page,
     clear_checks_create_draft,
-    clear_gift_draft,
     clear_notice,
     clear_stars_sell_draft,
     history_page,
@@ -70,37 +69,12 @@ async def show_menu(_: CallbackQuery, __: Button, dialog_manager: DialogManager)
     await dialog_manager.switch_to(StorefrontSG.menu, show_mode=ShowMode.EDIT)
 
 
-async def show_gifts(_: CallbackQuery, __: Button, dialog_manager: DialogManager) -> None:
-    clear_notice(dialog_manager)
-    clear_gift_draft(dialog_manager)
-    await dialog_manager.switch_to(StorefrontSG.gifts_recipient, show_mode=ShowMode.EDIT)
 
 
-async def show_gifts_catalog(
-    _: CallbackQuery,
-    __: Button,
-    dialog_manager: DialogManager,
-) -> None:
-    clear_notice(dialog_manager)
-    await dialog_manager.switch_to(StorefrontSG.gifts_catalog, show_mode=ShowMode.EDIT)
 
 
-async def show_gifts_message(
-    _: CallbackQuery,
-    __: Button,
-    dialog_manager: DialogManager,
-) -> None:
-    clear_notice(dialog_manager)
-    await dialog_manager.switch_to(StorefrontSG.gifts_message, show_mode=ShowMode.EDIT)
 
 
-async def show_gifts_sender_privacy(
-    _: CallbackQuery,
-    __: Button,
-    dialog_manager: DialogManager,
-) -> None:
-    clear_notice(dialog_manager)
-    await dialog_manager.switch_to(StorefrontSG.gifts_sender_privacy, show_mode=ShowMode.EDIT)
 
 
 async def show_stars_amount(_: CallbackQuery, __: Button, dialog_manager: DialogManager) -> None:
@@ -731,10 +705,6 @@ __all__ = [
     "show_checks_settings",
     "show_calculator",
     "show_faq",
-    "show_gifts",
-    "show_gifts_catalog",
-    "show_gifts_message",
-    "show_gifts_sender_privacy",
     "show_history",
     "show_history_list",
     "show_menu",

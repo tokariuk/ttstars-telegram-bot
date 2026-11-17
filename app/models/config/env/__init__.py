@@ -4,7 +4,6 @@ from .crypto_pay import CryptoPayConfig
 from .fragment import FragmentConfig
 from .heleket_pay import HeleketPayConfig
 from .lzt_pay import LZTPayConfig
-from .nice_pay import NicePayConfig
 from .payments import PaymentsConfig
 from .platega_pay import PlategaPayConfig
 from .postgres import PostgresConfig
@@ -22,7 +21,6 @@ __all__ = [
     "FragmentConfig",
     "HeleketPayConfig",
     "LZTPayConfig",
-    "NicePayConfig",
     "PaymentsConfig",
     "PlategaPayConfig",
     "PostgresConfig",

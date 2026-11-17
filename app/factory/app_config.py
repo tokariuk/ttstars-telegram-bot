@@ -7,7 +7,6 @@ from app.models.config.env import (
     FragmentConfig,
     HeleketPayConfig,
     LZTPayConfig,
-    NicePayConfig,
     PaymentsConfig,
     PlategaPayConfig,
     PostgresConfig,
@@ -26,7 +25,6 @@ def create_app_config() -> AppConfig:
         telegram=TelegramConfig(),  # pyright: ignore[reportCallIssue]
         crypto_pay=CryptoPayConfig(),  # pyright: ignore[reportCallIssue]
         lzt_pay=LZTPayConfig(),  # pyright: ignore[reportCallIssue]
-        nice_pay=NicePayConfig(),  # pyright: ignore[reportCallIssue]
         platega_pay=PlategaPayConfig(),  # pyright: ignore[reportCallIssue]
         heleket_pay=HeleketPayConfig(),  # pyright: ignore[reportCallIssue]
         xrocket_pay=XRocketPayConfig(),  # pyright: ignore[reportCallIssue]

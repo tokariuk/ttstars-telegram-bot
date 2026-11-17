@@ -34,7 +34,6 @@ class AdminCreativeToolsTests(unittest.TestCase):
         self.assertTrue(hasattr(AdminSG, "creatives_menu"))
         self.assertTrue(hasattr(AdminSG, "creatives_stars"))
         self.assertTrue(hasattr(AdminSG, "creatives_premium"))
-        self.assertTrue(hasattr(AdminSG, "creatives_gifts"))
         self.assertTrue(hasattr(AdminSG, "creatives_overview"))
 
         star_offers = getters.creative_stars_offers()
@@ -54,16 +53,11 @@ class AdminCreativeToolsTests(unittest.TestCase):
             [(offer.amount, offer.price_usd) for offer in getters.creative_premium_offers()],
             [(3, "12.99"), (6, "16.99"), (12, "30.99")],
         )
-        self.assertEqual(
-            [(offer.amount, offer.price_usd) for offer in getters.creative_gift_offers()],
-            [(1, "0.59"), (11, "1.59")],
-        )
 
         creative_windows = (
             windows.creatives_menu_window,
             windows.creatives_stars_window,
             windows.creatives_premium_window,
-            windows.creatives_gifts_window,
             windows.creatives_overview_window,
         )
         for window in creative_windows:

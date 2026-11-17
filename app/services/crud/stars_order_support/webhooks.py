@@ -9,8 +9,6 @@ from app.models.sql.stars_order import StarsOrder
 from app.services.postgres import SQLSessionContext
 from app.utils.time import datetime_now
 
-from .constants import NICE_PAY_PROVIDER_VARIANTS
-
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
@@ -204,111 +202,6 @@ async def process_platega_webhook_payment(
         paid_at=datetime_now(),
         payment_payload=normalized_payment_payload or dto.payment_payload,
         provider_reference=normalized_transaction_id or dto.provider_reference,
-    )
-    return await _try_fulfill_after_paid(service=service, order=transitioned or dto)
-
-
-async def find_nice_pay_webhook_order(
-    *,
-    service: StarsOrderService,
-    payment_id: str,
-    order_id: str,
-) -> StarsOrder | None:
-    order: StarsOrder | None = None
-    async with SQLSessionContext(session_pool=service.session_pool) as (repository, _uow):
-        if payment_id:
-            for provider in NICE_PAY_PROVIDER_VARIANTS:
-                order = await repository.stars_orders.get_by_provider_payload(
-                    provider=provider,
-                    payment_payload=payment_id,
-                )
-                if order is not None:
-                    return order
-        if order_id:
-            for provider in NICE_PAY_PROVIDER_VARIANTS:
-                order = await repository.stars_orders.get_by_provider_reference(
-                    provider=provider,
-                    provider_reference=order_id,
-                )
-                if order is not None:
-                    return order
-    return None
-
-
-def nice_pay_provider_status(
-    *,
-    webhook_result: str | None,
-    current_status: str | None,
-) -> str | None:
-    if isinstance(webhook_result, str) and webhook_result.strip():
-        return webhook_result.strip().lower()
-    return current_status
-
-
-async def process_nice_pay_webhook_payment(
-    *,
-    service: StarsOrderService,
-    payment_id: str | None = None,
-    order_id: str | None = None,
-    webhook_result: str | None = None,
-) -> StarsOrderDto | None:
-    normalized_payment_id = payment_id.strip() if isinstance(payment_id, str) else ""
-    normalized_order_id = order_id.strip() if isinstance(order_id, str) else ""
-    order = await find_nice_pay_webhook_order(
-        service=service,
-        payment_id=normalized_payment_id,
-        order_id=normalized_order_id,
-    )
-
-    if order is None:
-        return None
-
-    dto = order.dto()
-    if dto.status in {
-        StarsOrderStatus.COMPLETED,
-        StarsOrderStatus.FAILED,
-        StarsOrderStatus.CANCELED,
-    }:
-        return dto
-
-    provider_status = nice_pay_provider_status(
-        webhook_result=webhook_result,
-        current_status=dto.provider_status,
-    )
-    dto = (
-        await service._update_order(
-            order_id=dto.id,
-            provider_status=provider_status,
-            provider_reference=normalized_order_id or dto.provider_reference,
-        )
-        or dto
-    )
-
-    if provider_status != "success":
-        return dto
-
-    is_paid, verified_status = await service._is_order_paid(order=dto)
-    dto = (
-        await service._update_order(
-            order_id=dto.id,
-            provider_status=verified_status,
-            provider_reference=normalized_order_id or dto.provider_reference,
-        )
-        or dto
-    )
-    if not is_paid:
-        return dto
-
-    transitioned = await service._transition_order_status(
-        order_id=dto.id,
-        from_statuses=[
-            StarsOrderStatus.PENDING_PAYMENT,
-            StarsOrderStatus.CREATING_PAYMENT,
-        ],
-        to_status=StarsOrderStatus.PAYMENT_CONFIRMED,
-        provider_status=verified_status,
-        paid_at=datetime_now(),
-        provider_reference=normalized_order_id or dto.provider_reference,
     )
     return await _try_fulfill_after_paid(service=service, order=transitioned or dto)
 

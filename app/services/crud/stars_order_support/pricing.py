@@ -8,8 +8,6 @@ from app.enums.stars_order import StarsPaymentProvider
 
 _PAYMENT_FEE_ON_TOP_PROVIDERS = {
     StarsPaymentProvider.PLATEGA_PAY,
-    StarsPaymentProvider.NICE_PAY_RU,
-    StarsPaymentProvider.NICE_PAY_KZ,
 }
 
 

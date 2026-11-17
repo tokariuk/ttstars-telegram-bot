@@ -35,7 +35,6 @@ def net_amount_cents_for_quote(  # noqa: C901 - explicit validation per product 
     stars_count: int | None,
     months: int | None,
     amount_usd: str | None,
-    gift_key: str | None = None,
 ) -> int:
     """Resolve the net (pre-fee) USD-cent amount a quote is priced against."""
 
@@ -57,6 +56,4 @@ def net_amount_cents_for_quote(  # noqa: C901 - explicit validation per product 
         if amount_usd is None:
             validation_error("amount_usd is required for top-up quotes.")
         return parse_usd_amount_to_cents(amount_usd)
-    if product_type == StarsOrderProductType.GIFT:
-        validation_error("Telegram gifts are no longer available.")
     validation_error("Unsupported product type for quote.")

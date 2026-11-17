@@ -10,7 +10,6 @@ from app.endpoints.legal import router as legal_router
 from app.endpoints.lzt_pay import create_router as create_lzt_pay_router
 from app.endpoints.metrics import router as metrics_router
 from app.endpoints.miniapp import register as register_miniapp
-from app.endpoints.nice_pay import create_router as create_nice_pay_router
 from app.endpoints.platega_pay import create_router as create_platega_pay_router
 from app.endpoints.ton_pay import create_router as create_ton_pay_router
 from app.endpoints.xrocket_pay import create_router as create_xrocket_pay_router
@@ -23,7 +22,6 @@ def setup_fastapi(app: FastAPI, dispatcher: Dispatcher, bot: Bot) -> FastAPI:
     app.mount("/assets", StaticFiles(directory="assets"), name="assets")
     normalized_crypto_path = normalize_route_path(config.crypto_pay.webhook_path)
     normalized_lzt_path = normalize_route_path(config.lzt_pay.webhook_path)
-    normalized_nice_path = normalize_route_path(config.nice_pay.webhook_path)
     normalized_platega_path = normalize_route_path(config.platega_pay.webhook_path)
     normalized_xrocket_path = normalize_route_path(config.xrocket_pay.webhook_path)
     normalized_heleket_path = normalize_route_path(config.heleket_pay.webhook_path)
@@ -40,7 +38,6 @@ def setup_fastapi(app: FastAPI, dispatcher: Dispatcher, bot: Bot) -> FastAPI:
     app.include_router(legal_router)
     app.include_router(create_crypto_pay_router(normalized_crypto_path))
     app.include_router(create_lzt_pay_router(normalized_lzt_path))
-    app.include_router(create_nice_pay_router(normalized_nice_path))
     app.include_router(create_platega_pay_router(normalized_platega_path))
     app.include_router(create_xrocket_pay_router(normalized_xrocket_path))
     app.include_router(

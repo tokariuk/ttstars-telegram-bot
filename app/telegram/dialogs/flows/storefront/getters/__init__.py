@@ -15,13 +15,6 @@ from .checks import (
     checks_settings_getter,
 )
 from .faq import faq_getter
-from .gifts import (
-    gifts_catalog_getter,
-    gifts_message_getter,
-    gifts_payment_getter,
-    gifts_recipient_getter,
-    gifts_sender_privacy_getter,
-)
 from .history import history_details_getter, history_getter
 from .menu import menu_getter
 from .premium import premium_payment_getter, premium_plans_getter, premium_recipient_getter
@@ -60,11 +53,6 @@ __all__ = [
     "checks_list_getter",
     "checks_settings_getter",
     "faq_getter",
-    "gifts_catalog_getter",
-    "gifts_message_getter",
-    "gifts_payment_getter",
-    "gifts_recipient_getter",
-    "gifts_sender_privacy_getter",
     "history_details_getter",
     "history_getter",
     "menu_getter",
